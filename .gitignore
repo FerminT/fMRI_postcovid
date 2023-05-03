@@ -1,0 +1,17 @@
+nilearn_cache
+
+# data and metadata
+*.json
+*.nii.gz
+*.h5
+*.csv
+*.tsv
+*.txt
+*.toml
+
+# dataset description
+neurocovid_dataset/README
+
+# logs
+neurocovid_derivatives/logs
+
