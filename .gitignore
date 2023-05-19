@@ -3,15 +3,20 @@ nilearn_cache
 # data and metadata
 *.json
 *.nii.gz
+*.gii
 *.h5
 *.csv
 *.tsv
 *.txt
 *.toml
 
+# figures and reports
+*.html
+*.svg
+
 # dataset description
 neurocovid_dataset/README
 
-# logs
+# logs and freesurfer
 neurocovid_derivatives/logs
-
+neurocovid_derivatives/sourcedata
