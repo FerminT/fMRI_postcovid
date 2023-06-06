@@ -12,14 +12,48 @@ from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def compute_timeseries(subjects_df, conf_strategy, atlas_name):
+def run(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
+    subjects_df, subjs_by_cluster = load_clinical_data(clinical_datafile)
+    load_datapaths(subjects_paths, subjects_df)
     atlas = load_atlas(atlas_name)
     # Use apply_mask to all subjects in dataframe
-    subjects_df['time_series'] = subjects_df.apply(lambda subj: apply_mask(subj['func_path'], subj['mask_path'],
-                                                                           conf_strategy, atlas.maps), axis=1)
+    subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
+                                                                            conf_strategy, atlas.maps), axis=1)
+    # Compute correlation matrix for each subject
+    subjects_df['connectivity_matrix'] = subjects_df.apply(lambda subj: connectivity_matrix(subj['time_series']))
+
+    save_connectivity_matrices(subjects_df, atlas, threshold, output)
 
 
-def apply_mask(func_data, brain_mask, conf_strategy, atlas_maps):
+def save_connectivity_matrices(subjects_df, atlas, threshold, output):
+    # Plot connectivity matrices and save them
+    for subj in subjects_df['AnonID'].values:
+        subj_df = subjects_df[subjects_df['AnonID'] == subj]
+        connectivity_matrix = subj_df['connectivity_matrix'].values[0]
+        # Compute percentile and apply threshold
+        percentile = np.percentile(connectivity_matrix, threshold)
+        connectivity_matrix[connectivity_matrix < percentile] = 0
+        # Plot and save connectivity matrix
+        plotting.plot_matrix(connectivity_matrix,
+                             tri='lower',
+                             labels=atlas.labels,
+                             colorbar=True,
+                             vmax=0.8,
+                             vmin=-0.8,
+                             reorder=True)
+        plotting.savefig(f'{output}/connectivity_matrices/subj_{str(subj).zfill(3)}_connectivity_matrix.png')
+
+
+def connectivity_matrix(time_series, kind='correlation'):
+    # Compute connectivity matrix
+    connectivity_measure = ConnectivityMeasure(kind=kind)
+    connectivity_matrix = connectivity_measure.fit_transform(time_series)
+    np.fill_diagonal(connectivity_matrix, 0)
+
+    return connectivity_matrix
+
+
+def time_series(func_data, brain_mask, conf_strategy, atlas_maps):
     nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
                                      mask_img=brain_mask,
                                      smoothing_fwhm=6,
@@ -60,7 +94,7 @@ def load_clinical_data(clinical_datafile):
     subjects_data = subjects_data[~subjects_data['cluster'].isna()]
     subjs_by_cluster = divide_by_cluster(subjects_data)
 
-    return subjects_data
+    return subjects_data, subjs_by_cluster
 
 
 def load_datapaths(subjects_paths, subjects_df):
@@ -90,22 +124,26 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--confounds', type=str, default='simple',
                             help='Strategy for loading fMRIPrep denoising strategies. \
                            Options: simple, compcor, srubbing, ica_aroma')
-    arg_parser.add_argument('-m', '--mask', type=bool, default=True, help='Whether to use fMRIPrep brain mask or not')
     arg_parser.add_argument('-a', '--atlas', type=str, default='schaefer', help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-d', '--derivatives', type=str, default='neurocovid_derivatives',
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-o', '--output', type=str, default='analysis/functional_connectivity')
     arg_parser.add_argument('-n', 'n_components', type=int, default=5,
                             help='Number of components to use for DictLearning')
-    arg_parser.add_argument('-clinical', '--clinical', type=str, default='clinical_data.csv')
+    arg_parser.add_argument('-t', '--threshold', type=int, default=95,
+                            help='Activity threshold for connectome (percentile)')
+    arg_parser.add_argument('-clinical', '--clinical', type=str, default='clinical_data.csv',
+                            help='Path to file with subjects clinical data')
 
     args = arg_parser.parse_args()
 
     # Set up paths
-    derivatives, output = Path(args.derivatives), Path(args.output)
+    derivatives, output = Path(args.derivatives), Path(args.output) / args.atlas
     output.mkdir(parents=True, exist_ok=True)
 
     if args.subject == 'all':
         subjects = [sub for sub in derivatives.glob('sub-*') if sub.is_dir()]
     else:
         subjects = [derivatives / f'sub-{args.subject.zfill(3)}']
+
+    run(subjects, args.confounds, args.atlas, args.n_components, args.clinical, output, args.threshold)
