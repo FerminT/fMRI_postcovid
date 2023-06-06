@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import argparse
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def run(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
+def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
     subjects_df, subjs_by_cluster = load_clinical_data(clinical_datafile)
     load_datapaths(subjects_paths, subjects_df)
     atlas = load_atlas(atlas_name)
@@ -20,8 +21,11 @@ def run(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafi
     subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                                             conf_strategy, atlas.maps), axis=1)
     # Compute correlation matrix for each subject
-    subjects_df['connectivity_matrix'] = subjects_df.apply(lambda subj: connectivity_matrix(subj['time_series']))
+    subjects_df['connectivity_matrix'] = subjects_df.apply(lambda subj: connectivity_matrix(subj['time_series']),
+                                                           axis=1)
 
+    output = output / 'connectivity_matrices'
+    output.mkdir(exist_ok=True)
     save_connectivity_matrices(subjects_df, atlas, threshold, output)
 
 
@@ -34,20 +38,23 @@ def save_connectivity_matrices(subjects_df, atlas, threshold, output):
         percentile = np.percentile(connectivity_matrix, threshold)
         connectivity_matrix[connectivity_matrix < percentile] = 0
         # Plot and save connectivity matrix
+        fig, ax = plt.subplots(figsize=(10, 8))
         plotting.plot_matrix(connectivity_matrix,
                              tri='lower',
                              labels=atlas.labels,
                              colorbar=True,
                              vmax=0.8,
                              vmin=-0.8,
-                             reorder=True)
-        plotting.savefig(f'{output}/connectivity_matrices/subj_{str(subj).zfill(3)}_connectivity_matrix.png')
+                             reorder=True,
+                             axes=ax)
+        fig.savefig(output / f'subj_{subj}.png')
+        plt.close(fig)
 
 
 def connectivity_matrix(time_series, kind='correlation'):
     # Compute connectivity matrix
     connectivity_measure = ConnectivityMeasure(kind=kind)
-    connectivity_matrix = connectivity_measure.fit_transform(time_series)
+    connectivity_matrix = connectivity_measure.fit_transform([time_series])[0]
     np.fill_diagonal(connectivity_matrix, 0)
 
     return connectivity_matrix
@@ -86,6 +93,7 @@ def load_atlas(atlas_name):
 def load_clinical_data(clinical_datafile):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['AnonID'].isna()]
+    subjects_data = subjects_data.astype({'AnonID': int})
 
     # Remove invalid subjects (subj 29 has different data shapes)
     subjects_to_remove = [2, 17, 29]
@@ -124,11 +132,11 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--confounds', type=str, default='simple',
                             help='Strategy for loading fMRIPrep denoising strategies. \
                            Options: simple, compcor, srubbing, ica_aroma')
-    arg_parser.add_argument('-a', '--atlas', type=str, default='schaefer', help='Atlas to use for brain parcellation')
+    arg_parser.add_argument('-a', '--atlas', type=str, default='aal', help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-d', '--derivatives', type=str, default='neurocovid_derivatives',
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-o', '--output', type=str, default='analysis/functional_connectivity')
-    arg_parser.add_argument('-n', 'n_components', type=int, default=5,
+    arg_parser.add_argument('-n', '--n_components', type=int, default=5,
                             help='Number of components to use for DictLearning')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
                             help='Activity threshold for connectome (percentile)')
@@ -146,4 +154,4 @@ if __name__ == '__main__':
     else:
         subjects = [derivatives / f'sub-{args.subject.zfill(3)}']
 
-    run(subjects, args.confounds, args.atlas, args.n_components, args.clinical, output, args.threshold)
+    build_connectome(subjects, args.confounds, args.atlas, args.n_components, args.clinical, output, args.threshold)
