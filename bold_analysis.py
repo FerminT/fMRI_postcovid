@@ -5,18 +5,19 @@ import argparse
 from pathlib import Path
 
 # NiLearn methods and classes
-from nilearn import datasets, plotting, image
+from nilearn import datasets, plotting, image, masking
 from nilearn.interfaces import fmriprep
 from nilearn.connectome import ConnectivityMeasure
+from nilearn.decomposition import dict_learning
 from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def save_clusters_matrices(clusters_conmatrix, atlas, threshold, output):
-    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_conmatrix), figsize=(20, 20))
-    for i, cluster in enumerate(clusters_conmatrix):
-        cluster_conmatrix = clusters_conmatrix[cluster]
+def save_clusters_matrices(clusters_data, atlas, threshold, output):
+    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(20, 20))
+    for i, cluster in enumerate(clusters_data):
+        cluster_conmatrix = clusters_data[cluster]['connectivity_matrix']
         # Apply first cluster label order to the rest of the clusters for better comparison
         if i > 0:
             label_order = [tick.get_text() for tick in axes[0].get_xticklabels()]
@@ -30,6 +31,24 @@ def save_clusters_matrices(clusters_conmatrix, atlas, threshold, output):
     fig.savefig(output / 'clusters.png')
 
 
+def save_principal_components(clusters_data, output):
+    for cluster in clusters_data:
+        components_img = clusters_data[cluster]['components_img']
+        plotting.plot_prob_atlas(components_img,
+                                 draw_cross=False,
+                                 linewidths=None,
+                                 cut_coords=[0, 0, 0],
+                                 title=f'Cluster {cluster}')
+        plt.savefig(output / f'cluster_{cluster}_maps.png')
+        first_comp = components_img.slicer[..., :5]
+        fig = plt.figure(figsize=(16, 3))
+        for i, cur_img in enumerate(image.iter_img(first_comp)):
+            ax = fig.add_subplot(1, 4, i + 1)
+            plotting.plot_stat_map(cur_img, display_mode="z", title="PC %d" % i,
+                                   cut_coords=1, colorbar=True, axes=ax)
+        fig.savefig(output / f'cluster_{cluster}_components.png')
+
+
 def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
     subjects_df = load_clinical_data(clinical_datafile)
     load_datapaths(subjects_paths, subjects_df)
@@ -41,15 +60,50 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
                                                                           connectivity_matrix([time_series])[0][0])
 
     # Compute mean connectivity matrix by cluster
-    clusters_conmatrix = dict.fromkeys(subjects_df['cluster'].unique())
-    for cluster in clusters_conmatrix:
+    clusters_data = {cluster: {'connectivity_matrix': None, 'components_img': None}
+                     for cluster in subjects_df['cluster'].unique()}
+    for cluster in clusters_data:
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
-        clusters_conmatrix[cluster] = mean_connectivity_matrix(cluster_df['time_series'].values)
+        clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
+        clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
+                                                                      cluster_df['mask_path'].values,
+                                                                      conf_strategy,
+                                                                      n_components)
 
     output = output / 'connectivity_matrices'
     output.mkdir(exist_ok=True)
     save_connectivity_matrices(subjects_df, atlas, threshold, output)
-    save_clusters_matrices(clusters_conmatrix, atlas, threshold, output)
+    save_clusters_matrices(clusters_data, atlas, threshold, output)
+    output = output.parent / 'components'
+    output.mkdir(exist_ok=True)
+    save_principal_components(clusters_data, output)
+
+
+def extract_components(func_data, brain_masks, conf_strategy, n_components):
+    brain_mask = masking.intersect_masks(brain_masks)
+    masker = MultiNiftiMasker(mask_img=brain_mask,
+                              high_pass=0.01,
+                              low_pass=0.08,
+                              t_r=2.,
+                              smoothing_fwhm=6.,
+                              standardize=True,
+                              detrend=True,
+                              memory='nilearn_cache', memory_level=2)
+    dict_learn = dict_learning.DictLearning(n_components=n_components,
+                                            high_pass=0.01,
+                                            low_pass=0.08,
+                                            t_r=2.,
+                                            smoothing_fwhm=6.,
+                                            standardize=True,
+                                            detrend=True,
+                                            mask=masker,
+                                            random_state=42,
+                                            n_jobs=-1,
+                                            memory='nilearn_cache', memory_level=2)
+    confounds, _ = fmriprep.load_confounds_strategy(func_data, conf_strategy)
+    dict_learn.fit(func_data, confounds=confounds)
+
+    return dict_learn.components_img_
 
 
 def save_connectivity_matrices(subjects_df, atlas, threshold, output, reorder=False):
@@ -141,7 +195,6 @@ def load_clinical_data(clinical_datafile):
     subjects_data = subjects_data.drop(subjects_data[subjects_data['AnonID'].isin(subjects_to_remove)].index)
     # Remove subjects with no cluster
     subjects_data = subjects_data[~subjects_data['cluster'].isna()]
-    # subjs_by_cluster = divide_by_cluster(subjects_data)
 
     return subjects_data
 
