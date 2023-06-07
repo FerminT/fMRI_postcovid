@@ -78,8 +78,11 @@ def plot_matrix_on_axis(connectivity_matrix, labels, ax, threshold, reorder=Fals
 
 
 def mean_connectivity_matrix(time_series, kind='correlation'):
-    _, connectivity_measure = connectivity_matrix(time_series, kind)
+    connectivity_matrices, connectivity_measure = connectivity_matrix(time_series, kind)
     mean_connectivity_matrix = connectivity_measure.mean_
+
+    q = q_test(connectivity_matrices, mean_connectivity_matrix)
+    print(f'Q test: {q}')
 
     return mean_connectivity_matrix
 
@@ -105,6 +108,13 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps):
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
     return time_series
+
+
+def q_test(data, mean):
+    # Upper triangulate the data
+    data, mean = np.triu(data, k=1), np.triu(mean, k=1)
+    q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
+    return q
 
 
 def load_atlas(atlas_name):
@@ -146,15 +156,6 @@ def load_datapaths(subjects_paths, subjects_df):
             mask_file = [f for f in func_path.glob('*.nii.gz') if 'brain_mask' in f.name][0]
             subjects_df.loc[subjects_df['AnonID'] == subj_id, 'func_path'] = str(func_file)
             subjects_df.loc[subjects_df['AnonID'] == subj_id, 'mask_path'] = str(mask_file)
-
-
-def divide_by_cluster(subjects_df):
-    # Get subjects per cluster
-    clusters = subjects_df['cluster'].unique()
-    subjs_by_cluster = {int(cluster): subjects_df[subjects_df['cluster'] == cluster]['AnonID'].values
-                        for cluster in clusters}
-
-    return subjs_by_cluster
 
 
 if __name__ == '__main__':
