@@ -17,12 +17,11 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
     subjects_df = load_clinical_data(clinical_datafile)
     load_datapaths(subjects_paths, subjects_df)
     atlas = load_atlas(atlas_name)
-    # Use apply_mask to all subjects in dataframe
     subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                                             conf_strategy, atlas.maps), axis=1)
-    # Compute correlation matrix for each subject
-    subjects_df['connectivity_matrix'] = subjects_df.apply(lambda subj: connectivity_matrix(subj['time_series']),
-                                                           axis=1)
+
+    subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
+                                                                          connectivity_matrix([time_series])[0][0])
 
     output = output / 'connectivity_matrices'
     output.mkdir(exist_ok=True)
@@ -52,12 +51,10 @@ def save_connectivity_matrices(subjects_df, atlas, threshold, output, reorder=Fa
 
 
 def connectivity_matrix(time_series, kind='correlation'):
-    # Compute connectivity matrix
     connectivity_measure = ConnectivityMeasure(kind=kind)
-    connectivity_matrix = connectivity_measure.fit_transform([time_series])[0]
-    np.fill_diagonal(connectivity_matrix, 0)
+    connectivity_matrix = connectivity_measure.fit_transform(time_series)
 
-    return connectivity_matrix
+    return connectivity_matrix, connectivity_measure
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps):
