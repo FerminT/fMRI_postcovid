@@ -14,7 +14,7 @@ TEMPLATE_SHAPE = [55, 65, 55]
 
 
 def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
-    subjects_df, subjs_by_cluster = load_clinical_data(clinical_datafile)
+    subjects_df = load_clinical_data(clinical_datafile)
     load_datapaths(subjects_paths, subjects_df)
     atlas = load_atlas(atlas_name)
     # Use apply_mask to all subjects in dataframe
@@ -29,7 +29,7 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
     save_connectivity_matrices(subjects_df, atlas, threshold, output)
 
 
-def save_connectivity_matrices(subjects_df, atlas, threshold, output):
+def save_connectivity_matrices(subjects_df, atlas, threshold, output, reorder=False):
     # Plot connectivity matrices and save them
     for subj in subjects_df['AnonID'].values:
         subj_df = subjects_df[subjects_df['AnonID'] == subj]
@@ -45,7 +45,7 @@ def save_connectivity_matrices(subjects_df, atlas, threshold, output):
                              colorbar=True,
                              vmax=0.8,
                              vmin=-0.8,
-                             reorder=True,
+                             reorder=reorder,
                              axes=ax)
         fig.savefig(output / f'subj_{subj}.png')
         plt.close(fig)
@@ -99,10 +99,10 @@ def load_clinical_data(clinical_datafile):
     subjects_to_remove = [2, 17, 29]
     subjects_data = subjects_data.drop(subjects_data[subjects_data['AnonID'].isin(subjects_to_remove)].index)
     # Remove subjects with no cluster
-    subjects_data = subjects_data[~subjects_data['cluster'].isna()]
-    subjs_by_cluster = divide_by_cluster(subjects_data)
+    # subjects_data = subjects_data[~subjects_data['cluster'].isna()]
+    # subjs_by_cluster = divide_by_cluster(subjects_data)
 
-    return subjects_data, subjs_by_cluster
+    return subjects_data
 
 
 def load_datapaths(subjects_paths, subjects_df):
