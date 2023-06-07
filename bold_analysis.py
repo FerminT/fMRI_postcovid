@@ -39,14 +39,14 @@ def save_principal_components(clusters_data, output):
                                  linewidths=None,
                                  cut_coords=[0, 0, 0],
                                  title=f'Cluster {cluster}')
-        plt.savefig(output / f'cluster_{cluster}_maps.png')
-        first_comp = components_img.slicer[..., :5]
+        plt.savefig(output / f'maps_cluster_{cluster}.png')
+        first_comp = components_img.slicer[..., :4]
         fig = plt.figure(figsize=(16, 3))
         for i, cur_img in enumerate(image.iter_img(first_comp)):
             ax = fig.add_subplot(1, 4, i + 1)
             plotting.plot_stat_map(cur_img, display_mode="z", title="PC %d" % i,
                                    cut_coords=1, colorbar=True, axes=ax)
-        fig.savefig(output / f'cluster_{cluster}_components.png')
+        fig.savefig(output / f'components_cluster_{cluster}.png')
 
 
 def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
@@ -86,6 +86,7 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components):
                               low_pass=0.08,
                               t_r=2.,
                               smoothing_fwhm=6.,
+                              mask_strategy='epi',
                               standardize=True,
                               detrend=True,
                               memory='nilearn_cache', memory_level=2)
