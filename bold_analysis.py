@@ -14,19 +14,19 @@ from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def save_clusters_matrices(clusters_data, atlas, threshold, output):
+def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
     fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(20, 20))
     for i, cluster in enumerate(clusters_data):
         cluster_conmatrix = clusters_data[cluster]['connectivity_matrix']
         # Apply first cluster label order to the rest of the clusters for better comparison
         if i > 0:
             label_order = [tick.get_text() for tick in axes[0].get_xticklabels()]
-            regions_indices = [atlas.labels.index(region) for region in label_order]
+            regions_indices = [atlas_labels[atlas_labels.name == region].index[0] for region in label_order]
             cluster_conmatrix = cluster_conmatrix[regions_indices, :][:, regions_indices]
-        else:
-            label_order = atlas.labels
+            atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
+            atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        plot_matrix_on_axis(cluster_conmatrix, label_order, axes[i], threshold, reorder=reorder)
+        plot_matrix_on_axis(cluster_conmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
         axes[i].set_title(f'Cluster {cluster}')
     fig.savefig(output / 'clusters.png')
 
@@ -72,8 +72,8 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
 
     output = output / 'connectivity_matrices'
     output.mkdir(exist_ok=True)
-    save_connectivity_matrices(subjects_df, atlas, threshold, output)
-    save_clusters_matrices(clusters_data, atlas, threshold, output)
+    save_connectivity_matrices(subjects_df, atlas.labels, threshold, output)
+    save_clusters_matrices(clusters_data, atlas.labels, threshold, output)
     output = output.parent / 'components'
     output.mkdir(exist_ok=True)
     save_principal_components(clusters_data, output)
@@ -107,21 +107,23 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components):
     return dict_learn.components_img_
 
 
-def save_connectivity_matrices(subjects_df, atlas, threshold, output, reorder=False):
+def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reorder=False):
     # Plot connectivity matrices and save them
     for subj in subjects_df['AnonID'].values:
         subj_df = subjects_df[subjects_df['AnonID'] == subj]
         connectivity_matrix = subj_df['connectivity_matrix'].values[0]
         fig, ax = plt.subplots(figsize=(10, 8))
-        plot_matrix_on_axis(connectivity_matrix, atlas.labels, ax, threshold, reorder=reorder)
+        plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold, reorder=reorder)
         fig.savefig(output / f'subj_{subj}.png')
         plt.close(fig)
 
 
-def plot_matrix_on_axis(connectivity_matrix, labels, ax, threshold, reorder=False):
+def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold, reorder=False):
     # Compute percentile and apply threshold
     percentile = np.percentile(connectivity_matrix, threshold)
     connectivity_matrix[connectivity_matrix < percentile] = 0
+    # Get labels in the correct format until plot_matrix is fixed
+    labels = list(atlas_labels.name.values)
     plotting.plot_matrix(connectivity_matrix,
                          tri='lower',
                          labels=labels,
@@ -175,11 +177,11 @@ def q_test(data, mean):
 def load_atlas(atlas_name):
     # Use nilearn datasets to fetch atlas
     if atlas_name == 'aal':
-        atlas = datasets.fetch_atlas_aal()
+        atlas = datasets.fetch_atlas_aal(legacy_format=False)
     elif atlas_name == 'destrieux':
-        atlas = datasets.fetch_atlas_destrieux_2009()
+        atlas = datasets.fetch_atlas_destrieux_2009(legacy_format=False)
     elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018()
+        atlas = datasets.fetch_atlas_schaefer_2018(legacy_format=False)
     else:
         raise ValueError(f'Atlas {atlas_name} not recognized')
 
