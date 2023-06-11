@@ -70,13 +70,13 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
                                                                       conf_strategy,
                                                                       n_components)
 
-    output = output / 'connectivity_matrices'
-    output.mkdir(exist_ok=True)
-    save_connectivity_matrices(subjects_df, atlas.labels, threshold, output)
-    save_clusters_matrices(clusters_data, atlas.labels, threshold, output)
-    output = output.parent / 'components'
-    output.mkdir(exist_ok=True)
-    save_principal_components(clusters_data, output)
+    conn_output = output / 'connectivity_matrices'
+    conn_output.mkdir(exist_ok=True)
+    save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
+    save_clusters_matrices(clusters_data, atlas.labels, threshold, conn_output)
+    comp_output = output.parent / 'components'
+    comp_output.mkdir(exist_ok=True)
+    save_principal_components(clusters_data, comp_output)
 
 
 def extract_components(func_data, brain_masks, conf_strategy, n_components):
