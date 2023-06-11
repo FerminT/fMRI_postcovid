@@ -180,6 +180,9 @@ def load_atlas(atlas_name):
         atlas = datasets.fetch_atlas_aal(legacy_format=False)
     elif atlas_name == 'destrieux':
         atlas = datasets.fetch_atlas_destrieux_2009(legacy_format=False)
+        # Remove missing regions in atlas.maps from atlas.labels
+        # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
+        atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
     elif atlas_name == 'schaefer':
         atlas = datasets.fetch_atlas_schaefer_2018(legacy_format=False)
     else:
