@@ -15,7 +15,7 @@ TEMPLATE_SHAPE = [55, 65, 55]
 
 
 def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
-    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(20, 20))
+    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(30, 30))
     for i, cluster in enumerate(clusters_data):
         cluster_conmatrix = clusters_data[cluster]['connectivity_matrix']
         # Apply first cluster label order to the rest of the clusters for better comparison
