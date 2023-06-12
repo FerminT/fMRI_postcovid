@@ -177,7 +177,8 @@ def q_test(data, mean):
 def load_atlas(atlas_name):
     # Use nilearn datasets to fetch atlas
     if atlas_name == 'aal':
-        atlas = datasets.fetch_atlas_aal(legacy_format=False)
+        atlas = datasets.fetch_atlas_aal()
+        atlas.labels = pd.DataFrame({'name': atlas.labels})
     elif atlas_name == 'destrieux':
         atlas = datasets.fetch_atlas_destrieux_2009(legacy_format=False)
         # Remove missing regions in atlas.maps from atlas.labels
