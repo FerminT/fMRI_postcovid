@@ -14,19 +14,61 @@ from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
+def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
+    # Only for Schaefer atlas
+    diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
+    for i, cluster in enumerate(clusters_data):
+        cluster_connmatrix = clusters_data[cluster]['connectivity_matrix']
+        cluster_connmatrix = apply_threshold(cluster_connmatrix, threshold)
+        if i == 0:
+            diff_connmatrix = cluster_connmatrix
+        else:
+            diff_connmatrix = np.abs(diff_connmatrix - cluster_connmatrix)
+    fig, ax = plt.subplots(figsize=(10, 8))
+    plot_matrix_on_axis(diff_connmatrix, atlas_labels, ax, threshold=0, reorder=True)
+    fig.savefig(output / f'regions_diff.png')
+    plt.close(fig)
+    networks, network_index = {}, 0
+    all_atlas_labels = atlas_labels['name'].values
+    for region in all_atlas_labels:
+        network = region.split('_')[1]
+        if network not in networks:
+            networks[network] = {'index': network_index}
+            network_index += 1
+    networks_connmatrix = np.zeros((len(networks), len(networks)))
+    terms_matrix = np.zeros((len(networks), len(networks)))
+    for i, row_region in enumerate(all_atlas_labels):
+        row_network = row_region.split('_')[1]
+        idx_row_network = networks[row_network]['index']
+        for j, col_region in enumerate(all_atlas_labels):
+            col_network = col_region.split('_')[1]
+            idx_col_network = networks[col_network]['index']
+            networks_connmatrix[idx_row_network, idx_col_network] += diff_connmatrix[i, j]
+            terms_matrix[idx_row_network, idx_col_network] += 1
+
+    # Compute mean
+    networks_connmatrix /= terms_matrix
+    fig, ax = plt.subplots(figsize=(10, 8))
+    networks_labels = pd.DataFrame({'name': list(networks.keys())})
+    plot_matrix_on_axis(networks_connmatrix, networks_labels, ax, threshold=0,
+                        tri='full', vmin=-0.1, vmax=0.1)
+    fig.savefig(output / f'networks_diff.png')
+    plt.close(fig)
+
+
 def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
     fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(30, 30))
     for i, cluster in enumerate(clusters_data):
-        cluster_conmatrix = clusters_data[cluster]['connectivity_matrix']
+        cluster_connmatrix = clusters_data[cluster]['connectivity_matrix']
         # Apply first cluster label order to the rest of the clusters for better comparison
         if i > 0:
             label_order = [tick.get_text() for tick in axes[0].get_xticklabels()]
             regions_indices = [atlas_labels[atlas_labels.name == region].index[0] for region in label_order]
-            cluster_conmatrix = cluster_conmatrix[regions_indices, :][:, regions_indices]
+            cluster_connmatrix = cluster_connmatrix[regions_indices, :][:, regions_indices]
             atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
             atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        plot_matrix_on_axis(cluster_conmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
+        plot_matrix_on_axis(cluster_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
         axes[i].set_title(f'Cluster {cluster}')
     fig.savefig(output / 'clusters.png')
 
@@ -65,18 +107,20 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
     for cluster in clusters_data:
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
         clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
-        clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
-                                                                      cluster_df['mask_path'].values,
-                                                                      conf_strategy,
-                                                                      n_components)
+        # clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
+        #                                                               cluster_df['mask_path'].values,
+        #                                                               conf_strategy,
+        #                                                               n_components)
 
     conn_output = output / 'connectivity_matrices'
     conn_output.mkdir(exist_ok=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
     save_clusters_matrices(clusters_data, atlas.labels, threshold, conn_output)
-    comp_output = output.parent / 'components'
-    comp_output.mkdir(exist_ok=True)
-    save_principal_components(clusters_data, comp_output)
+    if atlas_name == 'schaefer':
+        connmatrices_over_networks(clusters_data, atlas.labels, threshold, output)
+    # comp_output = output.parent / 'components'
+    # comp_output.mkdir(exist_ok=True)
+    # save_principal_components(clusters_data, comp_output)
 
 
 def extract_components(func_data, brain_masks, conf_strategy, n_components):
@@ -118,18 +162,18 @@ def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reo
         plt.close(fig)
 
 
-def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold, reorder=False):
-    # Compute percentile and apply threshold
-    percentile = np.percentile(connectivity_matrix, threshold)
-    connectivity_matrix[connectivity_matrix < percentile] = 0
+def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
+                        reorder=False, tri='lower', vmin=-0.8, vmax=0.8):
+    matrix_to_plot = connectivity_matrix.copy()
+    matrix_to_plot = apply_threshold(matrix_to_plot, threshold)
     # Get labels in the correct format until plot_matrix is fixed
     labels = list(atlas_labels.name.values)
-    plotting.plot_matrix(connectivity_matrix,
-                         tri='lower',
+    plotting.plot_matrix(matrix_to_plot,
+                         tri=tri,
                          labels=labels,
                          colorbar=True,
-                         vmax=0.8,
-                         vmin=-0.8,
+                         vmin=vmin,
+                         vmax=vmax,
                          reorder=reorder,
                          axes=ax)
 
@@ -174,6 +218,12 @@ def q_test(data, mean):
     return q
 
 
+def apply_threshold(connectivity_matrix, threshold):
+    percentile = np.percentile(connectivity_matrix, threshold)
+    connectivity_matrix[connectivity_matrix < percentile] = 0
+    return connectivity_matrix
+
+
 def load_atlas(atlas_name):
     # Use nilearn datasets to fetch atlas
     if atlas_name == 'aal':
@@ -185,7 +235,7 @@ def load_atlas(atlas_name):
         # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
         atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
     elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018()
+        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
     else:
