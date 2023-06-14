@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
+import utils
 from pathlib import Path
 
 # NiLearn methods and classes
-from nilearn import datasets, plotting, image, masking
+from nilearn import plotting, image, masking
 from nilearn.interfaces import fmriprep
 from nilearn.connectome import ConnectivityMeasure
 from nilearn.decomposition import dict_learning
@@ -15,9 +16,9 @@ TEMPLATE_SHAPE = [55, 65, 55]
 
 
 def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
-    subjects_df = load_clinical_data(clinical_datafile)
-    load_datapaths(subjects_paths, subjects_df)
-    atlas = load_atlas(atlas_name)
+    subjects_df = utils.load_clinical_data(clinical_datafile)
+    utils.load_datapaths(subjects_paths, subjects_df)
+    atlas = utils.load_atlas(atlas_name)
     subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                                             conf_strategy, atlas.maps), axis=1)
 
@@ -51,7 +52,7 @@ def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
     for i, cluster in enumerate(clusters_data):
         cluster_connmatrix = clusters_data[cluster]['connectivity_matrix']
-        cluster_connmatrix = apply_threshold(cluster_connmatrix, threshold)
+        cluster_connmatrix = utils.apply_threshold(cluster_connmatrix, threshold)
         if i == 0:
             diff_connmatrix = cluster_connmatrix
         else:
@@ -176,7 +177,7 @@ def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reo
 def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
                         reorder=False, tri='lower', vmin=-0.8, vmax=0.8):
     matrix_to_plot = connectivity_matrix.copy()
-    matrix_to_plot = apply_threshold(matrix_to_plot, threshold)
+    matrix_to_plot = utils.apply_threshold(matrix_to_plot, threshold)
     # Get labels in the correct format until plot_matrix is fixed
     labels = list(atlas_labels.name.values)
     plotting.plot_matrix(matrix_to_plot,
@@ -193,7 +194,7 @@ def mean_connectivity_matrix(time_series, kind='correlation'):
     connectivity_matrices, connectivity_measure = connectivity_matrix(time_series, kind)
     mean_connectivity_matrix = connectivity_measure.mean_
 
-    q = q_test(connectivity_matrices, mean_connectivity_matrix)
+    q = utils.q_test(connectivity_matrices, mean_connectivity_matrix)
     print(f'Q test: {q}')
 
     return mean_connectivity_matrix
@@ -220,65 +221,6 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps):
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
     return time_series
-
-
-def q_test(data, mean):
-    # Upper triangulate the data
-    data, mean = np.triu(data, k=1), np.triu(mean, k=1)
-    q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
-    return q
-
-
-def apply_threshold(connectivity_matrix, threshold):
-    percentile = np.percentile(connectivity_matrix, threshold)
-    connectivity_matrix[connectivity_matrix < percentile] = 0
-    return connectivity_matrix
-
-
-def load_atlas(atlas_name):
-    # Use nilearn datasets to fetch atlas
-    if atlas_name == 'aal':
-        atlas = datasets.fetch_atlas_aal()
-        atlas.labels = pd.DataFrame({'name': atlas.labels})
-    elif atlas_name == 'destrieux':
-        atlas = datasets.fetch_atlas_destrieux_2009(legacy_format=False)
-        # Remove missing regions in atlas.maps from atlas.labels
-        # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
-        atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
-    elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
-        # Remove '7Networks_' prefix
-        atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
-    else:
-        raise ValueError(f'Atlas {atlas_name} not recognized')
-
-    return atlas
-
-
-def load_clinical_data(clinical_datafile):
-    cg = pd.read_csv(clinical_datafile)
-    subjects_data = cg[~cg['AnonID'].isna()]
-    subjects_data = subjects_data.astype({'AnonID': int})
-
-    # Remove invalid subjects (subj 29 has different data shapes)
-    subjects_to_remove = [2, 17, 29]
-    subjects_data = subjects_data.drop(subjects_data[subjects_data['AnonID'].isin(subjects_to_remove)].index)
-    # Remove subjects with no cluster
-    subjects_data = subjects_data[~subjects_data['cluster'].isna()]
-
-    return subjects_data
-
-
-def load_datapaths(subjects_paths, subjects_df):
-    for subj_path in subjects_paths:
-        subj_id = int(subj_path.name.split('-')[1])
-        if subj_id in subjects_df['AnonID'].values:
-            # Get the path to the preprocessed functional data
-            func_path = subj_path / 'func'
-            func_file = [f for f in func_path.glob('*.nii.gz') if 'preproc' in f.name][0]
-            mask_file = [f for f in func_path.glob('*.nii.gz') if 'brain_mask' in f.name][0]
-            subjects_df.loc[subjects_df['AnonID'] == subj_id, 'func_path'] = str(func_file)
-            subjects_df.loc[subjects_df['AnonID'] == subj_id, 'mask_path'] = str(mask_file)
 
 
 if __name__ == '__main__':
