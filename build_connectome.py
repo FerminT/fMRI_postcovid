@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import utils
-import extract_components
 
 # NiLearn methods and classes
 from nilearn import plotting
@@ -11,10 +10,14 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn.maskers import NiftiLabelsMasker
 
 
-def build_connectome(subjects_df, conf_strategy, atlas_name, output, threshold=95):
+def build_connectome(subjects_df, conf_strategy, atlas_name,
+                     threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+                     output):
     atlas = utils.load_atlas(atlas_name)
     subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
-                                                                            conf_strategy, atlas.maps), axis=1)
+                                                                            conf_strategy, atlas.maps,
+                                                                            low_pass, high_pass, smoothing_fwhm,
+                                                                            t_r), axis=1)
 
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
@@ -136,13 +139,13 @@ def connectivity_matrix(time_series, kind='correlation'):
     return connectivity_matrix, connectivity_measure
 
 
-def time_series(func_data, brain_mask, conf_strategy, atlas_maps):
+def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
     nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
                                      mask_img=brain_mask,
-                                     smoothing_fwhm=6,
-                                     low_pass=0.08,
-                                     high_pass=0.01,
-                                     t_r=2.,
+                                     smoothing_fwhm=smoothing_fwhm,
+                                     low_pass=low_pass,
+                                     high_pass=high_pass,
+                                     t_r=t_r,
                                      standardize=False,
                                      detrend=True,
                                      memory='nilearn_cache', memory_level=2)

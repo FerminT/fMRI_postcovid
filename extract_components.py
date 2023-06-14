@@ -5,34 +5,37 @@ from nilearn.maskers import MultiNiftiMasker
 from nilearn.decomposition import dict_learning
 
 
-def extract_components_by_cluster(subjects_df, conf_strategy, n_components, output):
+def extract_components_by_cluster(subjects_df, conf_strategy, n_components,
+                                  low_pass, high_pass, smoothing_fwhm, t_r,
+                                  output):
     clusters_components = {cluster: None for cluster in subjects_df['cluster'].unique()}
     for cluster in clusters_components:
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
         clusters_components[cluster] = extract_components(cluster_df['func_path'].values,
                                                           cluster_df['mask_path'].values,
                                                           conf_strategy,
-                                                          n_components)
+                                                          n_components,
+                                                          low_pass, high_pass, smoothing_fwhm, t_r)
 
     save_principal_components(clusters_components, output)
 
 
-def extract_components(func_data, brain_masks, conf_strategy, n_components):
+def extract_components(func_data, brain_masks, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r):
     brain_mask = masking.intersect_masks(brain_masks)
     masker = MultiNiftiMasker(mask_img=brain_mask,
-                              high_pass=0.01,
-                              low_pass=0.08,
-                              t_r=2.,
-                              smoothing_fwhm=6.,
+                              smoothing_fwhm=smoothing_fwhm,
+                              low_pass=low_pass,
+                              high_pass=high_pass,
+                              t_r=t_r,
                               mask_strategy='epi',
                               standardize=True,
                               detrend=True,
                               memory='nilearn_cache', memory_level=2)
     dict_learn = dict_learning.DictLearning(n_components=n_components,
-                                            high_pass=0.01,
-                                            low_pass=0.08,
-                                            t_r=2.,
-                                            smoothing_fwhm=6.,
+                                            smoothing_fwhm=smoothing_fwhm,
+                                            low_pass=low_pass,
+                                            high_pass=high_pass,
+                                            t_r=t_r,
                                             standardize=True,
                                             detrend=True,
                                             mask=masker,
