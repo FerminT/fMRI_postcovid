@@ -36,11 +36,11 @@ def build_connectome(subjects_df, conf_strategy, atlas_name,
         connmatrices_over_networks(clusters_connectivity_matrix, atlas.labels, threshold, output)
 
 
-def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
+def connmatrices_over_networks(clusters_connectivity_matrices, atlas_labels, threshold, output):
     # Only for Schaefer atlas
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
-    for i, cluster in enumerate(clusters_data):
-        cluster_connmatrix = clusters_data[cluster]['connectivity_matrix']
+    for i, cluster in enumerate(clusters_connectivity_matrices):
+        cluster_connmatrix = clusters_connectivity_matrices[cluster]
         cluster_connmatrix = utils.apply_threshold(cluster_connmatrix, threshold)
         if i == 0:
             diff_connmatrix = cluster_connmatrix
@@ -78,10 +78,10 @@ def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
     plt.close(fig)
 
 
-def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
-    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_data), figsize=(30, 30))
-    for i, cluster in enumerate(clusters_data):
-        cluster_connmatrix = clusters_data[cluster]['connectivity_matrix']
+def save_clusters_matrices(clusters_connectivity_matrices, atlas_labels, threshold, output):
+    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_connectivity_matrices), figsize=(30, 30))
+    for i, cluster in enumerate(clusters_connectivity_matrices):
+        cluster_connmatrix = clusters_connectivity_matrices[cluster]
         # Apply first cluster label order to the rest of the clusters for better comparison
         if i > 0:
             label_order = [tick.get_text() for tick in axes[0].get_xticklabels()]

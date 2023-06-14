@@ -48,11 +48,11 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components, low_
     return dict_learn.components_img_
 
 
-def save_principal_components(clusters_data, output):
+def save_principal_components(clusters_components, output):
     output.mkdir(exist_ok=True)
     cortices_coords = {'Motor cortex': [45, -35, 50], 'Auditory cortex': [50, -15, 12], 'Visual cortex': [0, -75, 4]}
-    for cluster in clusters_data:
-        components_img = clusters_data[cluster]['components_img']
+    for cluster in clusters_components:
+        components_img = clusters_components[cluster]
         plotting.plot_prob_atlas(components_img,
                                  draw_cross=False,
                                  linewidths=None,

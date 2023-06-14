@@ -7,16 +7,16 @@ from build_connectome import build_connectome
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def main(subject, conf_strategy, atlas_name, n_components,
+def main(subjects, conf_strategy, atlas_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
          data_path, clinical_file, output):
     data_path, output = Path(data_path), Path(output)
     output.mkdir(parents=True, exist_ok=True)
 
-    if subject == 'all':
+    if subjects == 'all':
         subjects = [sub for sub in data_path.glob('sub-*') if sub.is_dir()]
     else:
-        subjects = [data_path / f'sub-{subject.zfill(3)}']
+        subjects = [data_path / f'sub-{subjects.zfill(3)}']
 
     subjects_df = utils.load_clinical_data(clinical_file)
     utils.load_datapaths(subjects, subjects_df)
@@ -58,6 +58,6 @@ if __name__ == '__main__':
     arg_parser.add_argument('-o', '--output_path', type=str, default='analysis/functional_connectivity')
 
     args = arg_parser.parse_args()
-    main(args.subject, args.confounds_strategy, args.atlas, args.n_components,
-         args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.tr,
+    main(args.subjects, args.confounds_strategy, args.atlas, args.n_components,
+         args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
          args.data_path, args.clinical_file, args.output_path)
