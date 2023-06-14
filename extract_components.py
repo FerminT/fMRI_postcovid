@@ -5,6 +5,18 @@ from nilearn.maskers import MultiNiftiMasker
 from nilearn.decomposition import dict_learning
 
 
+def extract_components_by_cluster(subjects_df, conf_strategy, n_components, output):
+    clusters_components = {cluster: None for cluster in subjects_df['cluster'].unique()}
+    for cluster in clusters_components:
+        cluster_df = subjects_df[subjects_df['cluster'] == cluster]
+        clusters_components[cluster] = extract_components(cluster_df['func_path'].values,
+                                                          cluster_df['mask_path'].values,
+                                                          conf_strategy,
+                                                          n_components)
+
+    save_principal_components(clusters_components, output)
+
+
 def extract_components(func_data, brain_masks, conf_strategy, n_components):
     brain_mask = masking.intersect_masks(brain_masks)
     masker = MultiNiftiMasker(mask_img=brain_mask,
@@ -34,6 +46,7 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components):
 
 
 def save_principal_components(clusters_data, output):
+    output.mkdir(exist_ok=True)
     cortices_coords = {'Motor cortex': [45, -35, 50], 'Auditory cortex': [50, -15, 12], 'Visual cortex': [0, -75, 4]}
     for cluster in clusters_data:
         components_img = clusters_data[cluster]['components_img']

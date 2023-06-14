@@ -11,7 +11,7 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn.maskers import NiftiLabelsMasker
 
 
-def build_connectome(subjects_df, conf_strategy, atlas_name, n_components, output, threshold=95):
+def build_connectome(subjects_df, conf_strategy, atlas_name, output, threshold=95):
     atlas = utils.load_atlas(atlas_name)
     subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                                             conf_strategy, atlas.maps), axis=1)
@@ -20,25 +20,17 @@ def build_connectome(subjects_df, conf_strategy, atlas_name, n_components, outpu
                                                                           connectivity_matrix([time_series])[0][0])
 
     # Compute mean connectivity matrix by cluster
-    clusters_data = {cluster: {'connectivity_matrix': None, 'components_img': None}
-                     for cluster in subjects_df['cluster'].unique()}
-    for cluster in clusters_data:
+    clusters_connectivity_matrix = {cluster: None for cluster in subjects_df['cluster'].unique()}
+    for cluster in clusters_connectivity_matrix:
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
-        clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
-        clusters_data[cluster]['components_img'] = extract_components.extract_components(cluster_df['func_path'].values,
-                                                                      cluster_df['mask_path'].values,
-                                                                      conf_strategy,
-                                                                      n_components)
+        clusters_connectivity_matrix[cluster] = mean_connectivity_matrix(cluster_df['time_series'].values)
 
     conn_output = output / 'connectivity_matrices'
     conn_output.mkdir(exist_ok=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
-    save_clusters_matrices(clusters_data, atlas.labels, threshold, conn_output)
+    save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
     if atlas_name == 'schaefer':
-        connmatrices_over_networks(clusters_data, atlas.labels, threshold, output)
-    comp_output = output.parent / 'components'
-    comp_output.mkdir(exist_ok=True)
-    extract_components.save_principal_components(clusters_data, comp_output)
+        connmatrices_over_networks(clusters_connectivity_matrix, atlas.labels, threshold, output)
 
 
 def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
