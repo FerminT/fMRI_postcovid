@@ -14,6 +14,38 @@ from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
+def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
+    subjects_df = load_clinical_data(clinical_datafile)
+    load_datapaths(subjects_paths, subjects_df)
+    atlas = load_atlas(atlas_name)
+    subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
+                                                                            conf_strategy, atlas.maps), axis=1)
+
+    subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
+                                                                          connectivity_matrix([time_series])[0][0])
+
+    # Compute mean connectivity matrix by cluster
+    clusters_data = {cluster: {'connectivity_matrix': None, 'components_img': None}
+                     for cluster in subjects_df['cluster'].unique()}
+    for cluster in clusters_data:
+        cluster_df = subjects_df[subjects_df['cluster'] == cluster]
+        clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
+        clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
+                                                                      cluster_df['mask_path'].values,
+                                                                      conf_strategy,
+                                                                      n_components)
+
+    conn_output = output / 'connectivity_matrices'
+    conn_output.mkdir(exist_ok=True)
+    save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
+    save_clusters_matrices(clusters_data, atlas.labels, threshold, conn_output)
+    if atlas_name == 'schaefer':
+        connmatrices_over_networks(clusters_data, atlas.labels, threshold, output)
+    comp_output = output.parent / 'components'
+    comp_output.mkdir(exist_ok=True)
+    save_principal_components(clusters_data, comp_output)
+
+
 def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
     # Only for Schaefer atlas
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
@@ -24,10 +56,6 @@ def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
             diff_connmatrix = cluster_connmatrix
         else:
             diff_connmatrix = np.abs(diff_connmatrix - cluster_connmatrix)
-    fig, ax = plt.subplots(figsize=(10, 8))
-    plot_matrix_on_axis(diff_connmatrix, atlas_labels, ax, threshold=0, reorder=True)
-    fig.savefig(output / f'regions_diff.png')
-    plt.close(fig)
     networks, network_index = {}, 0
     all_atlas_labels = atlas_labels['name'].values
     for region in all_atlas_labels:
@@ -45,14 +73,18 @@ def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
             idx_col_network = networks[col_network]['index']
             networks_connmatrix[idx_row_network, idx_col_network] += diff_connmatrix[i, j]
             terms_matrix[idx_row_network, idx_col_network] += 1
-
+    fig, ax = plt.subplots(figsize=(10, 8))
+    plt.matshow(terms_matrix)
+    plt.colorbar()
+    plt.savefig(output / f'terms_matrix_{len(all_atlas_labels)}rois.png')
+    plt.close(fig)
     # Compute mean
     networks_connmatrix /= terms_matrix
     fig, ax = plt.subplots(figsize=(10, 8))
     networks_labels = pd.DataFrame({'name': list(networks.keys())})
     plot_matrix_on_axis(networks_connmatrix, networks_labels, ax, threshold=0,
                         tri='full', vmin=-0.1, vmax=0.1)
-    fig.savefig(output / f'networks_diff.png')
+    fig.savefig(output / f'networks_diff_{len(all_atlas_labels)}rois.png')
     plt.close(fig)
 
 
@@ -74,6 +106,7 @@ def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
 
 
 def save_principal_components(clusters_data, output):
+    cortices_coords = {'Motor cortex': [45, -35, 50], 'Auditory cortex': [50, -15, 12], 'Visual cortex': [0, -75, 4]}
     for cluster in clusters_data:
         components_img = clusters_data[cluster]['components_img']
         plotting.plot_prob_atlas(components_img,
@@ -89,38 +122,16 @@ def save_principal_components(clusters_data, output):
             plotting.plot_stat_map(cur_img, display_mode="z", title="PC %d" % i,
                                    cut_coords=1, colorbar=True, axes=ax)
         fig.savefig(output / f'components_cluster_{cluster}.png')
+        plt.close(fig)
 
-
-def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, clinical_datafile, output, threshold=95):
-    subjects_df = load_clinical_data(clinical_datafile)
-    load_datapaths(subjects_paths, subjects_df)
-    atlas = load_atlas(atlas_name)
-    subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
-                                                                            conf_strategy, atlas.maps), axis=1)
-
-    subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
-                                                                          connectivity_matrix([time_series])[0][0])
-
-    # Compute mean connectivity matrix by cluster
-    clusters_data = {cluster: {'connectivity_matrix': None, 'components_img': None}
-                     for cluster in subjects_df['cluster'].unique()}
-    for cluster in clusters_data:
-        cluster_df = subjects_df[subjects_df['cluster'] == cluster]
-        clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
-        # clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
-        #                                                               cluster_df['mask_path'].values,
-        #                                                               conf_strategy,
-        #                                                               n_components)
-
-    conn_output = output / 'connectivity_matrices'
-    conn_output.mkdir(exist_ok=True)
-    save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
-    save_clusters_matrices(clusters_data, atlas.labels, threshold, conn_output)
-    if atlas_name == 'schaefer':
-        connmatrices_over_networks(clusters_data, atlas.labels, threshold, output)
-    # comp_output = output.parent / 'components'
-    # comp_output.mkdir(exist_ok=True)
-    # save_principal_components(clusters_data, comp_output)
+        for cortex in cortices_coords:
+            fig = plt.figure(figsize=(16, 3))
+            cut_coords = cortices_coords[cortex]
+            plotting.plot_stat_map(components_img.slicer[..., 19], display_mode='ortho',
+                                   cut_coords=cut_coords, colorbar=True, draw_cross=False,
+                                   title=cortex)
+            plt.savefig(output / f'{cortex}_cluster_{cluster}.png')
+            plt.close(fig)
 
 
 def extract_components(func_data, brain_masks, conf_strategy, n_components):
@@ -280,7 +291,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-d', '--derivatives', type=str, default='neurocovid_derivatives',
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-o', '--output', type=str, default='analysis/functional_connectivity')
-    arg_parser.add_argument('-n', '--n_components', type=int, default=5,
+    arg_parser.add_argument('-n', '--n_components', type=int, default=20,
                             help='Number of components to use for DictLearning')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
                             help='Activity threshold for connectome (percentile)')
