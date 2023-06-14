@@ -1,16 +1,16 @@
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 import utils
-from pathlib import Path
+import extract_components
 
 # NiLearn methods and classes
-from nilearn import plotting, image, masking
+from nilearn import plotting
 from nilearn.interfaces import fmriprep
 from nilearn.connectome import ConnectivityMeasure
-from nilearn.decomposition import dict_learning
-from nilearn.maskers import NiftiLabelsMasker, MultiNiftiMasker
+from nilearn.maskers import NiftiLabelsMasker
 
 TEMPLATE_SHAPE = [55, 65, 55]
 
@@ -31,7 +31,7 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
     for cluster in clusters_data:
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
         clusters_data[cluster]['connectivity_matrix'] = mean_connectivity_matrix(cluster_df['time_series'].values)
-        clusters_data[cluster]['components_img'] = extract_components(cluster_df['func_path'].values,
+        clusters_data[cluster]['components_img'] = extract_components.extract_components(cluster_df['func_path'].values,
                                                                       cluster_df['mask_path'].values,
                                                                       conf_strategy,
                                                                       n_components)
@@ -44,7 +44,7 @@ def build_connectome(subjects_paths, conf_strategy, atlas_name, n_components, cl
         connmatrices_over_networks(clusters_data, atlas.labels, threshold, output)
     comp_output = output.parent / 'components'
     comp_output.mkdir(exist_ok=True)
-    save_principal_components(clusters_data, comp_output)
+    extract_components.save_principal_components(clusters_data, comp_output)
 
 
 def connmatrices_over_networks(clusters_data, atlas_labels, threshold, output):
@@ -104,63 +104,6 @@ def save_clusters_matrices(clusters_data, atlas_labels, threshold, output):
         plot_matrix_on_axis(cluster_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
         axes[i].set_title(f'Cluster {cluster}')
     fig.savefig(output / 'clusters.png')
-
-
-def save_principal_components(clusters_data, output):
-    cortices_coords = {'Motor cortex': [45, -35, 50], 'Auditory cortex': [50, -15, 12], 'Visual cortex': [0, -75, 4]}
-    for cluster in clusters_data:
-        components_img = clusters_data[cluster]['components_img']
-        plotting.plot_prob_atlas(components_img,
-                                 draw_cross=False,
-                                 linewidths=None,
-                                 cut_coords=[0, 0, 0],
-                                 title=f'Cluster {cluster}')
-        plt.savefig(output / f'maps_cluster_{cluster}.png')
-        first_comp = components_img.slicer[..., :4]
-        fig = plt.figure(figsize=(16, 3))
-        for i, cur_img in enumerate(image.iter_img(first_comp)):
-            ax = fig.add_subplot(1, 4, i + 1)
-            plotting.plot_stat_map(cur_img, display_mode="z", title="PC %d" % i,
-                                   cut_coords=1, colorbar=True, axes=ax)
-        fig.savefig(output / f'components_cluster_{cluster}.png')
-        plt.close(fig)
-
-        for cortex in cortices_coords:
-            fig = plt.figure(figsize=(16, 3))
-            cut_coords = cortices_coords[cortex]
-            plotting.plot_stat_map(components_img.slicer[..., 19], display_mode='ortho',
-                                   cut_coords=cut_coords, colorbar=True, draw_cross=False,
-                                   title=cortex)
-            plt.savefig(output / f'{cortex}_cluster_{cluster}.png')
-            plt.close(fig)
-
-
-def extract_components(func_data, brain_masks, conf_strategy, n_components):
-    brain_mask = masking.intersect_masks(brain_masks)
-    masker = MultiNiftiMasker(mask_img=brain_mask,
-                              high_pass=0.01,
-                              low_pass=0.08,
-                              t_r=2.,
-                              smoothing_fwhm=6.,
-                              mask_strategy='epi',
-                              standardize=True,
-                              detrend=True,
-                              memory='nilearn_cache', memory_level=2)
-    dict_learn = dict_learning.DictLearning(n_components=n_components,
-                                            high_pass=0.01,
-                                            low_pass=0.08,
-                                            t_r=2.,
-                                            smoothing_fwhm=6.,
-                                            standardize=True,
-                                            detrend=True,
-                                            mask=masker,
-                                            random_state=42,
-                                            n_jobs=-1,
-                                            memory='nilearn_cache', memory_level=2)
-    confounds, _ = fmriprep.load_confounds_strategy(func_data, conf_strategy)
-    dict_learn.fit(func_data, confounds=confounds)
-
-    return dict_learn.components_img_
 
 
 def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reorder=False):
