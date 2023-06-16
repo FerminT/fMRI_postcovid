@@ -5,9 +5,7 @@ import utils
 
 # NiLearn methods and classes
 from nilearn import plotting
-from nilearn.interfaces import fmriprep
 from nilearn.connectome import ConnectivityMeasure
-from nilearn.maskers import NiftiLabelsMasker
 
 
 def build_connectome(subjects_df, conf_strategy, atlas_name,
@@ -138,19 +136,3 @@ def connectivity_matrix(time_series, kind='correlation'):
     connectivity_matrix = connectivity_measure.fit_transform(time_series)
 
     return connectivity_matrix, connectivity_measure
-
-
-def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
-    nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
-                                     mask_img=brain_mask,
-                                     smoothing_fwhm=smoothing_fwhm,
-                                     low_pass=low_pass,
-                                     high_pass=high_pass,
-                                     t_r=t_r,
-                                     standardize=False,
-                                     detrend=True,
-                                     memory='nilearn_cache', memory_level=2)
-    confounds, sample_mask = fmriprep.load_confounds_strategy(func_data, conf_strategy)
-    time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
-
-    return time_series

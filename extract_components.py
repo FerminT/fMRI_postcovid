@@ -3,6 +3,7 @@ from nilearn import plotting, image, masking
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import MultiNiftiMasker
 from nilearn.decomposition import dict_learning
+from nilearn.regions import RegionExtractor
 
 
 def extract_components_by_cluster(subjects_df, conf_strategy, n_components,
@@ -46,6 +47,19 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components, low_
     dict_learn.fit(func_data, confounds=confounds)
 
     return dict_learn.components_img_
+
+
+def extract_regions(components_img, threshold=0.5, thresholding_strategy='ratio_n_voxels', extractor='local_regions',
+                    min_region_size=1350, standardize=True):
+    regions_extractor = RegionExtractor(components_img,
+                                        threshold=threshold,
+                                        thresholding_strategy=thresholding_strategy,
+                                        min_region_size=min_region_size,
+                                        standardize=standardize)
+    regions_extractor.fit()
+    print(f'Extracted {regions_extractor.regions_img_.shape[-1]} regions')
+
+    return regions_extractor
 
 
 def save_principal_components(clusters_components, output):
