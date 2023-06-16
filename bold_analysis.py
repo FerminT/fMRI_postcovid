@@ -3,6 +3,7 @@ import argparse
 import utils
 from extract_components import extract_components_by_cluster
 from build_connectome import build_connectome
+from rsa import rsa
 
 TEMPLATE_SHAPE = [55, 65, 55]
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--confounds_strategy', type=str, default='simple',
                             help='Strategy for loading fMRIPrep denoising strategies. \
                            Options: simple, compcor, srubbing, ica_aroma')
-    arg_parser.add_argument('-a', '--atlas', type=str, default='aal',
+    arg_parser.add_argument('-a', '--atlas', type=str, default=None,
                             help='(Discrete) atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--n_components', type=int, default=20,
                             help='Number of components to use for dictionary learning')

@@ -26,10 +26,11 @@ def load_clinical_data(clinical_datafile):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['AnonID'].isna()]
     subjects_data = subjects_data.astype({'AnonID': int})
+    subjects_data = subjects_data.set_index('AnonID')
 
     # Remove invalid subjects (subj 29 has different data shapes)
     subjects_to_remove = [2, 17, 29]
-    subjects_data = subjects_data.drop(subjects_data[subjects_data['AnonID'].isin(subjects_to_remove)].index)
+    subjects_data = subjects_data.drop(subjects_to_remove)
     # Remove subjects with no cluster
     subjects_data = subjects_data[~subjects_data['cluster'].isna()]
 
@@ -39,13 +40,13 @@ def load_clinical_data(clinical_datafile):
 def load_datapaths(subjects_paths, subjects_df):
     for subj_path in subjects_paths:
         subj_id = int(subj_path.name.split('-')[1])
-        if subj_id in subjects_df['AnonID'].values:
+        if subj_id in subjects_df.index:
             # Get the path to the preprocessed functional data
             func_path = subj_path / 'func'
             func_file = [f for f in func_path.glob('*.nii.gz') if 'preproc' in f.name][0]
             mask_file = [f for f in func_path.glob('*.nii.gz') if 'brain_mask' in f.name][0]
-            subjects_df.loc[subjects_df['AnonID'] == subj_id, 'func_path'] = str(func_file)
-            subjects_df.loc[subjects_df['AnonID'] == subj_id, 'mask_path'] = str(mask_file)
+            subjects_df.loc[subj_id, 'func_path'] = str(func_file)
+            subjects_df.loc[subj_id, 'mask_path'] = str(mask_file)
 
 
 def apply_threshold(connectivity_matrix, threshold):
