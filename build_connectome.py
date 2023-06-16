@@ -12,10 +12,10 @@ def build_connectome(subjects_df, conf_strategy, atlas_name,
                      threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
     atlas = utils.load_atlas(atlas_name)
-    subjects_df['time_series'] = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
-                                                                            conf_strategy, atlas.maps,
-                                                                            low_pass, high_pass, smoothing_fwhm,
-                                                                            t_r), axis=1)
+    subjects_df['time_series'] = subjects_df.apply(lambda subj: utils.time_series(subj['func_path'], subj['mask_path'],
+                                                                                  conf_strategy, atlas.maps,
+                                                                                  low_pass, high_pass, smoothing_fwhm,
+                                                                                  t_r), axis=1)
 
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
