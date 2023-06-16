@@ -96,13 +96,15 @@ def save_clusters_matrices(clusters_connectivity_matrices, atlas_labels, thresho
 
 
 def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reorder=False):
-    # Plot connectivity matrices and save them
-    for subj in subjects_df.index:
-        connectivity_matrix = subjects_df.loc[subj]['connectivity_matrix']
-        fig, ax = plt.subplots(figsize=(10, 8))
-        plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold, reorder=reorder)
-        fig.savefig(output / f'subj_{subj}.png')
-        plt.close(fig)
+    subjects_df.apply(lambda subj: save_connectivity_matrix(subj['connectivity_matrix'], subj.name,
+                                                            atlas_labels, threshold, output, reorder=reorder), axis=1)
+
+
+def save_connectivity_matrix(conn_matrix, subj_id, atlas_labels, threshold, output, reorder=False):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    plot_matrix_on_axis(conn_matrix, atlas_labels, ax, threshold, reorder=reorder)
+    fig.savefig(output / f'subj_{subj_id}.png')
+    plt.close(fig)
 
 
 def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
