@@ -30,6 +30,7 @@ def main(subjects, conf_strategy, atlas_name, n_components,
         extract_components_by_cluster(subjects_df, conf_strategy, n_components,
                                       low_pass, high_pass, smoothing_fwhm, t_r,
                                       output / 'components')
+    rsa(subjects_df, conf_strategy, n_components, atlas_name, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
 
 
 if __name__ == '__main__':
