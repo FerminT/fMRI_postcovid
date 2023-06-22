@@ -1,4 +1,5 @@
 import numpy as np
+import rsatoolbox
 from utils import timeseries_from_regions
 from extract_components import extract_components, extract_regions
 from build_connectome import connectivity_matrix
@@ -25,19 +26,17 @@ def rsa(subjects_df, conf_strategy, n_components, atlas_name,
     for i in range(subjects_corrmatrices.shape[0]):
         for j in range(subjects_corrmatrices.shape[0]):
             connectivity_distance[i, j] = np.linalg.norm((subjects_corrmatrices[i, :] -
-                                                         subjects_corrmatrices[j, :]) / subjects_connstd)
+                                                          subjects_corrmatrices[j, :]) / subjects_connstd)
 
+    rdms = rsatoolbox.rdm.RDMs(np.concatenate((connectivity_distance[None, :], behavioral_distance[None, :])),
+                               dissimilarity_measure='Euclidean',
+                               rdm_descriptors={'name': ['Connectivity', 'Behavioral']},
+                               pattern_descriptors={'subjects': subjects_df.index.to_list()})
+    rdms = rsatoolbox.rdm.transform(rdms, lambda x: x / x.max())
     # # Check what the most common number of timepoints is
     # n_timepoints = subjects_timeseries.apply(lambda ts: ts.shape[0]).value_counts().index[0]
     # # Pad with nans for those that do not have that many timepoints
     # subjects_timeseries = subjects_timeseries.apply(lambda ts: np.pad(ts, ((0, n_timepoints - ts.shape[0]), (0, 0)),
     #                                                                   'constant', constant_values=np.nan))
-    # # Get the standard deviation for each of the 67 regions (should be 1)
-    # subjects_timeseries_std = subjects_timeseries.apply(lambda ts: np.nanstd(ts, axis=0))
-    # subjects_timeseries /= subjects_timeseries_std
-
-
-
-
 
     return
