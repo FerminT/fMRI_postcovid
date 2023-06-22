@@ -41,7 +41,7 @@ if __name__ == '__main__':
                            Options: simple, compcor, srubbing, ica_aroma')
     arg_parser.add_argument('-a', '--atlas', type=str, default=None,
                             help='Atlas to use for brain parcellation')
-    arg_parser.add_argument('-n', '--n_components', type=int, default=20,
+    arg_parser.add_argument('-n', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
                             help='Activity threshold for connectome (percentile)')
