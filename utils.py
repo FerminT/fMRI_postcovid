@@ -1,12 +1,25 @@
 import pandas as pd
 import numpy as np
-from nilearn import datasets
+from nilearn import datasets, image
 from nilearn.interfaces import fmriprep
-from nilearn.maskers import NiftiLabelsMasker
+from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
-    nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
+    atlas_maps_img = image.load_img(atlas_maps)
+    if len(atlas_maps_img.shape) == 4:
+        # Probabilistic atlas
+        nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
+                                       mask_img=brain_mask,
+                                       smoothing_fwhm=smoothing_fwhm,
+                                       low_pass=low_pass,
+                                       high_pass=high_pass,
+                                       t_r=t_r,
+                                       standardize=False,
+                                       detrend=True,
+                                       memory='nilearn_cache', memory_level=2)
+    else:
+        nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
                                      mask_img=brain_mask,
                                      smoothing_fwhm=smoothing_fwhm,
                                      low_pass=low_pass,
@@ -47,6 +60,9 @@ def load_atlas(atlas_name):
         atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
+    elif atlas_name == 'msdl':
+        atlas = datasets.fetch_atlas_msdl()
+        atlas.labels = pd.DataFrame({'name': atlas.labels})
     else:
         raise ValueError(f'Atlas {atlas_name} not recognized')
 
