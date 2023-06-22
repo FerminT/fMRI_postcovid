@@ -1,5 +1,5 @@
 import numpy as np
-import rsatoolbox
+from rsatoolbox import rdm
 from utils import timeseries_from_regions, time_series, load_atlas
 from extract_components import extract_components, extract_regions
 from build_connectome import connectivity_matrix
@@ -19,21 +19,14 @@ def rsa(subjects_df, conf_strategy, n_components, atlas_name,
                                                                 low_pass, high_pass, smoothing_fwhm,
                                                                 t_r), axis=1)
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
-    connectivity_std = np.std(connectivity_matrices, axis=0)
-    np.fill_diagonal(connectivity_std, 1)
-    # Compute the distance between correlation matrices
-    connectivity_distance_matrix = np.empty((n_subjects, n_subjects))
-    for i in range(n_subjects):
-        for j in range(n_subjects):
-            connectivity_distance_matrix[i, j] = np.linalg.norm((connectivity_matrices[i, :] -
-                                                                 connectivity_matrices[j, :]) / connectivity_std)
+    connectivity_distance_matrix = connectivity_distance(connectivity_matrices, n_subjects)
 
-    distance_matrices = np.concatenate((connectivity_distance_matrix[None, :], behavioral_distance_matrix[None, :]))
-    rdms = rsatoolbox.rdm.RDMs(distance_matrices,
-                               dissimilarity_measure='Euclidean',
-                               rdm_descriptors={'name': ['Connectivity', 'Behavioral']},
-                               pattern_descriptors={'subjects': subjects_df.index.to_list()})
-    rdms = rsatoolbox.rdm.transform(rdms, lambda x: x / x.max())
+    rdm_connectivity = get_rdm(connectivity_distance_matrix[None, :],
+                               descriptor='Connectivity',
+                               pattern_descriptors=subjects_df.index.to_list())
+    rdm_behavior = get_rdm(behavioral_distance_matrix[None, :],
+                           descriptor='Behavioral',
+                           pattern_descriptors=subjects_df.index.to_list())
     return
 
 
@@ -47,6 +40,19 @@ def behavioral_distance(subjects_df, normalize=False):
     return behavioral_distance
 
 
+def connectivity_distance(connectivity_matrices, n_subjects):
+    connectivity_std = np.std(connectivity_matrices, axis=0)
+    np.fill_diagonal(connectivity_std, 1)
+    # Compute the distance between correlation matrices
+    connectivity_distance_matrix = np.empty((n_subjects, n_subjects))
+    for i in range(n_subjects):
+        for j in range(n_subjects):
+            connectivity_distance_matrix[i, j] = np.linalg.norm((connectivity_matrices[i, :] -
+                                                                 connectivity_matrices[j, :]) / connectivity_std)
+
+    return connectivity_distance_matrix
+
+
 def ica_timeseries(subjects_df, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r):
     independent_components = extract_components(subjects_df['func_path'].values, subjects_df['mask_path'].values,
                                                 conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r)
@@ -55,3 +61,13 @@ def ica_timeseries(subjects_df, conf_strategy, n_components, low_pass, high_pass
                                    axis=1)
 
     return timeseries
+
+
+def get_rdm(distance_matrix, descriptor, pattern_descriptors):
+    rdm_obj = rdm.RDMs(distance_matrix,
+                       dissimilarity_measure='Euclidean',
+                       rdm_descriptors={'name': [descriptor]},
+                       pattern_descriptors={'subjects': pattern_descriptors})
+    rdm_obj = rdm.transform(rdm_obj, lambda x: x / x.max())
+
+    return rdm_obj

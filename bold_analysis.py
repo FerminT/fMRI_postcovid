@@ -40,7 +40,7 @@ if __name__ == '__main__':
                             help='Strategy for loading fMRIPrep denoising strategies. \
                            Options: simple, compcor, srubbing, ica_aroma')
     arg_parser.add_argument('-a', '--atlas', type=str, default=None,
-                            help='(Discrete) atlas to use for brain parcellation')
+                            help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--n_components', type=int, default=20,
                             help='Number of components to use for dictionary learning')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
