@@ -33,10 +33,6 @@ def rsa(subjects_df, conf_strategy, n_components, atlas_name,
                                rdm_descriptors={'name': ['Connectivity', 'Behavioral']},
                                pattern_descriptors={'subjects': subjects_df.index.to_list()})
     rdms = rsatoolbox.rdm.transform(rdms, lambda x: x / x.max())
-    # # Check what the most common number of timepoints is
-    # n_timepoints = subjects_timeseries.apply(lambda ts: ts.shape[0]).value_counts().index[0]
-    # # Pad with nans for those that do not have that many timepoints
-    # subjects_timeseries = subjects_timeseries.apply(lambda ts: np.pad(ts, ((0, n_timepoints - ts.shape[0]), (0, 0)),
-    #                                                                   'constant', constant_values=np.nan))
+
 
     return

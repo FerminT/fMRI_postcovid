@@ -26,6 +26,14 @@ def timeseries_from_regions(regions_extractor, func_data, conf_strategy):
     return regions_extractor.transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
 
+def pad_timeseries(timeseries, pad_value=np.nan):
+    n_timepoints = timeseries.apply(lambda ts: ts.shape[0]).value_counts().index[0]
+    timeseries = timeseries.apply(lambda ts: np.pad(ts, ((0, n_timepoints - ts.shape[0]), (0, 0)),
+                                                    'constant', constant_values=pad_value))
+
+    return timeseries
+
+
 def load_atlas(atlas_name):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
