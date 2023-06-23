@@ -1,22 +1,17 @@
 import numpy as np
 from rsatoolbox import rdm, vis
-from utils import timeseries_from_regions, time_series
-from extract_components import extract_components, extract_regions
+from utils import time_series
 from build_connectome import connectivity_matrix
 
 
-def rsa(subjects_df, conf_strategy, n_components, atlas,
-        low_pass, high_pass, smoothing_fwhm, t_r, output):
+def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
     n_subjects = len(subjects_df)
     behavioral_distance_matrix = behavioral_distance(subjects_df)
 
-    if n_components:
-        timeseries = ica_timeseries(subjects_df, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r)
-    else:
-        timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
-                                                                conf_strategy, atlas.maps,
-                                                                low_pass, high_pass, smoothing_fwhm,
-                                                                t_r), axis=1)
+    timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
+                                                            conf_strategy, atlas.maps,
+                                                            low_pass, high_pass, smoothing_fwhm,
+                                                            t_r), axis=1)
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices, n_subjects)
 
@@ -65,16 +60,6 @@ def connectivity_distance(connectivity_matrices, n_subjects):
                                                                  connectivity_matrices[j, :]) / connectivity_std)
 
     return connectivity_distance_matrix
-
-
-def ica_timeseries(subjects_df, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r):
-    independent_components = extract_components(subjects_df['func_path'].values, subjects_df['mask_path'].values,
-                                                conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r)
-    regions = extract_regions(independent_components)
-    timeseries = subjects_df.apply(lambda subj: timeseries_from_regions(regions, subj['func_path'], conf_strategy),
-                                   axis=1)
-
-    return timeseries
 
 
 def get_rdm(distance_matrix, descriptor, pattern_descriptors):

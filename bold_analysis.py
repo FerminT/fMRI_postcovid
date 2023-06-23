@@ -31,15 +31,15 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
         atlas = utils.atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
                                          t_r, conf_strategy)
 
-    if atlas.name:
-        build_connectome(subjects_df, conf_strategy, atlas,
-                         threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                         output / atlas.name)
+    build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+                     output / atlas.name)
+
     if n_components:
         extract_components_by_cluster(subjects_df, conf_strategy, n_components,
                                       low_pass, high_pass, smoothing_fwhm, t_r,
                                       output / 'components')
-    rsa(subjects_df, conf_strategy, n_components, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
+
+    rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
 
 
 if __name__ == '__main__':
