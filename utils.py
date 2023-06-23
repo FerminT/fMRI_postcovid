@@ -53,12 +53,7 @@ def extract_network_from_msdl(atlas, network_name):
 
     network_indices = [idx for idx, network in enumerate(atlas.networks) if network == network_name]
     network_labels = [atlas.labels.name.iloc[idx] for idx in network_indices]
-
-    indices_not_in_network = [idx for idx, label in enumerate(atlas.labels.name) if label not in network_labels]
-    atlas_img = image.load_img(atlas.maps)
-    atlas_affine, network_data = atlas_img.affine, atlas_img.get_fdata()
-    network_data[:, :, :, indices_not_in_network] = 0
-    network_img = image.new_img_like(atlas_img, network_data, affine=atlas_affine, copy_header=True)
+    network_img = image.index_img(atlas.maps, network_indices)
 
     return network_img, network_labels
 
