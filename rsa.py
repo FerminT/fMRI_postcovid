@@ -1,6 +1,6 @@
 import numpy as np
 from rsatoolbox import rdm, vis
-from utils import timeseries_from_regions, time_series, load_atlas
+from utils import timeseries_from_regions, time_series
 from extract_components import extract_components, extract_regions
 from build_connectome import connectivity_matrix
 
@@ -40,7 +40,7 @@ def rsa(subjects_df, conf_strategy, n_components, atlas,
     fig_connectivity.savefig(output / 'connectivity.png')
     fig_behavior.savefig(output / 'behavior.png')
 
-    return
+    return rdm_behavior, rdm_connectivity
 
 
 def behavioral_distance(subjects_df, normalize=False):
