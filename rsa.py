@@ -1,5 +1,5 @@
 import numpy as np
-from rsatoolbox import rdm
+from rsatoolbox import rdm, vis
 from utils import timeseries_from_regions, time_series, load_atlas
 from extract_components import extract_components, extract_regions
 from build_connectome import connectivity_matrix
@@ -26,6 +26,20 @@ def rsa(subjects_df, conf_strategy, n_components, atlas,
     rdm_behavior = get_rdm(behavioral_distance_matrix[None, :],
                            descriptor='Behavioral',
                            pattern_descriptors=subjects_df.index.to_list())
+
+    fig_connectivity = vis.scatter_plot.show_2d(rdm_connectivity,
+                                                method='MDS',
+                                                rdm_descriptor='name',
+                                                pattern_descriptor='subjects')
+
+    fig_behavior = vis.scatter_plot.show_2d(rdm_behavior,
+                                            method='MDS',
+                                            rdm_descriptor='name',
+                                            pattern_descriptor='subjects')
+
+    fig_connectivity.savefig(output / 'connectivity.png')
+    fig_behavior.savefig(output / 'behavior.png')
+
     return
 
 
