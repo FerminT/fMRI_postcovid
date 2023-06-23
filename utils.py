@@ -35,6 +35,31 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
+def extract_network_from_atlas(atlas, network_name):
+    if atlas.name == 'msdl':
+        network_img, network_labels = extract_network_from_msdl_atlas(atlas, network_name)
+    else:
+        raise ValueError(f'Can not extract networks from {atlas.name} atlas')
+
+    return network_img, network_labels
+
+
+def extract_network_from_msdl_atlas(atlas, network_name):
+    if network_name not in atlas.networks:
+        raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
+
+    network_indices = [idx for idx, network in enumerate(atlas.networks) if network == network_name]
+    network_labels = [atlas.labels[idx] for idx in network_indices]
+
+    indices_not_in_network = [idx for idx, label in enumerate(atlas.labels) if label not in network_labels]
+    atlas_img = image.load_img(atlas.maps)
+    atlas_affine, network_data = atlas_img.affine, atlas_img.get_fdata()
+    network_data[:, :, :, indices_not_in_network] = 0
+    network_img = image.new_img_like(atlas_img, network_data, affine=atlas_affine, copy_header=True)
+
+    return network_img, network_labels
+
+
 def load_atlas(atlas_name):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
