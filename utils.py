@@ -3,6 +3,7 @@ import numpy as np
 from nilearn import datasets, image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
+from sklearn.utils import Bunch
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -35,16 +36,18 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
-def extract_network_from_atlas(atlas, network_name):
+def extract_network(atlas, network_name):
     if atlas.name == 'msdl':
-        network_img, network_labels = extract_network_from_msdl_atlas(atlas, network_name)
+        network_img, network_labels = extract_network_from_msdl(atlas, network_name)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
-    return network_img, network_labels
+    atlas.name = f'{atlas.name}_{network_name}'
+    atlas.maps, atlas.labels = network_img, network_labels
+    return atlas
 
 
-def extract_network_from_msdl_atlas(atlas, network_name):
+def extract_network_from_msdl(atlas, network_name):
     if network_name not in atlas.networks:
         raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
 
@@ -76,9 +79,11 @@ def load_atlas(atlas_name):
     elif atlas_name == 'msdl':
         atlas = datasets.fetch_atlas_msdl()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
+
+    if atlas_name is None:
+        atlas = Bunch(name=None)
     else:
-        raise ValueError(f'Atlas {atlas_name} not recognized')
-    atlas.name = atlas_name
+        atlas.name = atlas_name
 
     return atlas
 

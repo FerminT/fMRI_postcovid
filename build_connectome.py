@@ -8,10 +8,9 @@ from nilearn import plotting
 from nilearn.connectome import ConnectivityMeasure
 
 
-def build_connectome(subjects_df, conf_strategy, atlas_name,
+def build_connectome(subjects_df, conf_strategy, atlas,
                      threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
-    atlas = utils.load_atlas(atlas_name)
     subjects_df['time_series'] = subjects_df.apply(lambda subj: utils.time_series(subj['func_path'], subj['mask_path'],
                                                                                   conf_strategy, atlas.maps,
                                                                                   low_pass, high_pass, smoothing_fwhm,
@@ -30,7 +29,7 @@ def build_connectome(subjects_df, conf_strategy, atlas_name,
     conn_output.mkdir(exist_ok=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
     save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
-    if atlas_name == 'schaefer':
+    if atlas.name == 'schaefer':
         connmatrices_over_networks(clusters_connectivity_matrix, atlas.labels, threshold, output)
 
 

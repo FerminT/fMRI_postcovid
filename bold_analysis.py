@@ -8,7 +8,7 @@ from rsa import rsa
 TEMPLATE_SHAPE = [55, 65, 55]
 
 
-def main(subjects, conf_strategy, atlas_name, n_components,
+def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
          data_path, clinical_file, output):
     data_path, output = Path(data_path), Path(output)
@@ -22,15 +22,20 @@ def main(subjects, conf_strategy, atlas_name, n_components,
     subjects_df = utils.load_clinical_data(clinical_file)
     utils.load_datapaths(subjects, subjects_df)
 
-    if atlas_name:
-        build_connectome(subjects_df, conf_strategy, atlas_name,
+    atlas = utils.load_atlas(atlas_name)
+    if network_name:
+        atlas = utils.extract_network(atlas, network_name)
+
+    # TODO: build atlas out of components
+    if atlas.name:
+        build_connectome(subjects_df, conf_strategy, atlas,
                          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                         output / atlas_name)
+                         output / atlas.name)
     if n_components:
         extract_components_by_cluster(subjects_df, conf_strategy, n_components,
                                       low_pass, high_pass, smoothing_fwhm, t_r,
                                       output / 'components')
-    rsa(subjects_df, conf_strategy, n_components, atlas_name, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
+    rsa(subjects_df, conf_strategy, n_components, atlas.name, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
 
 
 if __name__ == '__main__':
@@ -41,7 +46,9 @@ if __name__ == '__main__':
                            Options: simple, compcor, srubbing, ica_aroma')
     arg_parser.add_argument('-a', '--atlas', type=str, default=None,
                             help='Atlas to use for brain parcellation')
-    arg_parser.add_argument('-n', '--n_components', type=int, default=0,
+    arg_parser.add_argument('-n', '--network', type=str, default=None,
+                            help='Network to extract from atlas. If None, the whole atlas is used')
+    arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
                             help='Activity threshold for connectome (percentile)')
@@ -60,6 +67,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('-o', '--output_path', type=str, default='analysis/functional_connectivity')
 
     args = arg_parser.parse_args()
-    main(args.subjects, args.confounds_strategy, args.atlas, args.n_components,
+    if args.network and not args.atlas:
+        raise ValueError('Network cannot be extracted without an atlas')
+
+    main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
          args.data_path, args.clinical_file, args.output_path)

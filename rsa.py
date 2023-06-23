@@ -5,7 +5,7 @@ from extract_components import extract_components, extract_regions
 from build_connectome import connectivity_matrix
 
 
-def rsa(subjects_df, conf_strategy, n_components, atlas_name,
+def rsa(subjects_df, conf_strategy, n_components, atlas,
         low_pass, high_pass, smoothing_fwhm, t_r, output):
     n_subjects = len(subjects_df)
     behavioral_distance_matrix = behavioral_distance(subjects_df)
@@ -13,7 +13,6 @@ def rsa(subjects_df, conf_strategy, n_components, atlas_name,
     if n_components:
         timeseries = ica_timeseries(subjects_df, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r)
     else:
-        atlas = load_atlas(atlas_name)
         timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                                 conf_strategy, atlas.maps,
                                                                 low_pass, high_pass, smoothing_fwhm,
