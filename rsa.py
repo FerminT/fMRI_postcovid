@@ -21,7 +21,7 @@ def rsa(subjects_df, conf_strategy, n_components, atlas,
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices, n_subjects)
 
     rdm_connectivity = get_rdm(connectivity_distance_matrix[None, :],
-                               descriptor='Connectivity',
+                               descriptor=f'Connectivity_{atlas.name}',
                                pattern_descriptors=subjects_df.index.to_list())
     rdm_behavior = get_rdm(behavioral_distance_matrix[None, :],
                            descriptor='Behavioral',
