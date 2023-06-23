@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import numpy as np
+from extract_components import extract_components, extract_regions
 from nilearn import datasets, image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
@@ -78,6 +79,16 @@ def extract_network_from_msdl(atlas, network_name):
     return network_img, network_labels
 
 
+def atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
+    independent_components = extract_components(bold_imgs, mask_imgs, conf_strategy, n_components, low_pass, high_pass,
+                                                smoothing_fwhm, t_r)
+    regions = extract_regions(independent_components)
+    atlas = Bunch(maps=regions, labels=pd.DataFrame({'name': [f'region_{idx + 1}'
+                                                              for idx in range(regions.regions_img_.shape[-1])]}))
+
+    return atlas
+
+
 def load_atlas(atlas_name):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
@@ -94,11 +105,9 @@ def load_atlas(atlas_name):
     elif atlas_name == 'msdl':
         atlas = datasets.fetch_atlas_msdl()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
-
-    if atlas_name is None:
-        atlas = Bunch(name=None)
     else:
-        atlas.name = atlas_name
+        raise NotImplementedError(f'Atlas {atlas_name} not implemented')
+    atlas.name = atlas_name
 
     return atlas
 
@@ -141,6 +150,7 @@ def q_test(data, mean):
     data, mean = np.triu(data, k=1), np.triu(mean, k=1)
     q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
     return q
+
 
 def load_networks_mapping(networks_mapping_file='brain_networks.json'):
     with open(networks_mapping_file, 'r') as f:

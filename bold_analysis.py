@@ -22,11 +22,15 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
     subjects_df = utils.load_clinical_data(clinical_file)
     utils.load_datapaths(subjects, subjects_df)
 
-    atlas = utils.load_atlas(atlas_name)
-    if network_name:
-        atlas = utils.extract_network(atlas, network_name)
+    bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
+    if atlas_name:
+        atlas = utils.load_atlas(atlas_name)
+        if network_name:
+            atlas = utils.extract_network(atlas, network_name)
+    else:
+        atlas = utils.atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
+                                         t_r, conf_strategy)
 
-    # TODO: build atlas out of components
     if atlas.name:
         build_connectome(subjects_df, conf_strategy, atlas,
                          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
@@ -44,7 +48,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--confounds_strategy', type=str, default='simple',
                             help='Strategy for loading fMRIPrep denoising strategies. \
                            Options: simple, compcor, srubbing, ica_aroma')
-    arg_parser.add_argument('-a', '--atlas', type=str, default=None,
+    arg_parser.add_argument('-a', '--atlas', type=str, default='aal',
                             help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--network', type=str, default=None,
                             help='Network to extract from atlas. If None, the whole atlas is used')
@@ -69,6 +73,8 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
     if args.network and not args.atlas:
         raise ValueError('Network cannot be extracted without an atlas')
+    if args.n_components and args.atlas or not (args.n_components or args.atlas):
+        raise ValueError('Either atlas xor n_components must be specified')
 
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,

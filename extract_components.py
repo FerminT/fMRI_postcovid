@@ -53,6 +53,7 @@ def extract_regions(components_img, threshold=0.5, thresholding_strategy='ratio_
                     min_region_size=1350, standardize=True):
     regions_extractor = RegionExtractor(components_img,
                                         threshold=threshold,
+                                        extractor=extractor,
                                         thresholding_strategy=thresholding_strategy,
                                         min_region_size=min_region_size,
                                         standardize=standardize)
