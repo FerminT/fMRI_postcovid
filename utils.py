@@ -43,7 +43,7 @@ def extract_network(atlas, network_name):
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
     atlas.name = f'{atlas.name}_{network_name}'
-    atlas.maps, atlas.labels = network_img, network_labels
+    atlas.maps, atlas.labels = network_img, pd.DataFrame({'name': network_labels})
     return atlas
 
 

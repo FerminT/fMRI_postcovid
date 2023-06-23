@@ -26,7 +26,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
         clusters_connectivity_matrix[cluster] = mean_connectivity_matrix(cluster_df['time_series'].values)
 
     conn_output = output / 'connectivity_matrices'
-    conn_output.mkdir(exist_ok=True)
+    conn_output.mkdir(exist_ok=True, parents=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
     save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
     if atlas.name == 'schaefer':
