@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 import numpy as np
 from nilearn import datasets, image
@@ -36,9 +37,28 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
+def extract_network_from_aal(atlas, network_name):
+    networks_mapping = load_networks_mapping()
+    if network_name not in networks_mapping or atlas.name not in networks_mapping[network_name]:
+        raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
+
+    atlas_img = image.load_img(atlas.maps)
+    atlas_affine, atlas_data = atlas_img.affine, atlas_img.get_fdata()
+
+    network_labels = networks_mapping[network_name][atlas.name]
+    network_indices = atlas.labels[atlas.labels.name.isin(network_labels)].index
+    network_img_indices = [int(atlas.indices[idx]) for idx in network_indices]
+    atlas_data[~np.isin(atlas_data, network_img_indices)] = 0
+    network_img = image.new_img_like(atlas_img, atlas_data, affine=atlas_affine, copy_header=True)
+
+    return network_img, network_labels
+
+
 def extract_network(atlas, network_name):
     if atlas.name == 'msdl':
         network_img, network_labels = extract_network_from_msdl(atlas, network_name)
+    elif atlas.name == 'aal':
+        network_img, network_labels = extract_network_from_aal(atlas, network_name)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
@@ -121,3 +141,8 @@ def q_test(data, mean):
     data, mean = np.triu(data, k=1), np.triu(mean, k=1)
     q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
     return q
+
+def load_networks_mapping(networks_mapping_file='brain_networks.json'):
+    with open(networks_mapping_file, 'r') as f:
+        networks_mapping = json.load(f)
+    return networks_mapping
