@@ -37,7 +37,8 @@ def rsa(subjects_df, conf_strategy, n_components, atlas,
                                             rdm_descriptor='name',
                                             pattern_descriptor='subjects')
 
-    fig_connectivity.savefig(output / 'connectivity.png')
+    output.mkdir(exist_ok=True, parents=True)
+    fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
     fig_behavior.savefig(output / 'behavior.png')
 
     return rdm_behavior, rdm_connectivity
