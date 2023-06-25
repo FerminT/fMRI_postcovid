@@ -5,7 +5,6 @@ from build_connectome import connectivity_matrix
 
 
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
-    n_subjects = len(subjects_df)
     behavioral_distance_matrix = behavioral_distance(subjects_df)
 
     timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
@@ -13,7 +12,7 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
                                                             low_pass, high_pass, smoothing_fwhm,
                                                             t_r), axis=1)
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
-    connectivity_distance_matrix = connectivity_distance(connectivity_matrices, n_subjects)
+    connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
     rdm_connectivity = get_rdm(connectivity_distance_matrix[None, :],
                                descriptor=f'Connectivity_{atlas.name}',
@@ -39,7 +38,7 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     return rdm_behavior, rdm_connectivity
 
 
-def behavioral_distance(subjects_df, normalize=False):
+def behavioral_distance(subjects_df):
     fields = ['edad', 'composite_attention', 'composite_visuoespatial', 'composite_language', 'composite_memory',
               'composite_executive']
     behavioral_data = subjects_df[fields]
@@ -49,10 +48,11 @@ def behavioral_distance(subjects_df, normalize=False):
     return behavioral_distance
 
 
-def connectivity_distance(connectivity_matrices, n_subjects):
+def connectivity_distance(connectivity_matrices):
     connectivity_std = np.std(connectivity_matrices, axis=0)
     np.fill_diagonal(connectivity_std, 1)
     # Compute the distance between correlation matrices
+    n_subjects = connectivity_matrices.shape[0]
     connectivity_distance_matrix = np.empty((n_subjects, n_subjects))
     for i in range(n_subjects):
         for j in range(n_subjects):
