@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import Bunch
-from sklearn import manifold
+from sklearn.manifold import MDS, Isomap
+from sklearn.decomposition import PCA
 from extract_components import extract_components, extract_regions
 
 # NiLearn methods and classes
@@ -15,14 +16,16 @@ from nilearn.regions import RegionExtractor
 
 def plot_rdm(rdm, subjects_df, title, method='MDS', by_cluster=True):
     if method == 'MDS':
-        embedding = manifold.MDS(n_components=2,
-                                 dissimilarity='precomputed',
-                                 normalized_stress='auto',
-                                 random_state=42)
+        embedding = MDS(n_components=2,
+                        dissimilarity='precomputed',
+                        normalized_stress='auto',
+                        random_state=42)
     elif method == 'Isomap':
-        embedding = manifold.Isomap(n_components=2,
-                                    n_neighbors=5,
-                                    n_jobs=-1)
+        embedding = Isomap(n_components=2,
+                           n_neighbors=5,
+                           n_jobs=-1)
+    elif method == 'PCA':
+        embedding = PCA(n_components=2)
     else:
         raise NotImplementedError(f'Method {method} not implemented')
     coords = embedding.fit_transform(rdm)
