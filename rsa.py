@@ -1,6 +1,5 @@
 import numpy as np
-from sklearn import manifold
-from rsatoolbox import rdm, vis
+from rsatoolbox import rdm
 from utils import time_series, plot_rdm
 from build_connectome import connectivity_matrix
 
@@ -15,12 +14,12 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
-    # fig_connectivity = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}')
-    # fig_behavior = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral')
-    #
-    # output.mkdir(exist_ok=True, parents=True)
-    # fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
-    # fig_behavior.savefig(output / 'behavior.png')
+    fig_connectivity = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}')
+    fig_behavior = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral')
+
+    output.mkdir(exist_ok=True, parents=True)
+    fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
+    fig_behavior.savefig(output / 'behavior.png')
 
     return connectivity_distance_matrix, behavioral_distance_matrix
 
