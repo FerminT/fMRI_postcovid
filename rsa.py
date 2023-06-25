@@ -15,20 +15,21 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
-    fig_connectivity = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}')
-    fig_behavior = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral')
-
-    output.mkdir(exist_ok=True, parents=True)
-    fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
-    fig_behavior.savefig(output / 'behavior.png')
+    # fig_connectivity = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}')
+    # fig_behavior = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral')
+    #
+    # output.mkdir(exist_ok=True, parents=True)
+    # fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
+    # fig_behavior.savefig(output / 'behavior.png')
 
     return connectivity_distance_matrix, behavioral_distance_matrix
 
 
 def behavioral_distance(subjects_df):
-    fields = ['edad', 'composite_attention', 'composite_visuoespatial', 'composite_language', 'composite_memory',
+    fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language', 'composite_memory',
               'composite_executive']
-    behavioral_data = subjects_df[fields]
+    behavioral_data = subjects_df[fields].copy()
+    behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
     behavioral_data /= behavioral_data.std()
     behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
 
