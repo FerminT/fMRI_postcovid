@@ -1,12 +1,46 @@
 import json
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.utils import Bunch
+from sklearn import manifold
 from extract_components import extract_components, extract_regions
+
+# NiLearn methods and classes
 from nilearn import datasets, image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 from nilearn.regions import RegionExtractor
-from sklearn.utils import Bunch
+
+
+def plot_rdm(rdm, subjects_df, title, method='MDS', by_cluster=True):
+    if method == 'MDS':
+        embedding = manifold.MDS(n_components=2,
+                                 dissimilarity='precomputed',
+                                 normalized_stress='auto',
+                                 random_state=42)
+    elif method == 'Isomap':
+        embedding = manifold.Isomap(n_components=2,
+                                    n_neighbors=5,
+                                    n_jobs=-1)
+    else:
+        raise NotImplementedError(f'Method {method} not implemented')
+    coords = embedding.fit_transform(rdm)
+    fig, ax = plt.subplots()
+    clusters = subjects_df['cluster'].unique()
+    if by_cluster:
+        for cluster, color in zip(clusters, ['cyan', 'orange']):
+            cluster_coords = coords[subjects_df['cluster'] == cluster]
+            ax.scatter(cluster_coords[:, 0], cluster_coords[:, 1], color=color, label=f'Cluster {cluster}')
+        ax.legend()
+    else:
+        ax.scatter(coords[:, 0], coords[:, 1])
+    for i, txt in enumerate(subjects_df.index.to_list()):
+        ax.annotate(txt, (coords[i, 0], coords[i, 1]))
+    ax.set_title(title)
+    plt.show()
+
+    return fig
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -42,6 +76,19 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
+def extract_network(atlas, network_name):
+    if atlas.name == 'msdl':
+        network_img, network_labels = extract_network_from_msdl(atlas, network_name)
+    elif atlas.name == 'aal':
+        network_img, network_labels = extract_network_from_aal(atlas, network_name)
+    else:
+        raise ValueError(f'Can not extract networks from {atlas.name} atlas')
+
+    atlas.name = f'{atlas.name}_{network_name}'
+    atlas.maps, atlas.labels = network_img, pd.DataFrame({'name': network_labels})
+    return atlas
+
+
 def extract_network_from_aal(atlas, network_name):
     networks_mapping = load_networks_mapping()
     if network_name not in networks_mapping or atlas.name not in networks_mapping[network_name]:
@@ -57,19 +104,6 @@ def extract_network_from_aal(atlas, network_name):
     network_img = image.new_img_like(atlas_img, atlas_data, affine=atlas_affine, copy_header=True)
 
     return network_img, network_labels
-
-
-def extract_network(atlas, network_name):
-    if atlas.name == 'msdl':
-        network_img, network_labels = extract_network_from_msdl(atlas, network_name)
-    elif atlas.name == 'aal':
-        network_img, network_labels = extract_network_from_aal(atlas, network_name)
-    else:
-        raise ValueError(f'Can not extract networks from {atlas.name} atlas')
-
-    atlas.name = f'{atlas.name}_{network_name}'
-    atlas.maps, atlas.labels = network_img, pd.DataFrame({'name': network_labels})
-    return atlas
 
 
 def extract_network_from_msdl(atlas, network_name):

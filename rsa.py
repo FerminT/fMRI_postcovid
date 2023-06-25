@@ -1,6 +1,7 @@
 import numpy as np
+from sklearn import manifold
 from rsatoolbox import rdm, vis
-from utils import time_series
+from utils import time_series, plot_rdm
 from build_connectome import connectivity_matrix
 
 
@@ -14,28 +15,14 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
-    rdm_connectivity = get_rdm(connectivity_distance_matrix[None, :],
-                               descriptor=f'Connectivity_{atlas.name}',
-                               pattern_descriptors=subjects_df.index.to_list())
-    rdm_behavior = get_rdm(behavioral_distance_matrix[None, :],
-                           descriptor='Behavioral',
-                           pattern_descriptors=subjects_df.index.to_list())
-
-    fig_connectivity = vis.scatter_plot.show_2d(rdm_connectivity,
-                                                method='MDS',
-                                                rdm_descriptor='name',
-                                                pattern_descriptor='subjects')
-
-    fig_behavior = vis.scatter_plot.show_2d(rdm_behavior,
-                                            method='MDS',
-                                            rdm_descriptor='name',
-                                            pattern_descriptor='subjects')
+    fig_connectivity = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}')
+    fig_behavior = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral')
 
     output.mkdir(exist_ok=True, parents=True)
     fig_connectivity.savefig(output / f'connectivity_{atlas.name}.png')
     fig_behavior.savefig(output / 'behavior.png')
 
-    return rdm_behavior, rdm_connectivity
+    return connectivity_distance_matrix, behavioral_distance_matrix
 
 
 def behavioral_distance(subjects_df):
