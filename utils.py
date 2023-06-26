@@ -14,11 +14,10 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 from nilearn.regions import RegionExtractor
 
 
-def plot_rdm(rdm, subjects_df, title, method='MDS', by_cluster=True):
+def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_cluster=True):
     if method == 'MDS':
         embedding = MDS(n_components=2,
                         dissimilarity='precomputed',
-                        normalized_stress='auto',
                         random_state=42)
     elif method == 'Isomap':
         embedding = Isomap(n_components=2,
@@ -28,6 +27,9 @@ def plot_rdm(rdm, subjects_df, title, method='MDS', by_cluster=True):
         embedding = PCA(n_components=2)
     else:
         raise NotImplementedError(f'Method {method} not implemented')
+
+    title = title.replace(' ', '_')
+    title += f'_{method}'
     coords = embedding.fit_transform(rdm)
     fig, ax = plt.subplots()
     clusters = subjects_df['cluster'].unique()
@@ -40,10 +42,14 @@ def plot_rdm(rdm, subjects_df, title, method='MDS', by_cluster=True):
         ax.scatter(coords[:, 0], coords[:, 1])
     for i, txt in enumerate(subjects_df.index.to_list()):
         ax.annotate(txt, (coords[i, 0], coords[i, 1]))
+
     ax.set_title(title)
     plt.show()
 
-    return fig
+    output.mkdir(exist_ok=True, parents=True)
+    fig.savefig(output / f'{title}.png')
+
+    return coords
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
