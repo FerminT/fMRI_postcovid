@@ -99,7 +99,7 @@ def extract_network(atlas, network_name):
         network_img, network_labels = extract_network_from_msdl(atlas, network_name)
     elif atlas.name == 'aal':
         network_img, network_labels = extract_network_from_aal(atlas, network_name)
-    elif atlas.name == 'schafer':
+    elif atlas.name == 'schaefer':
         network_img, network_labels = extract_network_from_schaefer(atlas, network_name)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
@@ -110,6 +110,8 @@ def extract_network(atlas, network_name):
 
 
 def extract_network_from_schaefer(atlas, network_name):
+    # Add background region, since it is indexed as 0
+    atlas.labels = pd.concat([pd.DataFrame({'name': ['_Background_']}), atlas.labels], ignore_index=True)
     network_indices = []
     for i, region in enumerate(atlas.labels.name):
         network = region.split('_')[1]
@@ -172,8 +174,6 @@ def load_atlas(atlas_name):
         atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
-        # Add background region, since it is in
-        atlas.labels = pd.concat([pd.DataFrame({'name': ['_Background_']}), atlas.labels], ignore_index=True)
     elif atlas_name == 'msdl':
         atlas = datasets.fetch_atlas_msdl()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
