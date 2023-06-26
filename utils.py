@@ -41,7 +41,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_cluster=True):
     else:
         ax.scatter(coords[:, 0], coords[:, 1])
     for i, txt in enumerate(subjects_df.index.to_list()):
-        ax.annotate(txt, (coords[i, 0], coords[i, 1]))
+        ax.annotate(txt, (coords[i, 0], coords[i, 1]), alpha=0.6)
 
     ax.set_title(title)
     plt.show()
