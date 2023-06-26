@@ -54,7 +54,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-n', '--network', type=str, default=None,
                             help='Network to extract from atlas. If None, the whole atlas is used')
     arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
-                            help='Number of components to use for dictionary learning')
+                            help='Number of components to use for dictionary learning. \
+                            If specified, the atlas is ignored')
     arg_parser.add_argument('-t', '--threshold', type=int, default=95,
                             help='Activity threshold for connectome (percentile)')
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
@@ -76,8 +77,9 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
     if args.network and not args.atlas:
         raise ValueError('Network cannot be extracted without an atlas')
-    if args.n_components and args.atlas or not (args.n_components or args.atlas):
-        raise ValueError('Either atlas xor n_components must be specified')
+    if not (args.n_components or args.atlas):
+        raise ValueError('Either atlas or n_components must be specified')
+    args.atlas = args.atlas if not args.n_components else None
 
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
