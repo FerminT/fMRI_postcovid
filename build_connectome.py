@@ -19,6 +19,9 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
 
+    if atlas.name == 'schaefer':
+        connmatrices_over_networks(subjects_df, atlas.labels, threshold, output)
+
     # Compute mean connectivity matrix by cluster
     clusters_connectivity_matrix = {cluster: None for cluster in subjects_df['cluster'].unique()}
     for cluster in clusters_connectivity_matrix:
@@ -29,27 +32,9 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     conn_output.mkdir(exist_ok=True, parents=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
     save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
-    if atlas.name == 'schaefer':
-        connmatrices_over_networks(clusters_connectivity_matrix, atlas.labels, threshold, output)
 
 
-def connmatrices_over_networks(clusters_connectivity_matrices, atlas_labels, threshold, output):
-    # Only for Schaefer atlas
-    diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
-    for i, cluster in enumerate(clusters_connectivity_matrices):
-        cluster_connmatrix = clusters_connectivity_matrices[cluster]
-        cluster_connmatrix = utils.apply_threshold(cluster_connmatrix, threshold)
-        if i == 0:
-            diff_connmatrix = cluster_connmatrix
-        else:
-            diff_connmatrix = np.abs(diff_connmatrix - cluster_connmatrix)
-    networks, network_index = {}, 0
-    all_atlas_labels = atlas_labels['name'].values
-    for region in all_atlas_labels:
-        network = region.split('_')[1]
-        if network not in networks:
-            networks[network] = {'index': network_index}
-            network_index += 1
+def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_labels):
     networks_connmatrix = np.zeros((len(networks), len(networks)))
     terms_matrix = np.zeros((len(networks), len(networks)))
     for i, row_region in enumerate(all_atlas_labels):
@@ -58,19 +43,41 @@ def connmatrices_over_networks(clusters_connectivity_matrices, atlas_labels, thr
         for j, col_region in enumerate(all_atlas_labels):
             col_network = col_region.split('_')[1]
             idx_col_network = networks[col_network]['index']
-            networks_connmatrix[idx_row_network, idx_col_network] += diff_connmatrix[i, j]
+            networks_connmatrix[idx_row_network, idx_col_network] += subj_connectivity_matrix[i, j]
             terms_matrix[idx_row_network, idx_col_network] += 1
-    fig, ax = plt.subplots(figsize=(10, 8))
-    plt.matshow(terms_matrix)
-    plt.colorbar()
-    plt.savefig(output / f'terms_matrix_{len(all_atlas_labels)}rois.png')
-    plt.close(fig)
-    # Compute mean
     networks_connmatrix /= terms_matrix
+
+    return networks_connmatrix
+
+
+def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
+    # Only for Schaefer atlas
+    networks, network_index = {}, 0
+    all_atlas_labels = atlas_labels['name'].values
+    for region in all_atlas_labels:
+        network = region.split('_')[1]
+        if network not in networks:
+            networks[network] = {'index': network_index}
+            network_index += 1
+    # subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
+    #                                                                               utils.apply_threshold(conn_matrix,
+    #                                                                                                     threshold=threshold))
+    subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
+                                                                                  networks_connectivity_matrix(
+                                                                                      conn_matrix, networks,
+                                                                                      all_atlas_labels))
+    networks_std = subjects_df['networks_connmatrix'].values.std()
+    diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
+    for i, cluster in enumerate(subjects_df['cluster'].unique()):
+        cluster_connmatrices = subjects_df[subjects_df['cluster'] == cluster]['networks_connmatrix'].values
+        if i == 0:
+            diff_connmatrix = cluster_connmatrices.mean()
+        else:
+            diff_connmatrix = (diff_connmatrix - cluster_connmatrices.mean()) / networks_std
     fig, ax = plt.subplots(figsize=(10, 8))
     networks_labels = pd.DataFrame({'name': list(networks.keys())})
-    plot_matrix_on_axis(networks_connmatrix, networks_labels, ax, threshold=0,
-                        tri='full', vmin=-0.1, vmax=0.1)
+    plot_matrix_on_axis(diff_connmatrix, networks_labels, ax, threshold=0,
+                        tri='full')
     fig.savefig(output / f'networks_diff_{len(all_atlas_labels)}rois.png')
     plt.close(fig)
 
