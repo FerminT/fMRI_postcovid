@@ -85,11 +85,22 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
+def get_network_img(atlas, network_indices):
+    atlas_img = image.load_img(atlas.maps)
+    atlas_affine, atlas_data = atlas_img.affine, atlas_img.get_fdata()
+    atlas_data[~np.isin(atlas_data, network_indices)] = 0
+    network_img = image.new_img_like(atlas_img, atlas_data, affine=atlas_affine, copy_header=True)
+
+    return network_img
+
+
 def extract_network(atlas, network_name):
     if atlas.name == 'msdl':
         network_img, network_labels = extract_network_from_msdl(atlas, network_name)
     elif atlas.name == 'aal':
         network_img, network_labels = extract_network_from_aal(atlas, network_name)
+    elif atlas.name == 'schafer':
+        network_img, network_labels = extract_network_from_schaefer(atlas, network_name)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
@@ -98,19 +109,30 @@ def extract_network(atlas, network_name):
     return atlas
 
 
+def extract_network_from_schaefer(atlas, network_name):
+    network_indices = []
+    for i, region in enumerate(atlas.labels.name):
+        network = region.split('_')[1]
+        if network == network_name:
+            network_indices.append(i)
+    if len(network_indices) == 0:
+        raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
+
+    network_labels = atlas.labels.iloc[network_indices].name.to_list()
+    network_img = get_network_img(atlas, network_indices)
+
+    return network_img, network_labels
+
+
 def extract_network_from_aal(atlas, network_name):
     networks_mapping = load_networks_mapping()
     if network_name not in networks_mapping or atlas.name not in networks_mapping[network_name]:
         raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
 
-    atlas_img = image.load_img(atlas.maps)
-    atlas_affine, atlas_data = atlas_img.affine, atlas_img.get_fdata()
-
     network_labels = networks_mapping[network_name][atlas.name]
     network_indices = atlas.labels[atlas.labels.name.isin(network_labels)].index
     network_img_indices = [int(atlas.indices[idx]) for idx in network_indices]
-    atlas_data[~np.isin(atlas_data, network_img_indices)] = 0
-    network_img = image.new_img_like(atlas_img, atlas_data, affine=atlas_affine, copy_header=True)
+    network_img = get_network_img(atlas, network_img_indices)
 
     return network_img, network_labels
 
@@ -150,6 +172,8 @@ def load_atlas(atlas_name):
         atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
+        # Add background region, since it is in
+        atlas.labels = pd.concat([pd.DataFrame({'name': ['_Background_']}), atlas.labels], ignore_index=True)
     elif atlas_name == 'msdl':
         atlas = datasets.fetch_atlas_msdl()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
