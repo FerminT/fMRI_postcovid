@@ -70,7 +70,7 @@ if __name__ == '__main__':
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-clinical', '--clinical_file', type=str, default='clinical_data.csv',
                             help='Path to file with subjects clinical data')
-    arg_parser.add_argument('-ccluster', '--clinical_cluster', type=bool, default=False,
+    arg_parser.add_argument('-ccluster', '--clinical_cluster', action='store_true',
                             help='Whether to use precomputed clinical cluster for analysis')
     arg_parser.add_argument('-o', '--output_path', type=str, default='analysis/functional_connectivity')
 
