@@ -34,8 +34,9 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_cluster=True):
     fig, ax = plt.subplots()
     clusters = subjects_df['cluster'].unique()
     if by_cluster:
-        for cluster, color in zip(clusters, ['cyan', 'orange']):
-            cluster_coords = coords[subjects_df['cluster'] == cluster]
+        for cluster, color in zip(clusters, ['cyan', 'orange', 'black']):
+            cluster_coords = coords[subjects_df['cluster'] == cluster] \
+                if not np.isnan(cluster) else coords[subjects_df['cluster'].isna()]
             ax.scatter(cluster_coords[:, 0], cluster_coords[:, 1], color=color, label=f'Cluster {cluster}')
         ax.legend()
     else:
@@ -184,17 +185,18 @@ def load_atlas(atlas_name):
     return atlas
 
 
-def load_clinical_data(clinical_datafile):
+def load_clinical_data(clinical_datafile, use_clinical_cluster):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['AnonID'].isna()]
     subjects_data = subjects_data.astype({'AnonID': int})
     subjects_data = subjects_data.set_index('AnonID')
+    subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
 
     # Remove invalid subjects (subj 29 has different data shapes)
     subjects_to_remove = [2, 17, 29]
     subjects_data = subjects_data.drop(subjects_to_remove)
-    # Remove subjects with no cluster
-    subjects_data = subjects_data[~subjects_data['cluster'].isna()]
+    if use_clinical_cluster:
+        subjects_data = subjects_data[~subjects_data['cluster'].isna()]
 
     return subjects_data
 

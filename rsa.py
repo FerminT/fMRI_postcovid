@@ -15,7 +15,7 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
     connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}', output)
-    behavior_embeddings = plot_rdm(behavioral_distance_matrix, subjects_df, 'Behavioral', output)
+    behavior_embeddings = plot_rdm(behavioral_distance_matrix, subjects_df.dropna(), 'Behavioral', output)
 
     return connectivity_embeddings, behavior_embeddings
 
@@ -24,6 +24,7 @@ def behavioral_distance(subjects_df):
     fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language', 'composite_memory',
               'composite_executive']
     behavioral_data = subjects_df[fields].copy()
+    behavioral_data.dropna(inplace=True)
     behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
     behavioral_data /= behavioral_data.std()
     behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)

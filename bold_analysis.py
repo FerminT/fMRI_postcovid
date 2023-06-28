@@ -10,7 +10,7 @@ TEMPLATE_SHAPE = [55, 65, 55]
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-         data_path, clinical_file, clinical_cluster, output):
+         data_path, clinical_file, use_clinical_cluster, output):
     data_path, output = Path(data_path), Path(output)
     output.mkdir(parents=True, exist_ok=True)
 
@@ -19,7 +19,7 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
     else:
         subjects = [data_path / f'sub-{subjects.zfill(3)}']
 
-    subjects_df = utils.load_clinical_data(clinical_file)
+    subjects_df = utils.load_clinical_data(clinical_file, use_clinical_cluster)
     utils.load_datapaths(subjects, subjects_df)
 
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
@@ -31,7 +31,7 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
         atlas = utils.atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
                                          t_r, conf_strategy)
 
-    if clinical_cluster:
+    if use_clinical_cluster:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
 
