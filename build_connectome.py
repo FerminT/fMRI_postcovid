@@ -8,6 +8,15 @@ from nilearn import plotting
 from nilearn.connectome import ConnectivityMeasure
 
 
+def save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output):
+    coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
+    for cluster in clusters_connectivity_matrix:
+        correlation_matrix = clusters_connectivity_matrix[cluster]
+        plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
+                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='winter', edge_vmin=0, edge_vmax=0.8)
+        plt.savefig(conn_output / f'{atlas.name}_cluster_{cluster}_connectome.png')
+
+
 def build_connectome(subjects_df, conf_strategy, atlas,
                      threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
@@ -32,6 +41,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     conn_output.mkdir(exist_ok=True, parents=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
     save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
+    save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output)
 
 
 def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_labels):

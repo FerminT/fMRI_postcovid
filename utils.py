@@ -184,7 +184,7 @@ def load_atlas(atlas_name):
         # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
         atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
     elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=400)
+        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
     elif atlas_name == 'msdl':
