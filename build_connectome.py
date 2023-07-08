@@ -52,13 +52,8 @@ def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_l
 
 def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
     # Only for Schaefer atlas
-    networks, network_index = {}, 0
+    networks = utils.get_schaefer_networks_indices(atlas_labels)
     all_atlas_labels = atlas_labels['name'].values
-    for region in all_atlas_labels:
-        network = region.split('_')[1]
-        if network not in networks:
-            networks[network] = {'index': network_index}
-            network_index += 1
     # subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
     #                                                                               utils.apply_threshold(conn_matrix,
     #                                                                                                     threshold=threshold))

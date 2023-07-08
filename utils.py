@@ -86,6 +86,18 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
+def get_schaefer_networks_indices(atlas_labels):
+    all_atlas_labels = atlas_labels['name'].values
+    networks_location, network_index = {}, 0
+    for region in all_atlas_labels:
+        network = region.split('_')[1]
+        if network not in networks_location:
+            networks_location[network] = {'index': network_index}
+            network_index += 1
+
+    return networks_location
+
+
 def get_network_img(atlas, network_indices):
     atlas_img = image.load_img(atlas.maps)
     atlas_affine, atlas_data = atlas_img.affine, atlas_img.get_fdata()
@@ -172,7 +184,7 @@ def load_atlas(atlas_name):
         # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
         atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
     elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
+        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=400)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
     elif atlas_name == 'msdl':
