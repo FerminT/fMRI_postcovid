@@ -8,15 +8,6 @@ from nilearn import plotting
 from nilearn.connectome import ConnectivityMeasure
 
 
-def save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output):
-    coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
-    for cluster in clusters_connectivity_matrix:
-        correlation_matrix = clusters_connectivity_matrix[cluster]
-        plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
-                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='winter', edge_vmin=0, edge_vmax=0.8)
-        plt.savefig(conn_output / f'{atlas.name}_cluster_{cluster}_connectome.png')
-
-
 def build_connectome(subjects_df, conf_strategy, atlas,
                      threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
@@ -34,8 +25,10 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     # Compute mean connectivity matrix by cluster
     clusters_connectivity_matrix = {cluster: None for cluster in subjects_df['cluster'].unique()}
     for cluster in clusters_connectivity_matrix:
+        print(f'\nProcessing cluster {cluster} on {atlas.name}...')
         cluster_df = subjects_df[subjects_df['cluster'] == cluster]
         clusters_connectivity_matrix[cluster] = mean_connectivity_matrix(cluster_df['time_series'].values)
+        utils.print_connectivity_metrics(clusters_connectivity_matrix[cluster], threshold)
 
     conn_output = output / 'connectivity_matrices'
     conn_output.mkdir(exist_ok=True, parents=True)
@@ -85,6 +78,15 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
                         tri='full')
     fig.savefig(output / f'networks_diff_{len(all_atlas_labels)}rois.png')
     plt.close(fig)
+
+
+def save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output):
+    coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
+    for cluster in clusters_connectivity_matrix:
+        correlation_matrix = clusters_connectivity_matrix[cluster]
+        plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
+                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='winter', edge_vmin=0, edge_vmax=0.8)
+        plt.savefig(conn_output / f'{atlas.name}_cluster_{cluster}_connectome.png')
 
 
 def save_clusters_matrices(clusters_connectivity_matrices, atlas_labels, threshold, output):

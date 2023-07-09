@@ -1,4 +1,6 @@
 import json
+
+import networkx as nx
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -236,6 +238,15 @@ def q_test(data, mean):
     data, mean = np.triu(data, k=1), np.triu(mean, k=1)
     q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
     return q
+
+
+def print_connectivity_metrics(connectivity_matrix, threshold):
+    connectivity_matrix[connectivity_matrix < (threshold / 100)] = 0
+    np.fill_diagonal(connectivity_matrix, 0)
+    graph = nx.from_numpy_matrix(connectivity_matrix)
+    print(f'Average clustering coefficient: {nx.average_clustering(graph)}')
+    print(f'Average node connectivity: {nx.average_node_connectivity(graph)}')
+    print(f'Average neighbor degree: {np.mean(list(nx.average_neighbor_degree(graph).values()))}')
 
 
 def load_networks_mapping(networks_mapping_file='brain_networks.json'):
