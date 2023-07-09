@@ -85,7 +85,7 @@ def save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, co
     for cluster in clusters_connectivity_matrix:
         correlation_matrix = clusters_connectivity_matrix[cluster]
         plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
-                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='winter', edge_vmin=0, edge_vmax=0.8)
+                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='YlOrBr', edge_vmin=0, edge_vmax=0.8)
         plt.savefig(conn_output / f'{atlas.name}_cluster_{cluster}_connectome.png')
 
 
