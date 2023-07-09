@@ -243,7 +243,7 @@ def q_test(data, mean):
 def print_connectivity_metrics(connectivity_matrix, threshold):
     connectivity_matrix[connectivity_matrix < (threshold / 100)] = 0
     np.fill_diagonal(connectivity_matrix, 0)
-    graph = nx.from_numpy_matrix(connectivity_matrix)
+    graph = nx.from_numpy_array(connectivity_matrix)
     print(f'Average clustering coefficient: {nx.average_clustering(graph)}')
     print(f'Average node connectivity: {nx.average_node_connectivity(graph)}')
     print(f'Average neighbor degree: {np.mean(list(nx.average_neighbor_degree(graph).values()))}')
