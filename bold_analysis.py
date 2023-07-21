@@ -69,7 +69,7 @@ if __name__ == '__main__':
     if not (args.n_components or args.atlas):
         raise ValueError('Either atlas or n_components must be specified')
     args.atlas = args.atlas if not args.n_components else None
-    data_path, output = Path(args.data_path), Path(args.output)
+    data_path, output = Path(args.data_path), Path(args.output_path)
     output.mkdir(parents=True, exist_ok=True)
 
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
