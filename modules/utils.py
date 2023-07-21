@@ -6,7 +6,7 @@ from sklearn.manifold import MDS, Isomap
 from sklearn.decomposition import PCA
 
 # NiLearn methods and classes
-from nilearn import image
+from nilearn import image, plotting
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
@@ -47,6 +47,22 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     fig.savefig(output / f'{title}.png')
 
     return coords
+
+
+def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
+                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+    matrix_to_plot = connectivity_matrix.copy()
+    matrix_to_plot = apply_threshold(matrix_to_plot, threshold)
+    # Get labels in the correct format until plot_matrix is fixed
+    labels = list(atlas_labels.name.values)
+    plotting.plot_matrix(matrix_to_plot,
+                         tri=tri,
+                         labels=labels,
+                         colorbar=True,
+                         vmin=vmin,
+                         vmax=vmax,
+                         reorder=reorder,
+                         axes=ax)
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):

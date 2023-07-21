@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import utils
-from atlas_manager import get_schaefer_networks_indices
+from . import utils
+from .atlas_manager import get_schaefer_networks_indices
 
 # NiLearn methods and classes
 from nilearn import plotting
@@ -119,7 +119,7 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, threshold, 
             atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
             atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
+        utils.plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
         axes[i].set_title(f'{group}')
     fig.savefig(output / 'groups_comparison.png')
 
@@ -132,22 +132,6 @@ def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reo
 def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, threshold, output,
                              tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
     fig, ax = plt.subplots(figsize=(10, 8))
-    plot_matrix_on_axis(conn_matrix, atlas_labels, ax, threshold, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
+    utils.plot_matrix_on_axis(conn_matrix, atlas_labels, ax, threshold, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
     fig.savefig(output / f'{fig_name}.png')
     plt.close(fig)
-
-
-def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
-                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    matrix_to_plot = connectivity_matrix.copy()
-    matrix_to_plot = utils.apply_threshold(matrix_to_plot, threshold)
-    # Get labels in the correct format until plot_matrix is fixed
-    labels = list(atlas_labels.name.values)
-    plotting.plot_matrix(matrix_to_plot,
-                         tri=tri,
-                         labels=labels,
-                         colorbar=True,
-                         vmin=vmin,
-                         vmax=vmax,
-                         reorder=reorder,
-                         axes=ax)

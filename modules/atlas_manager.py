@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from sklearn.utils import Bunch
 from nilearn import image, datasets
-from extract_components import extract_components, extract_regions
+from .ic_manager import extract_components, extract_regions
 
 
 def build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass, smoothing_fwhm, t_r,

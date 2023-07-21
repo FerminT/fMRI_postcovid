@@ -1,7 +1,7 @@
 import numpy as np
 from rsatoolbox import rdm
-from utils import time_series, plot_rdm
-from build_connectome import connectivity_matrix
+from .utils import time_series, plot_rdm
+from .connectome_manager import connectivity_matrix
 
 
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):

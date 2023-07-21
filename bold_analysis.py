@@ -1,10 +1,10 @@
 from pathlib import Path
 import argparse
-import utils
-from atlas_manager import build_atlas
-from extract_components import extract_group_components
-from build_connectome import build_connectome
-from rsa import rsa
+from modules import utils
+from modules.atlas_manager import build_atlas
+from modules.ic_manager import extract_group_components
+from modules.connectome_manager import build_connectome
+from modules.rsa import rsa
 
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
