@@ -13,6 +13,12 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
     atlas = utils.build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm,
                               t_r, conf_strategy)
 
+    do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+                output, group_analysis)
+
+
+def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+                output, group_analysis):
     if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
@@ -21,6 +27,7 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
                                      low_pass, high_pass, smoothing_fwhm, t_r,
                                      output / 'components')
     else:
+        # Data-driven approach
         rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
 
 
