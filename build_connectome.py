@@ -22,19 +22,19 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     if atlas.name == 'schaefer':
         connmatrices_over_networks(subjects_df, atlas.labels, threshold, output)
 
-    # Compute mean connectivity matrix by cluster
-    clusters_connectivity_matrix = {cluster: None for cluster in subjects_df['cluster'].unique()}
-    for cluster in clusters_connectivity_matrix:
-        print(f'\nProcessing cluster {cluster} on {atlas.name}...')
-        cluster_df = subjects_df[subjects_df['cluster'] == cluster]
-        clusters_connectivity_matrix[cluster] = mean_connectivity_matrix(cluster_df['time_series'].values)
-        utils.print_connectivity_metrics(clusters_connectivity_matrix[cluster], threshold)
+    # Compute mean connectivity matrix by group
+    groups_connectivity_matrix = {group: None for group in subjects_df['group'].unique()}
+    for group in groups_connectivity_matrix:
+        print(f'\nProcessing group {group} on {atlas.name}...')
+        group_df = subjects_df[subjects_df['group'] == group]
+        groups_connectivity_matrix[group] = mean_connectivity_matrix(group_df['time_series'].values)
+        utils.print_connectivity_metrics(groups_connectivity_matrix[group], threshold)
 
     conn_output = output / 'connectivity_matrices'
     conn_output.mkdir(exist_ok=True, parents=True)
     save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
-    save_clusters_matrices(clusters_connectivity_matrix, atlas.labels, threshold, conn_output)
-    save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output)
+    save_groups_matrices(groups_connectivity_matrix, atlas.labels, threshold, conn_output)
+    save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output)
 
 
 def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_labels):
@@ -54,7 +54,7 @@ def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_l
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
-    # Only for Schaefer atlas
+    # Only for Schaefer atlas: compute the difference between groups connectivity matrices over networks
     networks = utils.get_schaefer_networks_indices(atlas_labels)
     all_atlas_labels = atlas_labels['name'].values
     # subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
@@ -66,12 +66,12 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
                                                                                       all_atlas_labels))
     networks_std = subjects_df['networks_connmatrix'].values.std()
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
-    for i, cluster in enumerate(subjects_df['cluster'].unique()):
-        cluster_connmatrices = subjects_df[subjects_df['cluster'] == cluster]['networks_connmatrix'].values
+    for i, group in enumerate(subjects_df['group'].unique()):
+        group_connmatrices = subjects_df[subjects_df['group'] == group]['networks_connmatrix'].values
         if i == 0:
-            diff_connmatrix = cluster_connmatrices.mean()
+            diff_connmatrix = group_connmatrices.mean()
         else:
-            diff_connmatrix = (diff_connmatrix - cluster_connmatrices.mean()) / networks_std
+            diff_connmatrix = (diff_connmatrix - group_connmatrices.mean()) / networks_std
     fig, ax = plt.subplots(figsize=(10, 8))
     networks_labels = pd.DataFrame({'name': list(networks.keys())})
     plot_matrix_on_axis(diff_connmatrix, networks_labels, ax, threshold=0,
@@ -80,30 +80,30 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
     plt.close(fig)
 
 
-def save_clusters_connectomes(clusters_connectivity_matrix, atlas, threshold, conn_output):
+def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output):
     coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
-    for cluster in clusters_connectivity_matrix:
-        correlation_matrix = clusters_connectivity_matrix[cluster]
+    for group in groups_connectivity_matrix:
+        correlation_matrix = groups_connectivity_matrix[group]
         plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
-                                 title=f'{atlas.name} cluster {cluster}', edge_cmap='YlOrBr', edge_vmin=0, edge_vmax=0.8)
-        plt.savefig(conn_output / f'{atlas.name}_cluster_{cluster}_connectome.png')
+                                 title=f'{atlas.name}, {group}', edge_cmap='YlOrBr', edge_vmin=0, edge_vmax=0.8)
+        plt.savefig(conn_output / f'{atlas.name}_{group}_connectome.png')
 
 
-def save_clusters_matrices(clusters_connectivity_matrices, atlas_labels, threshold, output):
-    fig, axes = plt.subplots(nrows=1, ncols=len(clusters_connectivity_matrices), figsize=(30, 30))
-    for i, cluster in enumerate(clusters_connectivity_matrices):
-        cluster_connmatrix = clusters_connectivity_matrices[cluster]
-        # Apply first cluster label order to the rest of the clusters for better comparison
+def save_groups_matrices(groups_connectivity_matrices, atlas_labels, threshold, output):
+    fig, axes = plt.subplots(nrows=1, ncols=len(groups_connectivity_matrices), figsize=(30, 30))
+    for i, group in enumerate(groups_connectivity_matrices):
+        group_connmatrix = groups_connectivity_matrices[group]
+        # Apply first group label order to the rest of the groups for better comparison
         if i > 0:
             label_order = [tick.get_text() for tick in axes[0].get_xticklabels()]
             regions_indices = [atlas_labels[atlas_labels.name == region].index[0] for region in label_order]
-            cluster_connmatrix = cluster_connmatrix[regions_indices, :][:, regions_indices]
+            group_connmatrix = group_connmatrix[regions_indices, :][:, regions_indices]
             atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
             atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        plot_matrix_on_axis(cluster_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
-        axes[i].set_title(f'Cluster {cluster}')
-    fig.savefig(output / 'clusters.png')
+        plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
+        axes[i].set_title(f'{group}')
+    fig.savefig(output / 'groups_comparison.png')
 
 
 def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reorder=False):

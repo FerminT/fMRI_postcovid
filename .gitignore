@@ -14,9 +14,6 @@ nilearn_cache
 *.html
 *.svg
 
-# dataset description
-neurocovid_dataset/README
-
 # logs and freesurfer
 neurocovid_derivatives/logs
 neurocovid_derivatives/sourcedata

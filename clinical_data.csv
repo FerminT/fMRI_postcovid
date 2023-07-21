@@ -1,93 +1,91 @@
-id	edad	sexo	fecha_rmn	protocolo	tesla	t1_volumetrico	resting	coil	group
-1	47	femenino	3/04/2022	Covid	3	1	1	32-channel head	covid
-2	46	masculino	14/06/2022	Covid	3	1	1	32-channel head	covid
-3	80	femenino	31/03/2022	Covid	3	1	1	32-channel head	covid
-4	75	femenino	12/05/2022	Covid	3	1	1	32-channel head	covid
-5	53	femenino	23/06/2022	Covid	3	1	1	32-channel head	covid
-6	42	masculino	16/02/2022	Covid	3	1	1	32-channel head	covid
-7	51	masculino	4/07/2022	Covid	3	1	1	32-channel head	covid
-8	48	femenino	22/02/2022	Covid	3	1	1	32-channel head	covid
-9	72	femenino	4/06/2022	Covid	3	1	1	32-channel head	covid
-10	45	femenino	24/03/2022	Covid	3	1	1	32-channel head	covid
-11	70	femenino	27/06/2022	Angulo pontocerebeloso	3	1	1	32-channel head	covid
-12	38	femenino	20/05/2022	Covid	3	1	1	32-channel head	covid
-13	37	femenino	31/05/2022	Covid	3	1	1	32-channel head	covid
-14	46	femenino	6/03/2022	Cognitivo	3	1	1	32-channel head	covid
-15	40	femenino	6/07/2022	Covid	3	1	1	32-channel head	covid
-16	69	femenino	28/06/2022	Covid	3	1	1	32-channel head	covid
-17	27	femenino	18/01/2023	Covid	3	1	1	HNS	covid
-18	42	femenino	28/05/2022	Covid	3	1	1	32-channel head	covid
-19	46	femenino	31/4/2022	Cognitivo	3	1	1	32-channel head	covid
-20	53	femenino	28/06/2022	RMN de encefalo	3	1	1	32-channel head	covid
-21	66	femenino	30/06/2022	RMN de encefalo	3	1	1	32-channel head	covid
-22	43	femenino	20/08/2022	RMN de encefalo	3	1	1	32-channel head	covid
-23	50	femenino	25/08/2022	Covid	3	1	1	32-channel head	covid
-24	53	masculino	25/07/2022	RMN de encefalo	3	1	1	32-channel head	covid
-25	60	femenino	22/09/2022	RMN de encefalo	3	1	1	32-channel head	covid
-26	50	femenino	27/08/2023	Covid	3	1	1	32-channel head	covid
-27	72	masculino	13/08/2022	RMN de encefalo	3	1	1	32-channel head	covid
-28	67	masculino	18/09/2022	Covid	3	1	1	32-channel head	covid
-29	70	masculino	28/10/2022	Covid	3	1	1	32-channel head	covid
-30	63	femenino	14/09/2022	Covid	3	1	1	32-channel head	covid
-31	52	femenino	14/10/2023	Covid	3	1	1	HNS	covid
-32	58	masculino	16/10/2023	RMN de encefalo	3	1	1	32-channel head	covid
-33	51	femenino	16/10/2023	RMN de encefalo	3	1	1	32-channel head	covid
-34	76	femenino	15/10/2023	Covid	3	1	1	32-channel head	covid
-35	53	femenino	6/11/2023	Covid	3	1	1	32-channel head	covid
-36	39	masculino	17/09/2022	Covid	3	1	1	32-channel head	covid
-37	70	femenino	29/10/2022	Covid	3	1	1	32-channel head	covid
-38	47	femenino	22/02/2023	RMN de encefalo	3	1	1	32-channel head	covid
-39	74	masculino	25/02/2023	Covid	3	1	1	32-channel head	covid
-40	49	femenino	15/12/2023	RMN de encefalo	3	1	1	32-channel head	covid
-41	68	femenino	28/12/2022	RMN de encefalo	3	1	1	32-channel head	covid
-42	57	masculino	1/03/2023	Covid	3	1	1	32-channel head	covid
-43	57	femenino	19/02/2023	Covid	3	1	1	32-channel head	covid
-44	69	femenino	22/02/2023	Covid	3	1	1	32-channel head	covid
-45	49	femenino	11/12/2023	Covid	3	1	0	32-channel head	covid
-46	70	masculino	10/09/2022	Covid	3	1	0	32-channel head	covid
-47	58	femenino	26/05/2021	Cognitivo	3	1	1	32-channel head	control
-48	73	masculino	26/09/2022	Cognitivo	3	1	1	32-channel head	control
-49	67	masculino	13/12/2020	Cognitivo	3	1	1	32-channel head	control
-50	51	femenino	16/04/2022	Cognitivo	3	1	1	32-channel head	control
-51	61	masculino	1/10/2021	Cognitivo	3	1	1	32-channel head	control
-52	64	femenino	29/03/2021	Cognitivo	3	1	1	32-channel head	control
-53	62	femenino	22/01/2021	Cognitivo	3	1	1	32-channel head	control
-54	56	femenino	30/12/2020	Cognitivo	3	1	1	32-channel head	control
-55	65	femenino	27/04/2021	Cognitivo	3	1	1	32-channel head	control
-56	67	femenino	27/04/2023	Cognitivo	3	1	1	32-channel head	control
-57	53	masculino	5/05/2022	Cognitivo	3	1	1	32-channel head	control
-58	46	femenino	30/11/2021	Cognitivo	3	1	1	32-channel head	control
-59	49	masculino	13/09/2022	Cognitivo	3	1	1	32-channel head	control
-60	53	femenino	19/11/2022	Cognitivo	3	1	1	32-channel head	control
-61	44	femenino	23/03/2023	Cognitivo	3	1	1	32-channel head	control
-62	50	femenino	26/07/2019	Cognitivo	3	1	1	32-channel head	control
-63	48	masculino	27/11/2022	Cognitivo	3	1	1	32-channel head	control
-64	49	femenino	10/04/2023	Cognitivo	3	1	1	32-channel head	control
-65	58	femenino	22/04/2023	Cognitivo	3	1	1	32-channel head	control
-66	37	femenino	10/11/2021	Cognitivo	3	1	1	32-channel head	control
-67	47	masculino	2/09/2022	Cognitivo	3	1	1	32-channel head	control
-68	51	femenino	17/09/2021	Cognitivo	3	1	1	32-channel head	control
-70	45	masculino	21/06/2022	Cognitivo	3	1	1	32-channel head	control
-71	51	masculino	22/08/2022	Cognitivo	3	1	1	32-channel head	control
-72	34	masculino	23/02/2021	Cognitivo	3	1	1	32-channel head	control
-74	34	femenino	12/08/2021	Cognitivo	3	1	1	32-channel head	control
-75	48	masculino	29/11/2021	Cognitivo	3	1	1	32-channel head	control
-77	62	femenino	12/06/2021	Cognitivo	1,5	1	1	32-channel head	control
-78	67	masculino	3/03/2023	Cognitivo	3	1	1	32-channel head	control
-79	77	femenino	20/09/2019	Cognitivo	3	1	1	32-channel head	control
-80	65	masculino	13/05/2022	Cognitivo	3	1	1	32-channel head	control
-81	61	masculino	13/10/2021	Cognitivo	3	1	1	32-channel head	control
-82	64	femenino	29/03/2023	Cognitivo	3	1	1	32-channel head	control
-83	62	femenino	26/04/2022	Cognitivo	3	1	1	32-channel head	control
-84	62	femenino	25/0572023	Cognitivo	3	1	1	32-channel head	control
-86	72	femenino	11/09/2022	Cognitivo	3	1	1	32-channel head	control
-87	72	masculino	13/02/2020	Cognitivo	3	1	1	32-channel head	control
-88	66	femenino	27/09/2022	Cognitivo	3	1	1	32-channel head	control
-89	70	femenino	13/02/2021	Cognitivo	3	1	1	32-channel head	control
-90	60	femenino	15/10/2019	Cognitivo	3	1	1	32-channel head	control
-91	43	masculino	14/10/2020	Cognitivo	3	1	1	32-channel head	control
-92	69	masculino	31/01/2021	Cognitivo	3	1	1	32-channel head	control
-93	76	femenino	20/02/2021	Cognitivo	3	1	1	32-channel head	control
-94	64	femenino	20/03/2021	Cognitivo	3	1	1	32-channel head	control
-95	70	masculino	13/03/2021	Cognitivo	3	1	1	32-channel head	control
-96	68	femenino	26/12/2021	Cognitivo	3	1	1	32-channel head	control
+id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,group,
+1,47,femenino,3/04/2022,Covid,3,1,1,32-channel head,covid,
+3,80,femenino,31/03/2022,Covid,3,1,1,32-channel head,covid,
+4,75,femenino,12/05/2022,Covid,3,1,1,32-channel head,covid,
+5,53,femenino,23/06/2022,Covid,3,1,1,32-channel head,covid,
+6,42,masculino,16/02/2022,Covid,3,1,1,32-channel head,covid,
+7,51,masculino,4/07/2022,Covid,3,1,1,32-channel head,covid,
+8,48,femenino,22/02/2022,Covid,3,1,1,32-channel head,covid,
+9,72,femenino,4/06/2022,Covid,3,1,1,32-channel head,covid,
+10,45,femenino,24/03/2022,Covid,3,1,1,32-channel head,covid,
+11,70,femenino,27/06/2022,Angulo pontocerebeloso,3,1,1,32-channel head,covid,
+12,38,femenino,20/05/2022,Covid,3,1,1,32-channel head,covid,
+13,37,femenino,31/05/2022,Covid,3,1,1,32-channel head,covid,
+14,46,femenino,6/03/2022,Cognitivo,3,1,1,32-channel head,covid,
+15,40,femenino,6/07/2022,Covid,3,1,1,32-channel head,covid,
+16,69,femenino,28/06/2022,Covid,3,1,1,32-channel head,covid,
+18,42,femenino,28/05/2022,Covid,3,1,1,32-channel head,covid,
+19,46,femenino,31/4/2022,Cognitivo,3,1,1,32-channel head,covid,
+20,53,femenino,28/06/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+21,66,femenino,30/06/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+22,43,femenino,20/08/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+23,50,femenino,25/08/2022,Covid,3,1,1,32-channel head,covid,
+24,53,masculino,25/07/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+25,60,femenino,22/09/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+26,50,femenino,27/08/2023,Covid,3,1,1,32-channel head,covid,
+27,72,masculino,13/08/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+28,67,masculino,18/09/2022,Covid,3,1,1,32-channel head,covid,
+29,70,masculino,28/10/2022,Covid,3,1,1,32-channel head,covid,
+30,63,femenino,14/09/2022,Covid,3,1,1,32-channel head,covid,
+31,52,femenino,14/10/2023,Covid,3,1,1,HNS,covid,
+32,58,masculino,16/10/2023,RMN de encefalo,3,1,1,32-channel head,covid,
+33,51,femenino,16/10/2023,RMN de encefalo,3,1,1,32-channel head,covid,
+34,76,femenino,15/10/2023,Covid,3,1,1,32-channel head,covid,
+35,53,femenino,6/11/2023,Covid,3,1,1,32-channel head,covid,
+36,39,masculino,17/09/2022,Covid,3,1,1,32-channel head,covid,
+37,70,femenino,29/10/2022,Covid,3,1,1,32-channel head,covid,
+38,47,femenino,22/02/2023,RMN de encefalo,3,1,1,32-channel head,covid,
+39,74,masculino,25/02/2023,Covid,3,1,1,32-channel head,covid,
+40,49,femenino,15/12/2023,RMN de encefalo,3,1,1,32-channel head,covid,
+41,68,femenino,28/12/2022,RMN de encefalo,3,1,1,32-channel head,covid,
+42,57,masculino,1/03/2023,Covid,3,1,1,32-channel head,covid,
+43,57,femenino,19/02/2023,Covid,3,1,1,32-channel head,covid,
+44,69,femenino,22/02/2023,Covid,3,1,1,32-channel head,covid,
+45,49,femenino,11/12/2023,Covid,3,1,0,32-channel head,covid,
+46,70,masculino,10/09/2022,Covid,3,1,0,32-channel head,covid,
+47,58,femenino,26/05/2021,Cognitivo,3,1,1,32-channel head,control,
+48,73,masculino,26/09/2022,Cognitivo,3,1,1,32-channel head,control,
+49,67,masculino,13/12/2020,Cognitivo,3,1,1,32-channel head,control,
+50,51,femenino,16/04/2022,Cognitivo,3,1,1,32-channel head,control,
+51,61,masculino,1/10/2021,Cognitivo,3,1,1,32-channel head,control,
+52,64,femenino,29/03/2021,Cognitivo,3,1,1,32-channel head,control,
+53,62,femenino,22/01/2021,Cognitivo,3,1,1,32-channel head,control,
+54,56,femenino,30/12/2020,Cognitivo,3,1,1,32-channel head,control,
+55,65,femenino,27/04/2021,Cognitivo,3,1,1,32-channel head,control,
+56,67,femenino,27/04/2023,Cognitivo,3,1,1,32-channel head,control,
+57,53,masculino,5/05/2022,Cognitivo,3,1,1,32-channel head,control,
+58,46,femenino,30/11/2021,Cognitivo,3,1,1,32-channel head,control,
+59,49,masculino,13/09/2022,Cognitivo,3,1,1,32-channel head,control,
+60,53,femenino,19/11/2022,Cognitivo,3,1,1,32-channel head,control,
+61,44,femenino,23/03/2023,Cognitivo,3,1,1,32-channel head,control,
+62,50,femenino,26/07/2019,Cognitivo,3,1,1,32-channel head,control,
+63,48,masculino,27/11/2022,Cognitivo,3,1,1,32-channel head,control,
+64,49,femenino,10/04/2023,Cognitivo,3,1,1,32-channel head,control,
+65,58,femenino,22/04/2023,Cognitivo,3,1,1,32-channel head,control,
+66,37,femenino,10/11/2021,Cognitivo,3,1,1,32-channel head,control,
+67,47,masculino,2/09/2022,Cognitivo,3,1,1,32-channel head,control,
+68,51,femenino,17/09/2021,Cognitivo,3,1,1,32-channel head,control,
+70,45,masculino,21/06/2022,Cognitivo,3,1,1,32-channel head,control,
+71,51,masculino,22/08/2022,Cognitivo,3,1,1,32-channel head,control,
+72,34,masculino,23/02/2021,Cognitivo,3,1,1,32-channel head,control,
+74,34,femenino,12/08/2021,Cognitivo,3,1,1,32-channel head,control,
+75,48,masculino,29/11/2021,Cognitivo,3,1,1,32-channel head,control,
+77,62,femenino,12/06/2021,Cognitivo,1,5,1,1,32-channel head,control
+78,67,masculino,3/03/2023,Cognitivo,3,1,1,32-channel head,control,
+79,77,femenino,20/09/2019,Cognitivo,3,1,1,32-channel head,control,
+80,65,masculino,13/05/2022,Cognitivo,3,1,1,32-channel head,control,
+81,61,masculino,13/10/2021,Cognitivo,3,1,1,32-channel head,control,
+82,64,femenino,29/03/2023,Cognitivo,3,1,1,32-channel head,control,
+83,62,femenino,26/04/2022,Cognitivo,3,1,1,32-channel head,control,
+84,62,femenino,25/0572023,Cognitivo,3,1,1,32-channel head,control,
+86,72,femenino,11/09/2022,Cognitivo,3,1,1,32-channel head,control,
+87,72,masculino,13/02/2020,Cognitivo,3,1,1,32-channel head,control,
+88,66,femenino,27/09/2022,Cognitivo,3,1,1,32-channel head,control,
+89,70,femenino,13/02/2021,Cognitivo,3,1,1,32-channel head,control,
+90,60,femenino,15/10/2019,Cognitivo,3,1,1,32-channel head,control,
+91,43,masculino,14/10/2020,Cognitivo,3,1,1,32-channel head,control,
+92,69,masculino,31/01/2021,Cognitivo,3,1,1,32-channel head,control,
+93,76,femenino,20/02/2021,Cognitivo,3,1,1,32-channel head,control,
+94,64,femenino,20/03/2021,Cognitivo,3,1,1,32-channel head,control,
+95,70,masculino,13/03/2021,Cognitivo,3,1,1,32-channel head,control,
+96,68,femenino,26/12/2021,Cognitivo,3,1,1,32-channel head,control,

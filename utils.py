@@ -16,7 +16,7 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 from nilearn.regions import RegionExtractor
 
 
-def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_cluster=True):
+def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     if method == 'MDS':
         embedding = MDS(n_components=2,
                         dissimilarity='precomputed',
@@ -34,12 +34,12 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_cluster=True):
     title += f'_{method}'
     coords = embedding.fit_transform(rdm)
     fig, ax = plt.subplots()
-    clusters = subjects_df['cluster'].unique()
-    if by_cluster:
-        for cluster, color in zip(clusters, ['cyan', 'orange', 'black']):
-            cluster_coords = coords[subjects_df['cluster'] == cluster] \
-                if not np.isnan(cluster) else coords[subjects_df['cluster'].isna()]
-            ax.scatter(cluster_coords[:, 0], cluster_coords[:, 1], color=color, label=f'Cluster {cluster}')
+    groups = subjects_df['group'].unique()
+    if by_group:
+        for group, color in zip(groups, ['cyan', 'orange', 'black']):
+            group_coords = coords[subjects_df['group'] == group] \
+                if not np.isnan(group) else coords[subjects_df['group'].isna()]
+            ax.scatter(group_coords[:, 0], group_coords[:, 1], color=color, label=f'{group}')
         ax.legend()
     else:
         ax.scatter(coords[:, 0], coords[:, 1])
@@ -199,7 +199,7 @@ def load_atlas(atlas_name):
     return atlas
 
 
-def load_clinical_data(clinical_datafile, use_clinical_cluster):
+def load_clinical_data(clinical_datafile, group_analysis):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['id'].isna()]
     subjects_data = subjects_data.astype({'id': int})
@@ -207,8 +207,8 @@ def load_clinical_data(clinical_datafile, use_clinical_cluster):
     if ['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'] in subjects_data.columns:
         subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
 
-    if use_clinical_cluster:
-        subjects_data = subjects_data[~subjects_data['cluster'].isna()]
+    if group_analysis:
+        subjects_data = subjects_data[~subjects_data['group'].isna()]
 
     return subjects_data
 

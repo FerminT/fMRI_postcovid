@@ -6,19 +6,19 @@ from nilearn.decomposition import dict_learning
 from nilearn.regions import RegionExtractor
 
 
-def extract_components_by_cluster(subjects_df, conf_strategy, n_components,
-                                  low_pass, high_pass, smoothing_fwhm, t_r,
-                                  output):
-    clusters_components = {cluster: None for cluster in subjects_df['cluster'].unique()}
-    for cluster in clusters_components:
-        cluster_df = subjects_df[subjects_df['cluster'] == cluster]
-        clusters_components[cluster] = extract_components(cluster_df['func_path'].values,
-                                                          cluster_df['mask_path'].values,
-                                                          conf_strategy,
-                                                          n_components,
-                                                          low_pass, high_pass, smoothing_fwhm, t_r)
+def extract_group_components(subjects_df, conf_strategy, n_components,
+                             low_pass, high_pass, smoothing_fwhm, t_r,
+                             output):
+    groups_components = {group: None for group in subjects_df['group'].unique()}
+    for group in groups_components:
+        group_df = subjects_df[subjects_df['group'] == group]
+        groups_components[group] = extract_components(group_df['func_path'].values,
+                                                      group_df['mask_path'].values,
+                                                      conf_strategy,
+                                                      n_components,
+                                                      low_pass, high_pass, smoothing_fwhm, t_r)
 
-    save_principal_components(clusters_components, output)
+    save_principal_components(groups_components, output)
 
 
 def extract_components(func_data, brain_masks, conf_strategy, n_components, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -63,24 +63,24 @@ def extract_regions(components_img, threshold=0.5, thresholding_strategy='ratio_
     return regions_extractor
 
 
-def save_principal_components(clusters_components, output):
+def save_principal_components(groups_components, output):
     output.mkdir(exist_ok=True)
     cortices_coords = {'Motor cortex': [45, -35, 50], 'Auditory cortex': [50, -15, 12], 'Visual cortex': [0, -75, 4]}
-    for cluster in clusters_components:
-        components_img = clusters_components[cluster]
+    for group in groups_components:
+        components_img = groups_components[group]
         plotting.plot_prob_atlas(components_img,
                                  draw_cross=False,
                                  linewidths=None,
                                  cut_coords=[0, 0, 0],
-                                 title=f'Cluster {cluster}')
-        plt.savefig(output / f'maps_cluster_{cluster}.png')
+                                 title=f'{group}')
+        plt.savefig(output / f'maps_{group}.png')
         first_comp = components_img.slicer[..., :4]
         fig = plt.figure(figsize=(16, 3))
         for i, cur_img in enumerate(image.iter_img(first_comp)):
             ax = fig.add_subplot(1, 4, i + 1)
             plotting.plot_stat_map(cur_img, display_mode="z", title="PC %d" % i,
                                    cut_coords=1, colorbar=True, axes=ax)
-        fig.savefig(output / f'components_cluster_{cluster}.png')
+        fig.savefig(output / f'components_{group}.png')
         plt.close(fig)
 
         for cortex in cortices_coords:
@@ -89,5 +89,5 @@ def save_principal_components(clusters_components, output):
             plotting.plot_stat_map(components_img.slicer[..., 19], display_mode='ortho',
                                    cut_coords=cut_coords, colorbar=True, draw_cross=False,
                                    title=cortex)
-            plt.savefig(output / f'{cortex}_cluster_{cluster}.png')
+            plt.savefig(output / f'{cortex}_{group}.png')
             plt.close(fig)

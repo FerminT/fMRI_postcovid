@@ -1,7 +1,7 @@
 from pathlib import Path
 import argparse
 import utils
-from extract_components import extract_components_by_cluster
+from extract_components import extract_group_components
 from build_connectome import build_connectome
 from rsa import rsa
 
@@ -10,7 +10,7 @@ TEMPLATE_SHAPE = [55, 65, 55]
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-         data_path, clinical_file, use_clinical_cluster, output):
+         data_path, clinical_file, group_analysis, output):
     data_path, output = Path(data_path), Path(output)
     output.mkdir(parents=True, exist_ok=True)
 
@@ -19,7 +19,7 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
     else:
         subjects = [data_path / f'sub-{subjects.zfill(3)}']
 
-    subjects_df = utils.load_clinical_data(clinical_file, use_clinical_cluster)
+    subjects_df = utils.load_clinical_data(clinical_file, group_analysis)
     utils.load_datapaths(subjects, subjects_df)
 
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
@@ -31,14 +31,14 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
         atlas = utils.atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
                                          t_r, conf_strategy)
 
-    if use_clinical_cluster:
+    if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
 
         if n_components:
-            extract_components_by_cluster(subjects_df, conf_strategy, n_components,
-                                          low_pass, high_pass, smoothing_fwhm, t_r,
-                                          output / 'components')
+            extract_group_components(subjects_df, conf_strategy, n_components,
+                                     low_pass, high_pass, smoothing_fwhm, t_r,
+                                     output / 'components')
     else:
         rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
 
@@ -70,8 +70,8 @@ if __name__ == '__main__':
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-clinical', '--clinical_file', type=str, default='clinical_data.csv',
                             help='Path to file with subjects clinical data')
-    arg_parser.add_argument('-ccluster', '--clinical_cluster', action='store_true',
-                            help='Whether to use precomputed clinical cluster for analysis')
+    arg_parser.add_argument('-g', '--group_analysis', action='store_true',
+                            help='Whether to perform group-based analysis')
     arg_parser.add_argument('-o', '--output_path', type=str, default='analysis/functional_connectivity')
 
     args = arg_parser.parse_args()
@@ -83,4 +83,4 @@ if __name__ == '__main__':
 
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
-         args.data_path, args.clinical_file, args.clinical_cluster, args.output_path)
+         args.data_path, args.clinical_file, args.group_analysis, args.output_path)
