@@ -201,14 +201,12 @@ def load_atlas(atlas_name):
 
 def load_clinical_data(clinical_datafile, use_clinical_cluster):
     cg = pd.read_csv(clinical_datafile)
-    subjects_data = cg[~cg['AnonID'].isna()]
-    subjects_data = subjects_data.astype({'AnonID': int})
-    subjects_data = subjects_data.set_index('AnonID')
-    subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
+    subjects_data = cg[~cg['id'].isna()]
+    subjects_data = subjects_data.astype({'id': int})
+    subjects_data = subjects_data.set_index('id')
+    if ['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'] in subjects_data.columns:
+        subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
 
-    # Remove invalid subjects (subj 29 has different data shapes)
-    subjects_to_remove = [2, 17, 29]
-    subjects_data = subjects_data.drop(subjects_to_remove)
     if use_clinical_cluster:
         subjects_data = subjects_data[~subjects_data['cluster'].isna()]
 
