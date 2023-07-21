@@ -1,4 +1,4 @@
-nilearn_cache
+cache
 
 # data and metadata
 *.json

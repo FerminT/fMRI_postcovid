@@ -67,7 +67,7 @@ def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
     kwargs = {'mask_img': brain_mask, 'smoothing_fwhm': smoothing_fwhm, 'low_pass': low_pass, 'high_pass': high_pass,
-              't_r': t_r, 'standardize': False, 'detrend': True, 'memory': 'nilearn_cache', 'memory_level': 2}
+              't_r': t_r, 'standardize': False, 'detrend': True, 'memory': 'cache', 'memory_level': 2}
     if is_probabilistic_atlas(atlas_maps):
         # Probabilistic atlas
         nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
