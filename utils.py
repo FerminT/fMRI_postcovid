@@ -52,8 +52,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
     kwargs = {'mask_img': brain_mask, 'smoothing_fwhm': smoothing_fwhm, 'low_pass': low_pass, 'high_pass': high_pass,
               't_r': t_r, 'standardize': False, 'detrend': True, 'memory': 'nilearn_cache', 'memory_level': 2}
-    atlas_maps_img = image.load_img(atlas_maps)
-    if len(atlas_maps_img.shape) == 4:
+    if is_probabilistic_atlas(atlas_maps):
         # Probabilistic atlas
         nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
                                        **kwargs)
@@ -64,6 +63,11 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
     return time_series
+
+
+def is_probabilistic_atlas(atlas_maps):
+    atlas_maps_img = image.load_img(atlas_maps)
+    return len(atlas_maps_img.shape) == 4
 
 
 def pad_timeseries(timeseries, pad_value=np.nan):

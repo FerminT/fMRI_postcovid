@@ -96,7 +96,7 @@ def connectivity_matrix(time_series, kind='correlation'):
 
 
 def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output):
-    if len(atlas.maps.shape) == 4:
+    if utils.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
