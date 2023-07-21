@@ -63,7 +63,7 @@ if __name__ == '__main__':
                             help='Path to file with subjects clinical data')
     arg_parser.add_argument('-g', '--group_analysis', action='store_true',
                             help='Whether to perform group-based analysis')
-    arg_parser.add_argument('-o', '--output_path', type=str, default='analysis/functional_connectivity')
+    arg_parser.add_argument('-o', '--output_path', type=str, default='results')
 
     args = arg_parser.parse_args()
     if args.network and not args.atlas:
