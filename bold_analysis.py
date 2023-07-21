@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse
 import utils
+from atlas_manager import build_atlas
 from extract_components import extract_group_components
 from build_connectome import build_connectome
 from rsa import rsa
@@ -10,7 +11,7 @@ def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
          data_path, clinical_file, group_analysis, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file, group_analysis)
-    atlas = utils.build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm,
+    atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm,
                               t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
