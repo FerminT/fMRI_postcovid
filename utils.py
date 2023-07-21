@@ -171,7 +171,7 @@ def atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, 
     regions = extract_regions(independent_components)
     n_regions = regions.regions_img_.shape[-1]
     atlas = Bunch(name='ica', maps=regions, labels=pd.DataFrame({'name': [f'region_{idx + 1}'
-                                                                          for idx in range(n_regions)]}))
+                                                                          for idx in range(n_regions + 1)]}))
 
     return atlas
 
