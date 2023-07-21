@@ -57,9 +57,6 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
     # Only for Schaefer atlas: compute the difference between groups connectivity matrices over networks
     networks = utils.get_schaefer_networks_indices(atlas_labels)
     all_atlas_labels = atlas_labels['name'].values
-    # subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
-    #                                                                               utils.apply_threshold(conn_matrix,
-    #                                                                                                     threshold=threshold))
     subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
                                                                                   networks_connectivity_matrix(
                                                                                       conn_matrix, networks,
@@ -74,7 +71,7 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
             diff_connmatrix = (diff_connmatrix - group_connmatrices.mean()) / networks_std
     fig, ax = plt.subplots(figsize=(10, 8))
     networks_labels = pd.DataFrame({'name': list(networks.keys())})
-    plot_matrix_on_axis(diff_connmatrix, networks_labels, ax, threshold=0,
+    plot_matrix_on_axis(diff_connmatrix, networks_labels, ax, threshold,
                         tri='full')
     fig.savefig(output / f'networks_diff_{len(all_atlas_labels)}rois.png')
     plt.close(fig)

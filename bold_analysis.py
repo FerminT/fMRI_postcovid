@@ -48,7 +48,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning. \
                             If specified, the atlas is ignored')
-    arg_parser.add_argument('-t', '--threshold', type=int, default=95,
+    arg_parser.add_argument('-t', '--threshold', type=int, default=30,
                             help='Activity threshold for connectome (percentile)')
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
                             help='Low pass filtering value for signal extraction')
