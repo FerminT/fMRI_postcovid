@@ -81,7 +81,10 @@ def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
 
 
 def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output):
-    coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
+    if len(atlas.maps.shape) == 4:
+        coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
+    else:
+        coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
     for group in groups_connectivity_matrix:
         correlation_matrix = groups_connectivity_matrix[group]
         plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
