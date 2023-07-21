@@ -191,6 +191,20 @@ def load_atlas(atlas_name):
     return atlas
 
 
+def build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm, t_r,
+                conf_strategy):
+    bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
+    if atlas_name:
+        atlas = load_atlas(atlas_name)
+        if network_name:
+            atlas = extract_network(atlas, network_name)
+    else:
+        atlas = atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
+                                      t_r, conf_strategy)
+
+    return atlas
+
+
 def load_clinical_data(clinical_datafile, group_analysis):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['id'].isna()]
