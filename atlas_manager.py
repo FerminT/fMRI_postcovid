@@ -6,11 +6,11 @@ from nilearn import image, datasets
 from extract_components import extract_components, extract_regions
 
 
-def build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm, t_r,
+def build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass, smoothing_fwhm, t_r,
                 conf_strategy):
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
     if atlas_name:
-        atlas = load_atlas(atlas_name)
+        atlas = load_atlas(atlas_name, n_rois)
         if network_name:
             atlas = extract_network(atlas, network_name)
     else:
@@ -114,7 +114,7 @@ def atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pas
     return atlas
 
 
-def load_atlas(atlas_name):
+def load_atlas(atlas_name, n_rois):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
@@ -124,7 +124,7 @@ def load_atlas(atlas_name):
         # (0 == 'background', 42 == 'L Medial_wall', 117 == 'R Medial_wall)
         atlas.labels = atlas.labels.drop([0, 42, 117]).reset_index(drop=True)
     elif atlas_name == 'schaefer':
-        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=100)
+        atlas = datasets.fetch_atlas_schaefer_2018(n_rois=n_rois)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
     elif atlas_name == 'msdl':

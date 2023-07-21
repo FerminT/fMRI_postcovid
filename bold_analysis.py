@@ -7,12 +7,12 @@ from build_connectome import build_connectome
 from rsa import rsa
 
 
-def main(subjects, conf_strategy, atlas_name, network_name, n_components,
+def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
          data_path, clinical_file, group_analysis, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file, group_analysis)
-    atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm,
-                              t_r, conf_strategy)
+    atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
+                        smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                 output, group_analysis)
@@ -45,6 +45,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning. \
                             If specified, the atlas is ignored')
+    arg_parser.add_argument('-nr', '--n_rois', type=int, default=100,
+                            help='Number of ROIs for Schaefer atlas. Otherwise ignored.')
     arg_parser.add_argument('-t', '--threshold', type=int, default=30,
                             help='Activity threshold for connectome (percentile)')
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
@@ -72,6 +74,6 @@ if __name__ == '__main__':
     data_path, output = Path(args.data_path), Path(args.output_path)
     output.mkdir(parents=True, exist_ok=True)
 
-    main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
+    main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
          data_path, args.clinical_file, args.group_analysis, output)
