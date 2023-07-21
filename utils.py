@@ -6,7 +6,7 @@ from sklearn.manifold import MDS, Isomap
 from sklearn.decomposition import PCA
 
 # NiLearn methods and classes
-from nilearn import datasets, image
+from nilearn import image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
