@@ -57,7 +57,7 @@ if __name__ == '__main__':
                             help='Kernel size for smoothing functional images')
     arg_parser.add_argument('-tr', '--repetition_time', type=float, default=2.,
                             help='Sampling rate of functional images (in seconds)')
-    arg_parser.add_argument('-d', '--data_path', type=str, default='neurocovid_derivatives',
+    arg_parser.add_argument('-d', '--data_path', type=str, default='dataset',
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-clinical', '--clinical_file', type=str, default='clinical_data.csv',
                             help='Path to file with subjects clinical data')

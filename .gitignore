@@ -15,5 +15,5 @@ nilearn_cache
 *.svg
 
 # logs and freesurfer
-neurocovid_derivatives/logs
-neurocovid_derivatives/sourcedata
+dataset/logs
+dataset/sourcedata
