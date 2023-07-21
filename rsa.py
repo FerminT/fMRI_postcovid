@@ -5,8 +5,14 @@ from build_connectome import connectivity_matrix
 
 
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
-    behavioral_distance_matrix = behavioral_distance(subjects_df)
+    connectivity_embeddings = connectome_rsa(subjects_df, conf_strategy, atlas,
+                                             low_pass, high_pass, smoothing_fwhm, t_r, output)
+    behavioral_embeddings = behavioral_rsa(subjects_df, output)
 
+    return connectivity_embeddings, behavioral_embeddings
+
+
+def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
     timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                             conf_strategy, atlas.maps,
                                                             low_pass, high_pass, smoothing_fwhm,
@@ -15,21 +21,24 @@ def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, 
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
     connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}', output)
-    behavior_embeddings = plot_rdm(behavioral_distance_matrix, subjects_df.dropna(), 'Behavioral', output)
 
-    return connectivity_embeddings, behavior_embeddings
+    return connectivity_embeddings
 
 
-def behavioral_distance(subjects_df):
-    fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language', 'composite_memory',
-              'composite_executive']
-    behavioral_data = subjects_df[fields].copy()
-    behavioral_data.dropna(inplace=True)
-    behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
-    behavioral_data /= behavioral_data.std()
-    behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
+def behavioral_rsa(subjects_df, output):
+    fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language',
+              'composite_memory', 'composite_executive']
+    if fields not in subjects_df.columns:
+        behavioral_embeddings = np.zeros((subjects_df.shape[0], 2))
+    else:
+        behavioral_data = subjects_df[fields].copy()
+        behavioral_data.dropna(inplace=True)
+        behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
+        behavioral_data /= behavioral_data.std()
+        behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
+        behavioral_embeddings = plot_rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral', output)
 
-    return behavioral_distance
+    return behavioral_embeddings
 
 
 def connectivity_distance(connectivity_matrices):
