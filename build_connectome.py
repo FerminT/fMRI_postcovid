@@ -51,7 +51,7 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
                                                                                       all_atlas_labels))
     networks_std = subjects_df['networks_connmatrix'].values.std()
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
-    for i, group in enumerate(subjects_df['group'].unique()):
+    for i, group in enumerate(sorted(subjects_df['group'].unique())):
         group_connmatrices = subjects_df[subjects_df['group'] == group]['networks_connmatrix'].values
         if i == 0:
             diff_connmatrix = group_connmatrices.mean()

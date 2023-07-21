@@ -29,7 +29,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     title += f'_{method}'
     coords = embedding.fit_transform(rdm)
     fig, ax = plt.subplots()
-    groups = subjects_df['group'].unique()
+    groups = sorted(subjects_df['group'].unique())
     if by_group:
         for group, color in zip(groups, ['cyan', 'orange', 'black']):
             group_coords = coords[subjects_df['group'] == group]
