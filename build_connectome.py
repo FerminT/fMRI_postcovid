@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import utils
+from atlas_manager import get_schaefer_networks_indices
 
 # NiLearn methods and classes
 from nilearn import plotting
@@ -55,7 +56,7 @@ def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_l
 
 def connmatrices_over_networks(subjects_df, atlas_labels, threshold, output):
     # Only for Schaefer atlas: compute the difference between groups connectivity matrices over networks
-    networks = utils.get_schaefer_networks_indices(atlas_labels)
+    networks = get_schaefer_networks_indices(atlas_labels)
     all_atlas_labels = atlas_labels['name'].values
     subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
                                                                                   networks_connectivity_matrix(
