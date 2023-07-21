@@ -82,8 +82,8 @@ def mean_connectivity_matrix(time_series, kind='correlation'):
     connectivity_matrices, connectivity_measure = connectivity_matrix(time_series, kind)
     mean_connectivity_matrix = connectivity_measure.mean_
 
-    q = utils.q_test(connectivity_matrices, mean_connectivity_matrix)
-    print(f'Q test: {q}')
+    q, df = utils.q_test(connectivity_matrices, mean_connectivity_matrix)
+    print(f'Q test: {q}; degrees of freedom: {df}')
 
     return mean_connectivity_matrix
 
