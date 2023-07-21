@@ -204,7 +204,7 @@ def load_clinical_data(clinical_datafile, group_analysis):
     subjects_data = cg[~cg['id'].isna()]
     subjects_data = subjects_data.astype({'id': int})
     subjects_data = subjects_data.set_index('id')
-    if ['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'] in subjects_data.columns:
+    if ['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'] in subjects_data.columns.to_list():
         subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
 
     if group_analysis:
