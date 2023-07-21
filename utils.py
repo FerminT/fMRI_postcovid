@@ -58,17 +58,14 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
     kwargs = {'mask_img': brain_mask, 'smoothing_fwhm': smoothing_fwhm, 'low_pass': low_pass, 'high_pass': high_pass,
               't_r': t_r, 'standardize': False, 'detrend': True, 'memory': 'nilearn_cache', 'memory_level': 2}
-    if type(atlas_maps) == RegionExtractor:
-        nifti_masker = atlas_maps
+    atlas_maps_img = image.load_img(atlas_maps)
+    if len(atlas_maps_img.shape) == 4:
+        # Probabilistic atlas
+        nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
+                                       **kwargs)
     else:
-        atlas_maps_img = image.load_img(atlas_maps)
-        if len(atlas_maps_img.shape) == 4:
-            # Probabilistic atlas
-            nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
-                                           **kwargs)
-        else:
-            nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
-                                             **kwargs)
+        nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
+                                         **kwargs)
     confounds, sample_mask = fmriprep.load_confounds_strategy(func_data, conf_strategy)
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
@@ -160,13 +157,13 @@ def extract_network_from_msdl(atlas, network_name):
     return network_img, network_labels
 
 
-def atlas_from_regions(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
+def atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
     independent_components = extract_components(bold_imgs, mask_imgs, conf_strategy, n_components, low_pass, high_pass,
                                                 smoothing_fwhm, t_r)
     regions = extract_regions(independent_components)
     n_regions = regions.regions_img_.shape[-1]
-    atlas = Bunch(name='ica', maps=regions, labels=pd.DataFrame({'name': [f'region_{idx + 1}'
-                                                                          for idx in range(n_regions + 1)]}))
+    atlas = Bunch(name='ica', maps=regions.maps_img, labels=pd.DataFrame({'name': [f'region_{idx + 1}'
+                                                                          for idx in range(n_regions)]}))
 
     return atlas
 
