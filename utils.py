@@ -32,8 +32,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     groups = subjects_df['group'].unique()
     if by_group:
         for group, color in zip(groups, ['cyan', 'orange', 'black']):
-            group_coords = coords[subjects_df['group'] == group] \
-                if not np.isnan(group) else coords[subjects_df['group'].isna()]
+            group_coords = coords[subjects_df['group'] == group]
             ax.scatter(group_coords[:, 0], group_coords[:, 1], color=color, label=f'{group}')
         ax.legend()
     else:
@@ -88,7 +87,7 @@ def load_subjects(subjects, data_path, clinical_file, group_analysis):
 
 
 def load_clinical_data(clinical_datafile, group_analysis):
-    cg = pd.read_csv(clinical_datafile)
+    cg = pd.read_csv(clinical_datafile, na_filter=False)
     subjects_data = cg[~cg['id'].isna()]
     subjects_data = subjects_data.astype({'id': int})
     subjects_data = subjects_data.set_index('id')
@@ -96,7 +95,7 @@ def load_clinical_data(clinical_datafile, group_analysis):
         subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
 
     if group_analysis:
-        subjects_data = subjects_data[~subjects_data['group'].isna()]
+        subjects_data = subjects_data[~(subjects_data['group'] == 'NA')]
 
     return subjects_data
 
