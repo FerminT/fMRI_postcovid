@@ -205,6 +205,18 @@ def build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, h
     return atlas
 
 
+def load_subjects(subjects, data_path, clinical_file, group_analysis):
+    if subjects == 'all':
+        subjects = [sub for sub in data_path.glob('sub-*') if sub.is_dir()]
+    else:
+        subjects = [data_path / f'sub-{subjects.zfill(3)}']
+
+    subjects_df = load_clinical_data(clinical_file, group_analysis)
+    subjects_df = load_datapaths(subjects, subjects_df)
+
+    return subjects_df
+
+
 def load_clinical_data(clinical_datafile, group_analysis):
     cg = pd.read_csv(clinical_datafile)
     subjects_data = cg[~cg['id'].isna()]
@@ -229,6 +241,8 @@ def load_datapaths(subjects_paths, subjects_df):
             mask_file = [f for f in func_path.glob('*.nii.gz') if 'brain_mask' in f.name][0]
             subjects_df.loc[subj_id, 'func_path'] = str(func_file)
             subjects_df.loc[subj_id, 'mask_path'] = str(mask_file)
+
+    return subjects_df
 
 
 def apply_threshold(connectivity_matrix, threshold):

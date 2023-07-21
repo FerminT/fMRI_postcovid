@@ -9,24 +9,13 @@ from rsa import rsa
 def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,
          data_path, clinical_file, group_analysis, output):
-    data_path, output = Path(data_path), Path(output)
-    output.mkdir(parents=True, exist_ok=True)
-
-    if subjects == 'all':
-        subjects = [sub for sub in data_path.glob('sub-*') if sub.is_dir()]
-    else:
-        subjects = [data_path / f'sub-{subjects.zfill(3)}']
-
-    subjects_df = utils.load_clinical_data(clinical_file, group_analysis)
-    utils.load_datapaths(subjects, subjects_df)
-
+    subjects_df = utils.load_subjects(subjects, data_path, clinical_file, group_analysis)
     atlas = utils.build_atlas(atlas_name, network_name, subjects_df, n_components, low_pass, high_pass, smoothing_fwhm,
                               t_r, conf_strategy)
 
     if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
-
         if n_components:
             extract_group_components(subjects_df, conf_strategy, n_components,
                                      low_pass, high_pass, smoothing_fwhm, t_r,
@@ -72,7 +61,9 @@ if __name__ == '__main__':
     if not (args.n_components or args.atlas):
         raise ValueError('Either atlas or n_components must be specified')
     args.atlas = args.atlas if not args.n_components else None
+    data_path, output = Path(args.data_path), Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
 
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components,
          args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
-         args.data_path, args.clinical_file, args.group_analysis, args.output_path)
+         data_path, args.clinical_file, args.group_analysis, output)
