@@ -5,8 +5,6 @@ from extract_components import extract_group_components
 from build_connectome import build_connectome
 from rsa import rsa
 
-TEMPLATE_SHAPE = [55, 65, 55]
-
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r,

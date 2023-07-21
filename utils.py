@@ -75,11 +75,6 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     return time_series
 
 
-def timeseries_from_regions(regions_extractor, func_data, conf_strategy):
-    confounds, sample_mask = fmriprep.load_confounds_strategy(func_data, conf_strategy)
-    return regions_extractor.transform(func_data, confounds=confounds, sample_mask=sample_mask)
-
-
 def pad_timeseries(timeseries, pad_value=np.nan):
     n_timepoints = timeseries.apply(lambda ts: ts.shape[0]).value_counts().index[0]
     timeseries = timeseries.apply(lambda ts: np.pad(ts, ((0, n_timepoints - ts.shape[0]), (0, 0)),
