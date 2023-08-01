@@ -35,9 +35,9 @@ def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-s', '--subjects', type=str, default='all')
-    arg_parser.add_argument('-c', '--confounds_strategy', type=str, default='simple',
-                            help='Strategy for loading fMRIPrep denoising strategies. \
-                           Options: simple, compcor, srubbing, ica_aroma')
+    arg_parser.add_argument('-c', '--confounds_strategy', nargs='*', type=str,
+                            default=['motion', 'high_pass', 'wm_csf'],
+                            help='Strategy for loading fMRIPrep denoising strategies.')
     arg_parser.add_argument('-a', '--atlas', type=str, default='aal',
                             help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--network', type=str, default=None,
@@ -52,7 +52,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
                             help='Low pass filtering value for signal extraction')
     arg_parser.add_argument('-hp', '--high_pass', type=float, default=0.01,
-                            help='High pass filtering value for signal extraction')
+                            help='High pass filtering value for signal extraction. \
+                            Only considered if high_pass is not in confounds_strategy')
     arg_parser.add_argument('-fwhm', '--smoothing_fwhm', type=float, default=6.,
                             help='Kernel size for smoothing functional images')
     arg_parser.add_argument('-tr', '--repetition_time', type=float, default=2.,
@@ -74,6 +75,7 @@ if __name__ == '__main__':
     data_path, output = Path(args.data_path), Path(args.output_path)
     output.mkdir(parents=True, exist_ok=True)
 
+    high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
-         args.threshold, args.low_pass, args.high_pass, args.smoothing_fwhm, args.repetition_time,
+         args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time,
          data_path, args.clinical_file, args.group_analysis, output)

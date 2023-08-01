@@ -43,7 +43,7 @@ def extract_components(func_data, brain_masks, conf_strategy, n_components, low_
                                             random_state=42,
                                             n_jobs=-1,
                                             memory='cache', memory_level=2)
-    confounds, _ = fmriprep.load_confounds_strategy(func_data, conf_strategy)
+    confounds, _ = fmriprep.load_confounds(func_data, conf_strategy)
     dict_learn.fit(func_data, confounds=confounds)
 
     return dict_learn.components_img_

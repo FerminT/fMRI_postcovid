@@ -75,7 +75,7 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     else:
         nifti_masker = NiftiLabelsMasker(labels_img=atlas_maps,
                                          **kwargs)
-    confounds, sample_mask = fmriprep.load_confounds_strategy(func_data, conf_strategy)
+    confounds, sample_mask = fmriprep.load_confounds(func_data, conf_strategy)
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
     return time_series
