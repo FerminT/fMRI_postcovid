@@ -19,7 +19,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
                         random_state=42)
     elif method == 'TSNE':
         embedding = TSNE(n_components=2,
-                         perplexity=10,
+                         perplexity=40,
                          random_state=42)
     elif method == 'Isomap':
         embedding = Isomap(n_components=2,
