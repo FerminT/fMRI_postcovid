@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.manifold import MDS, Isomap
+from sklearn.manifold import MDS, Isomap, TSNE
 from sklearn.decomposition import PCA
 
 # NiLearn methods and classes
@@ -17,20 +17,23 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
         embedding = MDS(n_components=2,
                         dissimilarity='precomputed',
                         random_state=42)
+    elif method == 'TSNE':
+        embedding = TSNE(n_components=2,
+                         perplexity=10,
+                         random_state=42)
     elif method == 'Isomap':
         embedding = Isomap(n_components=2,
-                           n_neighbors=5,
+                           n_neighbors=10,
                            n_jobs=-1)
     elif method == 'PCA':
         embedding = PCA(n_components=2)
     else:
         raise NotImplementedError(f'Method {method} not implemented')
 
-    title = title.replace(' ', '_')
-    title += f'_{method}'
     embeddings = embedding.fit_transform(rdm)
+    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'],
+                                                'x': embeddings[:, 0], 'y': embeddings[:, 1]})
     fig, ax = plt.subplots()
-    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'], 'x': embeddings[:, 0], 'y': embeddings[:, 1]})
     if by_group:
         sns.scatterplot(groups_embeddings, x='x', y='y', hue='group',
                         hue_order=sorted(groups_embeddings['group'].unique()), ax=ax)
@@ -39,6 +42,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     for i, txt in enumerate(groups_embeddings.index.to_list()):
         ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
+    title = title.replace(' ', '_') + f'_{method}'
     ax.set_title(title)
     plt.show()
 
