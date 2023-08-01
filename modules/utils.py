@@ -1,6 +1,7 @@
 import networkx as nx
 import pandas as pd
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS, Isomap
 from sklearn.decomposition import PCA
@@ -27,18 +28,16 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
 
     title = title.replace(' ', '_')
     title += f'_{method}'
-    coords = embedding.fit_transform(rdm)
+    embeddings = embedding.fit_transform(rdm)
     fig, ax = plt.subplots()
-    groups = sorted(subjects_df['group'].unique())
+    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'], 'x': embeddings[:, 0], 'y': embeddings[:, 1]})
     if by_group:
-        for group, color in zip(groups, ['cyan', 'orange', 'black']):
-            group_coords = coords[subjects_df['group'] == group]
-            ax.scatter(group_coords[:, 0], group_coords[:, 1], color=color, label=f'{group}')
-        ax.legend()
+        sns.scatterplot(groups_embeddings, x='x', y='y', hue='group',
+                        hue_order=sorted(groups_embeddings['group'].unique()), ax=ax)
     else:
-        ax.scatter(coords[:, 0], coords[:, 1])
-    for i, txt in enumerate(subjects_df.index.to_list()):
-        ax.annotate(txt, (coords[i, 0], coords[i, 1]), alpha=0.6)
+        sns.scatterplot(groups_embeddings, x='x', y='y', ax=ax)
+    for i, txt in enumerate(groups_embeddings.index.to_list()):
+        ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
     ax.set_title(title)
     plt.show()
@@ -46,7 +45,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='MDS', by_group=True):
     output.mkdir(exist_ok=True, parents=True)
     fig.savefig(output / f'{title}.png')
 
-    return coords
+    return embeddings
 
 
 def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
