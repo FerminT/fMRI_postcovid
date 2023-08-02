@@ -12,7 +12,7 @@ from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
 
-def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True):
+def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, annotate=False):
     if method == 'MDS':
         embedding = MDS(n_components=2,
                         dissimilarity='precomputed',
@@ -39,8 +39,9 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True):
                         hue_order=sorted(groups_embeddings['group'].unique()), ax=ax)
     else:
         sns.scatterplot(groups_embeddings, x='x', y='y', ax=ax)
-    # for i, txt in enumerate(groups_embeddings.index.to_list()):
-    #     ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
+    if annotate:
+        for i, txt in enumerate(groups_embeddings.index.to_list()):
+            ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
     title = title.replace(' ', '_') + f'_{method}'
     ax.set_title(title)
