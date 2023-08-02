@@ -45,6 +45,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, anno
 
     title = title.replace(' ', '_') + f'_{method}'
     ax.set_title(title)
+    ax.axes.xaxis.set_visible(False), ax.axes.yaxis.set_visible(False)
     plt.show()
 
     output.mkdir(exist_ok=True, parents=True)
