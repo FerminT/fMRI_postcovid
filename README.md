@@ -11,10 +11,6 @@ We make two types of analysis: one that compares the topology of functional netw
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="modules/figures/comparison_example_light.png">
-  <img src="modules/figures/comparison_example_light.png" width="300" align="left">
-</picture>
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="modules/figures/comparison_example.png">
   <img src="modules/figures/comparison_example.png" width="300" align="left">
 </picture>
 <br><br><br>
