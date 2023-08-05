@@ -31,4 +31,19 @@ We make two types of analysis: one that compares the topology of functional netw
 <br clear="left">
 
 ## Usage
-To perform group-based analysis, the ```-g``` flag must be added to the command-line.
+``nilearn`` is employed for data manipulation and ``networkx`` for graph analysis. The ``scikit-learn`` library is used for clustering and dimensionality reduction.
+
+The following command will perform group-based analysis on the ```Default``` network using the ```schaefer``` atlas with 100 regions:
+```
+python bold_analysis.py -g -n Default -a schaefer -nr 100
+```
+
+The ```-g``` flag indicates that group-based analysis will be performed. Any other of the seven brain networks in the ```schaefer``` atlas can also be extracted. Supported atlases are:
+- ```schaefer```
+- ```aal```
+- ```destrieux```
+- ```msdl```
+
+The regions comprising a specific brain network in the ```aal``` atlas can be defined in ```brain_networks.json```.
+
+Independent component analysis is also supported and can be run with the ```-nc``` flag, indicating the number of components to extract. 
