@@ -103,8 +103,8 @@ def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_o
     for group in groups_connectivity_matrix:
         correlation_matrix = groups_connectivity_matrix[group]
         correlation_matrix = utils.apply_threshold(correlation_matrix, threshold)
-        plotting.plot_connectome(correlation_matrix, coordinates, # edge_threshold=threshold / 100,
-                                 title=f'{atlas.name}, {group}', edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
+        plotting.plot_connectome(correlation_matrix, coordinates, title=f'{atlas.name}, {group}',
+                                 edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
         plt.savefig(conn_output / f'{atlas.name}_{group}_connectome.png')
 
 

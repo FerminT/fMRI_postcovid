@@ -142,7 +142,7 @@ def apply_threshold(connectivity_matrix, threshold):
     n_connections = threshold * len(lower_part) // 100
     max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
     lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
-    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diagonal(connectivity_matrix))
+    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
 
     return thresholded_matrix
 
