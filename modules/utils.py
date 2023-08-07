@@ -21,7 +21,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, anno
         embedding = TSNE(n_components=2,
                          perplexity=20,
                          random_state=42)
-    elif method == 'Isomap':
+    elif method == 'ISOMAP':
         embedding = Isomap(n_components=2,
                            n_neighbors=10,
                            n_jobs=-1)
@@ -74,7 +74,6 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     kwargs = {'mask_img': brain_mask, 'smoothing_fwhm': smoothing_fwhm, 'low_pass': low_pass, 'high_pass': high_pass,
               't_r': t_r, 'standardize': False, 'detrend': True, 'memory': 'cache', 'memory_level': 2}
     if is_probabilistic_atlas(atlas_maps):
-        # Probabilistic atlas
         nifti_masker = NiftiMapsMasker(maps_img=atlas_maps,
                                        **kwargs)
     else:
@@ -129,7 +128,6 @@ def load_datapaths(subjects_paths, subjects_df):
     for subj_path in subjects_paths:
         subj_id = int(subj_path.name.split('-')[1])
         if subj_id in subjects_df.index:
-            # Get the path to the preprocessed functional data
             func_path = subj_path / 'func'
             func_file = [f for f in func_path.glob('*.nii.gz') if 'preproc' in f.name][0]
             mask_file = [f for f in func_path.glob('*.nii.gz') if 'brain_mask' in f.name][0]

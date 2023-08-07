@@ -4,15 +4,16 @@ from .utils import time_series, plot_rdm
 from .connectome_manager import connectivity_matrix
 
 
-def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
+def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, output):
     connectivity_embeddings = connectome_rsa(subjects_df, conf_strategy, atlas,
-                                             low_pass, high_pass, smoothing_fwhm, t_r, output)
-    behavioral_embeddings = behavioral_rsa(subjects_df, output)
+                                             low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, output)
+    behavioral_embeddings = behavioral_rsa(subjects_df, rdm_decomposition, output)
 
     return connectivity_embeddings, behavioral_embeddings
 
 
-def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output):
+def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
+                   rdm_decomposition, output):
     timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                             conf_strategy, atlas.maps,
                                                             low_pass, high_pass, smoothing_fwhm,
@@ -20,12 +21,13 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
 
-    connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}', output)
+    connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}',
+                                       output, rdm_decomposition)
 
     return connectivity_embeddings
 
 
-def behavioral_rsa(subjects_df, output):
+def behavioral_rsa(subjects_df, rdm_decomposition, output):
     fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language',
               'composite_memory', 'composite_executive']
     if fields not in subjects_df.columns.to_list():
@@ -36,7 +38,8 @@ def behavioral_rsa(subjects_df, output):
         behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
         behavioral_data /= behavioral_data.std()
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
-        behavioral_embeddings = plot_rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral', output)
+        behavioral_embeddings = plot_rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral',
+                                         output, rdm_decomposition)
 
     return behavioral_embeddings
 

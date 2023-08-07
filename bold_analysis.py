@@ -8,18 +8,18 @@ from modules.rsa import rsa
 
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
-         threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+         threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition,
          data_path, clinical_file, group_analysis, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file, group_analysis)
     atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                output, group_analysis)
+                rdm_decomposition, output, group_analysis)
 
 
 def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                output, group_analysis):
+                rdm_decomposition, output, group_analysis):
     if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
@@ -29,7 +29,8 @@ def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_
                                      output / 'components')
     else:
         # Data-driven approach
-        rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, output / 'rsa')
+        rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
+            rdm_decomposition, output / 'rsa')
 
 
 if __name__ == '__main__':
@@ -64,6 +65,9 @@ if __name__ == '__main__':
                             help='Path to file with subjects clinical data')
     arg_parser.add_argument('-g', '--group_analysis', action='store_true',
                             help='Whether to perform group-based analysis')
+    arg_parser.add_argument('-dc', '--decomposition', type=str, default='TSNE',
+                            help='Decomposition to use for plotting relational distance matrix. \
+                            Options are TSNE, MDS, ISOMAP, PCA')
     arg_parser.add_argument('-o', '--output_path', type=str, default='results')
 
     args = arg_parser.parse_args()
@@ -77,5 +81,5 @@ if __name__ == '__main__':
 
     high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
-         args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time,
+         args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time, args.decomposition,
          data_path, args.clinical_file, args.group_analysis, output)
