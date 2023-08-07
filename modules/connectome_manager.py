@@ -25,7 +25,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
 
     if atlas.name == 'schaefer':
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
-        save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels, threshold,
+        save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels, 0,
                                  tri='full', output=conn_output)
 
     # Compute mean connectivity matrix by group
@@ -102,8 +102,9 @@ def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_o
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
     for group in groups_connectivity_matrix:
         correlation_matrix = groups_connectivity_matrix[group]
-        plotting.plot_connectome(correlation_matrix, coordinates, edge_threshold=threshold / 100,
-                                 title=f'{atlas.name}, {group}', edge_cmap='YlOrBr', edge_vmin=0, edge_vmax=0.8)
+        correlation_matrix = utils.apply_threshold(correlation_matrix, threshold)
+        plotting.plot_connectome(correlation_matrix, coordinates, # edge_threshold=threshold / 100,
+                                 title=f'{atlas.name}, {group}', edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
         plt.savefig(conn_output / f'{atlas.name}_{group}_connectome.png')
 
 

@@ -141,7 +141,7 @@ def load_datapaths(subjects_paths, subjects_df):
 
 def apply_threshold(connectivity_matrix, threshold):
     percentile = np.percentile(connectivity_matrix, threshold)
-    connectivity_matrix[connectivity_matrix < percentile] = 0
+    connectivity_matrix[np.abs(connectivity_matrix) < percentile] = 0
     return connectivity_matrix
 
 
@@ -154,7 +154,7 @@ def q_test(data, mean):
 
 
 def print_connectivity_metrics(connectivity_matrix, threshold):
-    connectivity_matrix[connectivity_matrix < (threshold / 100)] = 0
+    connectivity_matrix[np.abs(connectivity_matrix) < (threshold / 100)] = 0
     np.fill_diagonal(connectivity_matrix, 0)
     graph = nx.from_numpy_array(connectivity_matrix)
     print(f'Average clustering coefficient: {nx.average_clustering(graph)}')
