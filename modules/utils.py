@@ -146,8 +146,7 @@ def apply_threshold(connectivity_matrix, threshold):
 
 
 def q_test(data, mean):
-    # Upper triangulate the data
-    df = data.shape[0] * (data.shape[0] - 1) / 2
+    df = mean.shape[0] * (mean.shape[0] - 1) / 2
     data, mean = np.triu(data, k=1), np.triu(mean, k=1)
     q = np.sum(np.sum(np.square(data - mean)) / (len(data) - 1))
     return q, df
