@@ -25,20 +25,23 @@ def build_connectome(subjects_df, conf_strategy, atlas,
 
     if atlas.name == 'schaefer':
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
-        save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels, 0,
+        save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels,
                                  tri='full', output=conn_output)
 
-    # Compute mean connectivity matrix by group
+    subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
+                                                                                  utils.apply_threshold(matrix,
+                                                                                                        threshold))
+
     groups_connectivity_matrix = {group: None for group in subjects_df['group'].unique()}
     for group in groups_connectivity_matrix:
         print(f'\nProcessing group {group} on {atlas.name}...')
         group_df = subjects_df[subjects_df['group'] == group]
         groups_connectivity_matrix[group] = mean_connectivity_matrix(group_df['time_series'].values)
-        utils.print_connectivity_metrics(groups_connectivity_matrix[group], threshold)
+        utils.print_connectivity_metrics(groups_connectivity_matrix[group])
 
-    save_connectivity_matrices(subjects_df, atlas.labels, threshold, conn_output)
-    save_groups_matrices(groups_connectivity_matrix, atlas.labels, threshold, conn_output)
-    save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output)
+    save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
+    save_groups_matrices(groups_connectivity_matrix, atlas.labels, conn_output)
+    save_groups_connectomes(groups_connectivity_matrix, atlas, conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
@@ -47,8 +50,8 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
     all_atlas_labels = atlas_labels['name'].values
     subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
                                                                                   networks_connectivity_matrix(
-                                                                                      conn_matrix, networks,
-                                                                                      all_atlas_labels))
+                                                                                    conn_matrix, networks,
+                                                                                    all_atlas_labels))
     networks_std = subjects_df['networks_connmatrix'].values.std()
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
     for i, group in enumerate(sorted(subjects_df['group'].unique())):
@@ -95,20 +98,19 @@ def connectivity_matrix(time_series, kind='correlation'):
     return connectivity_matrix, connectivity_measure
 
 
-def save_groups_connectomes(groups_connectivity_matrix, atlas, threshold, conn_output):
+def save_groups_connectomes(groups_connectivity_matrix, atlas, conn_output):
     if utils.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
     for group in groups_connectivity_matrix:
         correlation_matrix = groups_connectivity_matrix[group]
-        correlation_matrix = utils.apply_threshold(correlation_matrix, threshold)
         plotting.plot_connectome(correlation_matrix, coordinates, title=f'{atlas.name}, {group}',
                                  edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
         plt.savefig(conn_output / f'{atlas.name}_{group}_connectome.png')
 
 
-def save_groups_matrices(groups_connectivity_matrices, atlas_labels, threshold, output):
+def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
     fig, axes = plt.subplots(nrows=1, ncols=len(groups_connectivity_matrices), figsize=(30, 30))
     for i, group in enumerate(groups_connectivity_matrices):
         group_connmatrix = groups_connectivity_matrices[group]
@@ -120,19 +122,19 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, threshold, 
             atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
             atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        utils.plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], threshold, reorder=reorder)
+        utils.plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], reorder=reorder)
         axes[i].set_title(f'{group}')
     fig.savefig(output / 'groups_comparison.png')
 
 
-def save_connectivity_matrices(subjects_df, atlas_labels, threshold, output, reorder=False):
+def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False):
     subjects_df.apply(lambda subj: save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
-                                                            atlas_labels, threshold, output, reorder=reorder), axis=1)
+                                                            atlas_labels, output, reorder=reorder), axis=1)
 
 
-def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, threshold, output,
+def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
                              tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
     fig, ax = plt.subplots(figsize=(10, 8))
-    utils.plot_matrix_on_axis(conn_matrix, atlas_labels, ax, threshold, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
+    utils.plot_matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
     fig.savefig(output / f'{fig_name}.png')
     plt.close(fig)

@@ -54,13 +54,11 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, anno
     return embeddings
 
 
-def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax, threshold,
+def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax,
                         tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    matrix_to_plot = connectivity_matrix.copy()
-    matrix_to_plot = apply_threshold(matrix_to_plot, threshold)
     # Get labels in the correct format until plot_matrix is fixed
     labels = list(atlas_labels.name.values)
-    plotting.plot_matrix(matrix_to_plot,
+    plotting.plot_matrix(connectivity_matrix,
                          tri=tri,
                          labels=labels,
                          colorbar=True,
@@ -154,8 +152,7 @@ def q_test(data, mean):
     return q, df
 
 
-def print_connectivity_metrics(connectivity_matrix, threshold):
-    connectivity_matrix = apply_threshold(connectivity_matrix, threshold)
+def print_connectivity_metrics(connectivity_matrix):
     np.fill_diagonal(connectivity_matrix, 0)
     graph = nx.from_numpy_array(connectivity_matrix)
     print(f'Average clustering coefficient: {nx.average_clustering(graph)}')
