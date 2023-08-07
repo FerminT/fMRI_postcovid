@@ -83,7 +83,7 @@ def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_l
 
 def mean_connectivity_matrix(connectivity_matrices):
     mean_connectivity_matrix = np.mean(connectivity_matrices.tolist(), axis=0)
-    q, df = utils.q_test(connectivity_matrices, mean_connectivity_matrix)
+    q, df = utils.q_test(connectivity_matrices.tolist(), mean_connectivity_matrix)
     print(f'Q test: {q}; degrees of freedom: {df}')
 
     return mean_connectivity_matrix
