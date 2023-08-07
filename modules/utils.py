@@ -7,7 +7,7 @@ from sklearn.manifold import MDS, Isomap, TSNE
 from sklearn.decomposition import PCA
 
 # NiLearn methods and classes
-from nilearn import image, plotting
+from nilearn import image, plotting, connectome
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
@@ -138,9 +138,13 @@ def load_datapaths(subjects_paths, subjects_df):
 
 
 def apply_threshold(connectivity_matrix, threshold):
-    percentile = np.percentile(connectivity_matrix, threshold)
-    connectivity_matrix[np.abs(connectivity_matrix) < percentile] = 0
-    return connectivity_matrix
+    lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
+    n_connections = threshold * len(lower_part) // 100
+    max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
+    lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
+    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diagonal(connectivity_matrix))
+
+    return thresholded_matrix
 
 
 def q_test(data, mean):
@@ -151,7 +155,7 @@ def q_test(data, mean):
 
 
 def print_connectivity_metrics(connectivity_matrix, threshold):
-    connectivity_matrix[np.abs(connectivity_matrix) < (threshold / 100)] = 0
+    connectivity_matrix = apply_threshold(connectivity_matrix, threshold)
     np.fill_diagonal(connectivity_matrix, 0)
     graph = nx.from_numpy_array(connectivity_matrix)
     print(f'Average clustering coefficient: {nx.average_clustering(graph)}')
