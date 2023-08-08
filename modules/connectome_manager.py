@@ -43,11 +43,13 @@ def groups_connectome_analysis(subjects_df, atlas, conn_output):
     for group in groups_connectomes:
         print(f'\nProcessing group {group} on {atlas.name}...')
         group_df = subjects_df[subjects_df['group'] == group]
-        groups_connectomes[group] = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
-        utils.print_connectivity_metrics(groups_connectomes[group])
+        group_connectome = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
+        utils.print_connectivity_metrics(group_connectome)
+        save_connectome(group_connectome, atlas,
+                        f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', conn_output)
+        groups_connectomes[group] = group_connectome
 
     save_groups_matrices(groups_connectomes, atlas.labels, conn_output)
-    save_groups_connectomes(groups_connectomes, atlas, conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
@@ -102,16 +104,14 @@ def connectivity_matrix(time_series, kind='correlation'):
     return connectivity_matrix, connectivity_measure
 
 
-def save_groups_connectomes(groups_connectivity_matrix, atlas, conn_output):
+def save_connectome(connectivity_matrix, atlas, fig_title, fig_name, conn_output):
     if utils.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
-    for group in groups_connectivity_matrix:
-        correlation_matrix = groups_connectivity_matrix[group]
-        plotting.plot_connectome(correlation_matrix, coordinates, title=f'{atlas.name}, {group}',
-                                 edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
-        plt.savefig(conn_output / f'{atlas.name}_{group}_connectome.png')
+    plotting.plot_connectome(connectivity_matrix, coordinates, title=fig_title,
+                             edge_cmap='coolwarm', edge_vmin=-0.8, edge_vmax=0.8)
+    plt.savefig(conn_output / fig_name)
 
 
 def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
