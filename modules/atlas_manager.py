@@ -127,6 +127,7 @@ def load_atlas(atlas_name, n_rois):
         atlas = datasets.fetch_atlas_schaefer_2018(n_rois=n_rois)
         # Remove '7Networks_' prefix
         atlas.labels = pd.DataFrame({'name': [label[10:].decode() for label in atlas.labels]})
+        atlas_name += f'{n_rois}'
     elif atlas_name == 'msdl':
         atlas = datasets.fetch_atlas_msdl()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
