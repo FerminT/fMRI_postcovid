@@ -25,6 +25,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
 
     if atlas.name == 'schaefer':
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
+        utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels, group_by='group', output=conn_output)
         save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels,
                                  tri='full', output=conn_output)
 
