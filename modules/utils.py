@@ -152,6 +152,16 @@ def q_test(data, mean):
     return q, df
 
 
+def add_to_csv(dict_values, filename):
+    series = pd.Series(dict_values)
+    if filename.exists():
+        df = pd.read_csv(filename)
+    else:
+        df = pd.DataFrame(columns=list(dict_values.keys()))
+    df = pd.concat([df, series.to_frame().T], ignore_index=True)
+    df.to_csv(filename)
+
+
 def global_connectivity_metrics(connectivity_matrix, group, threshold, filename):
     np.fill_diagonal(connectivity_matrix, 0)
     graph = nx.from_numpy_array(connectivity_matrix)
@@ -163,17 +173,10 @@ def global_connectivity_metrics(connectivity_matrix, group, threshold, filename)
     print(f'Average node connectivity: {avg_node_connectivity}')
     print(f'Average neighbor degree: {avg_neighbor_degree}')
     print(f'Number of nodes: {len(graph.nodes)}')
-    metrics_series = pd.Series({'group': group, 'threshold': threshold, 'avg_clustering': avg_clustering,
+    dict_metrics = {'group': group, 'threshold': threshold, 'avg_clustering': avg_clustering,
                                 'avg_node_connectivity': avg_node_connectivity,
-                                'avg_neighbor_degree': avg_neighbor_degree, 'n_nodes': len(graph.nodes)})
-
-    if filename.exists():
-        metrics_df = pd.read_csv(filename, index_col=0)
-    else:
-        metrics_df = pd.DataFrame(columns=['group', 'threshold', 'avg_clustering', 'avg_node_connectivity',
-                                           'avg_neighbor_degree', 'n_nodes'])
-    metrics_df = pd.concat([metrics_df, metrics_series.to_frame().T], ignore_index=True)
-    metrics_df.to_csv(filename)
+                                'avg_neighbor_degree': avg_neighbor_degree, 'n_nodes': len(graph.nodes)}
+    add_to_csv(dict_metrics, filename)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
