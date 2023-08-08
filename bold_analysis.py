@@ -49,7 +49,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-nr', '--n_rois', type=int, default=100,
                             help='Number of ROIs for Schaefer atlas. Otherwise ignored.')
     arg_parser.add_argument('-t', '--threshold', type=int, default=30,
-                            help='Activity threshold for connectome (percentile)')
+                            help='Activity threshold for connectome (percent of max connections)')
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
                             help='Low pass filtering value for signal extraction')
     arg_parser.add_argument('-hp', '--high_pass', type=float, default=0.01,
