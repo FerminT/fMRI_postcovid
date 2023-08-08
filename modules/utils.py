@@ -158,3 +158,21 @@ def print_connectivity_metrics(connectivity_matrix):
     print(f'Average clustering coefficient: {nx.average_clustering(graph, weight="weight")}')
     print(f'Average node connectivity: {nx.average_node_connectivity(graph)}')
     print(f'Average neighbor degree: {np.mean(list(nx.average_neighbor_degree(graph, weight="weight").values()))}')
+
+
+def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
+    nrows = len(networks_labels) // 2
+    fig, axes = plt.subplots(nrows=nrows, ncols=nrows, figsize=(20, 20))
+    for i, network in enumerate(networks_labels.name):
+        ax = axes[i // nrows, i % nrows]
+        network_means, groups = {}, subjects_df[group_by].unique()
+        for group in groups:
+            networks_connmatrix = subjects_df[subjects_df[group_by] == group][attribute].to_list()
+            network_means[group] = [subj_connmatrix[i, i] for subj_connmatrix in networks_connmatrix]
+        df = pd.DataFrame.from_dict(data=network_means, orient='index').transpose()
+        sns.boxplot(data=df, order=sorted(groups), ax=ax)
+        ax.set_title(network)
+        ax.set_ylabel('Mean correlation coefficient')
+    fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
+    fig.savefig(output / f'networks_mean_corrcoef.png')
+    plt.show()
