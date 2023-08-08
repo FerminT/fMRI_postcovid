@@ -35,16 +35,15 @@ def build_connectome(subjects_df, conf_strategy, atlas,
                                                                                                         threshold))
 
     save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
-    groups_connectome_analysis(subjects_df, atlas, conn_output)
+    groups_connectome_analysis(subjects_df, atlas, threshold, conn_output)
 
 
-def groups_connectome_analysis(subjects_df, atlas, conn_output):
+def groups_connectome_analysis(subjects_df, atlas, threshold, conn_output):
     groups_connectomes = {group: None for group in subjects_df['group'].unique()}
     for group in groups_connectomes:
-        print(f'\nProcessing group {group} on {atlas.name}...')
         group_df = subjects_df[subjects_df['group'] == group]
         group_connectome = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
-        utils.print_connectivity_metrics(group_connectome)
+        utils.global_connectivity_metrics(group_connectome, group, threshold, conn_output / f'global_metrics.csv')
         save_connectome(group_connectome, atlas,
                         f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', conn_output)
         groups_connectomes[group] = group_connectome

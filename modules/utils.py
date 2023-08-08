@@ -152,12 +152,28 @@ def q_test(data, mean):
     return q, df
 
 
-def print_connectivity_metrics(connectivity_matrix):
+def global_connectivity_metrics(connectivity_matrix, group, threshold, filename):
     np.fill_diagonal(connectivity_matrix, 0)
     graph = nx.from_numpy_array(connectivity_matrix)
-    print(f'Average clustering coefficient: {nx.average_clustering(graph, weight="weight")}')
-    print(f'Average node connectivity: {nx.average_node_connectivity(graph)}')
-    print(f'Average neighbor degree: {np.mean(list(nx.average_neighbor_degree(graph, weight="weight").values()))}')
+    avg_clustering = nx.average_clustering(graph, weight='weight')
+    avg_node_connectivity = nx.average_node_connectivity(graph)
+    avg_neighbor_degree = np.mean(list(nx.average_neighbor_degree(graph, weight='weight').values()))
+    print(f'\nGlobal connectivity metrics on group {group}:')
+    print(f'Average clustering coefficient: {avg_clustering}')
+    print(f'Average node connectivity: {avg_node_connectivity}')
+    print(f'Average neighbor degree: {avg_neighbor_degree}')
+    print(f'Number of nodes: {len(graph.nodes)}')
+    metrics_series = pd.Series({'group': group, 'threshold': threshold, 'avg_clustering': avg_clustering,
+                                'avg_node_connectivity': avg_node_connectivity,
+                                'avg_neighbor_degree': avg_neighbor_degree, 'n_nodes': len(graph.nodes)})
+
+    if filename.exists():
+        metrics_df = pd.read_csv(filename, index_col=0)
+    else:
+        metrics_df = pd.DataFrame(columns=['group', 'threshold', 'avg_clustering', 'avg_node_connectivity',
+                                           'avg_neighbor_degree', 'n_nodes'])
+    metrics_df = pd.concat([metrics_df, metrics_series.to_frame().T], ignore_index=True)
+    metrics_df.to_csv(filename)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
