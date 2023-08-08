@@ -1,4 +1,3 @@
-import networkx as nx
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -13,23 +12,7 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
 
 def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, annotate=False):
-    if method == 'MDS':
-        embedding = MDS(n_components=2,
-                        dissimilarity='precomputed',
-                        random_state=42)
-    elif method == 'TSNE':
-        embedding = TSNE(n_components=2,
-                         perplexity=20,
-                         random_state=42)
-    elif method == 'ISOMAP':
-        embedding = Isomap(n_components=2,
-                           n_neighbors=10,
-                           n_jobs=-1)
-    elif method == 'PCA':
-        embedding = PCA(n_components=2)
-    else:
-        raise NotImplementedError(f'Method {method} not implemented')
-
+    embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
     groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'],
                                                 'x': embeddings[:, 0], 'y': embeddings[:, 1]})
@@ -52,6 +35,35 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, anno
     fig.savefig(output / f'{title}.png')
 
     return embeddings
+
+
+def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
+                             tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    plot_matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
+    fig.savefig(output / f'{fig_name}.png')
+    plt.close(fig)
+
+
+def initialize_embedding(method):
+    if method == 'MDS':
+        embedding = MDS(n_components=2,
+                        dissimilarity='precomputed',
+                        random_state=42)
+    elif method == 'TSNE':
+        embedding = TSNE(n_components=2,
+                         perplexity=20,
+                         random_state=42)
+    elif method == 'ISOMAP':
+        embedding = Isomap(n_components=2,
+                           n_neighbors=10,
+                           n_jobs=-1)
+    elif method == 'PCA':
+        embedding = PCA(n_components=2)
+    else:
+        raise NotImplementedError(f'Method {method} not implemented')
+
+    return embedding
 
 
 def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax,
@@ -135,16 +147,6 @@ def load_datapaths(subjects_paths, subjects_df):
     return subjects_df
 
 
-def apply_threshold(connectivity_matrix, threshold):
-    lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
-    n_connections = threshold * len(lower_part) // 100
-    max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
-    lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
-    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
-
-    return thresholded_matrix
-
-
 def q_test(data, mean):
     df = mean.shape[0] * (mean.shape[0] - 1) / 2
     data, mean = np.triu(data, k=1), np.triu(mean, k=1)
@@ -160,23 +162,6 @@ def add_to_csv(dict_values, filename):
         df = pd.DataFrame(columns=list(dict_values.keys()))
     df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_csv(filename)
-
-
-def global_connectivity_metrics(connectivity_matrix, group, threshold, filename):
-    np.fill_diagonal(connectivity_matrix, 0)
-    graph = nx.from_numpy_array(connectivity_matrix)
-    avg_clustering = nx.average_clustering(graph, weight='weight')
-    avg_node_connectivity = nx.average_node_connectivity(graph)
-    avg_neighbor_degree = np.mean(list(nx.average_neighbor_degree(graph, weight='weight').values()))
-    print(f'\nGlobal connectivity metrics on group {group}:')
-    print(f'Average clustering coefficient: {avg_clustering}')
-    print(f'Average node connectivity: {avg_node_connectivity}')
-    print(f'Average neighbor degree: {avg_neighbor_degree}')
-    print(f'Number of nodes: {len(graph.nodes)}')
-    dict_metrics = {'group': group, 'threshold': threshold, 'avg_clustering': avg_clustering,
-                                'avg_node_connectivity': avg_node_connectivity,
-                                'avg_neighbor_degree': avg_neighbor_degree, 'n_nodes': len(graph.nodes)}
-    add_to_csv(dict_metrics, filename)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):

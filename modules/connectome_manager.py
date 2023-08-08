@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import networkx as nx
 from . import utils
 from .atlas_manager import get_schaefer_networks_indices
 
 # NiLearn methods and classes
 from nilearn import plotting
-from nilearn.connectome import ConnectivityMeasure
+from nilearn import connectome
 
 
 def build_connectome(subjects_df, conf_strategy, atlas,
@@ -27,12 +28,12 @@ def build_connectome(subjects_df, conf_strategy, atlas,
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
         utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
                                         group_by='group', output=conn_output)
-        save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
-                                 tri='full', output=conn_output)
+        utils.save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
+                                       tri='full', output=conn_output)
 
     subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
-                                                                                  utils.apply_threshold(matrix,
-                                                                                                        threshold))
+                                                                                  apply_threshold(matrix,
+                                                                                                  threshold))
 
     save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
     groups_connectome_analysis(subjects_df, atlas, threshold, conn_output)
@@ -43,7 +44,7 @@ def groups_connectome_analysis(subjects_df, atlas, threshold, conn_output):
     for group in groups_connectomes:
         group_df = subjects_df[subjects_df['group'] == group]
         group_connectome = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
-        utils.global_connectivity_metrics(group_connectome, group, threshold, conn_output / f'global_metrics.csv')
+        global_connectivity_metrics(group_connectome, group, threshold, conn_output / f'global_metrics.csv')
         save_connectome(group_connectome, atlas,
                         f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', conn_output)
         groups_connectomes[group] = group_connectome
@@ -57,8 +58,8 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
     all_atlas_labels = atlas_labels['name'].values
     subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
                                                                                   networks_connectivity_matrix(
-                                                                                    conn_matrix, networks,
-                                                                                    all_atlas_labels))
+                                                                                      conn_matrix, networks,
+                                                                                      all_atlas_labels))
     networks_std = subjects_df['networks_connmatrix'].values.std()
     diff_connmatrix = np.empty((len(atlas_labels), len(atlas_labels)))
     for i, group in enumerate(sorted(subjects_df['group'].unique())):
@@ -97,7 +98,7 @@ def mean_connectivity_matrix(connectivity_matrices):
 
 
 def connectivity_matrix(time_series, kind='correlation'):
-    connectivity_measure = ConnectivityMeasure(kind=kind)
+    connectivity_measure = connectome.ConnectivityMeasure(kind=kind)
     connectivity_matrix = connectivity_measure.fit_transform(time_series)
 
     return connectivity_matrix, connectivity_measure
@@ -131,13 +132,32 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
 
 
 def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False):
-    subjects_df.apply(lambda subj: save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
-                                                            atlas_labels, output, reorder=reorder), axis=1)
+    subjects_df.apply(lambda subj: utils.save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
+                                                                  atlas_labels, output, reorder=reorder), axis=1)
 
 
-def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
-                             tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    fig, ax = plt.subplots(figsize=(10, 8))
-    utils.plot_matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
-    fig.savefig(output / f'{fig_name}.png')
-    plt.close(fig)
+def global_connectivity_metrics(connectivity_matrix, group, threshold, filename):
+    np.fill_diagonal(connectivity_matrix, 0)
+    graph = nx.from_numpy_array(connectivity_matrix)
+    avg_clustering = nx.average_clustering(graph, weight='weight')
+    avg_node_connectivity = nx.average_node_connectivity(graph)
+    avg_neighbor_degree = np.mean(list(nx.average_neighbor_degree(graph, weight='weight').values()))
+    print(f'\nGlobal connectivity metrics on group {group}:')
+    print(f'Average clustering coefficient: {avg_clustering}')
+    print(f'Average node connectivity: {avg_node_connectivity}')
+    print(f'Average neighbor degree: {avg_neighbor_degree}')
+    print(f'Number of nodes: {len(graph.nodes)}')
+    dict_metrics = {'group': group, 'threshold': threshold, 'avg_clustering': avg_clustering,
+                    'avg_node_connectivity': avg_node_connectivity,
+                    'avg_neighbor_degree': avg_neighbor_degree, 'n_nodes': len(graph.nodes)}
+    utils.add_to_csv(dict_metrics, filename)
+
+
+def apply_threshold(connectivity_matrix, threshold):
+    lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
+    n_connections = threshold * len(lower_part) // 100
+    max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
+    lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
+    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
+
+    return thresholded_matrix
