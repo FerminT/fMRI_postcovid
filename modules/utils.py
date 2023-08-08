@@ -157,7 +157,7 @@ def q_test(data, mean):
 def add_to_csv(dict_values, filename):
     series = pd.Series(dict_values)
     if filename.exists():
-        df = pd.read_csv(filename)
+        df = pd.read_csv(filename, index_col=0)
     else:
         df = pd.DataFrame(columns=list(dict_values.keys()))
     df = pd.concat([df, series.to_frame().T], ignore_index=True)
