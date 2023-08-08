@@ -25,24 +25,29 @@ def build_connectome(subjects_df, conf_strategy, atlas,
 
     if atlas.name == 'schaefer':
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
-        utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels, group_by='group', output=conn_output)
-        save_connectivity_matrix(networks_diff, f'networks_diff_{len(atlas.labels)}rois', networks_labels,
+        utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
+                                        group_by='group', output=conn_output)
+        save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
                                  tri='full', output=conn_output)
 
     subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
                                                                                   utils.apply_threshold(matrix,
                                                                                                         threshold))
 
-    groups_connectivity_matrix = {group: None for group in subjects_df['group'].unique()}
-    for group in groups_connectivity_matrix:
+    save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
+    groups_connectome_analysis(subjects_df, atlas, conn_output)
+
+
+def groups_connectome_analysis(subjects_df, atlas, conn_output):
+    groups_connectomes = {group: None for group in subjects_df['group'].unique()}
+    for group in groups_connectomes:
         print(f'\nProcessing group {group} on {atlas.name}...')
         group_df = subjects_df[subjects_df['group'] == group]
-        groups_connectivity_matrix[group] = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
-        utils.print_connectivity_metrics(groups_connectivity_matrix[group])
+        groups_connectomes[group] = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
+        utils.print_connectivity_metrics(groups_connectomes[group])
 
-    save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
-    save_groups_matrices(groups_connectivity_matrix, atlas.labels, conn_output)
-    save_groups_connectomes(groups_connectivity_matrix, atlas, conn_output)
+    save_groups_matrices(groups_connectomes, atlas.labels, conn_output)
+    save_groups_connectomes(groups_connectomes, atlas, conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
