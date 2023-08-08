@@ -43,8 +43,10 @@ def groups_connectome_analysis(subjects_df, atlas, threshold, conn_output):
     groups_connectomes = {group: None for group in subjects_df['group'].unique()}
     for group in groups_connectomes:
         group_df = subjects_df[subjects_df['group'] == group]
-        global_connectivity_metrics(group_df, threshold, conn_output / f'global_metrics.csv')
-        group_connectome = mean_connectivity_matrix(group_df['connectivity_matrix'].values)
+        group_connectivity_matrices = group_df['connectivity_matrix'].values
+        group_connectome = mean_connectivity_matrix(group_connectivity_matrices)
+        global_connectivity_metrics(group, group_connectivity_matrices.tolist(),
+                                    threshold, conn_output / f'global_metrics.csv')
         save_connectome(group_connectome, atlas,
                         f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', conn_output)
         groups_connectomes[group] = group_connectome
@@ -136,10 +138,8 @@ def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False)
                                                                   atlas_labels, output, reorder=reorder), axis=1)
 
 
-def global_connectivity_metrics(group_df, threshold, filename):
-    group = group_df['group'].unique()[0]
+def global_connectivity_metrics(group, connectivity_matrices, threshold, filename):
     group_metrics = {'avg_clustering': [], 'avg_node_connectivity': [], 'avg_neighbor_degree': [], 'num_nodes': []}
-    connectivity_matrices = group_df['connectivity_matrix'].values.tolist()
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
         connectome = nx.from_numpy_array(connectivity_matrix)
