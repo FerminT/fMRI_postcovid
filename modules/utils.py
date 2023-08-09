@@ -16,9 +16,9 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     embeddings = embedding.fit_transform(rdm)
     rdm_df = subjects_df.copy()
     rdm_df['emb_x'], rdm_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
-    rdm_df = score_to_bins(rdm_df, 'global')
+    rdm_df, sizes = score_to_bins(rdm_df, 'global')
     fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
-    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='global',
+    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='global', sizes=sizes,
                     hue_order=sorted(rdm_df['group'].unique()), ax=ax)
     sns.move_legend(ax, 'upper left', bbox_to_anchor=(1, 1))
     if draw_labels:
@@ -144,11 +144,15 @@ def load_datapaths(subjects_paths, subjects_df):
     return subjects_df
 
 
-def score_to_bins(df, score):
-    df[score] = pd.qcut(df[score], q=3)
+def score_to_bins(df, score, n_bins=3):
+    df[score] = pd.qcut(df[score], q=n_bins)
     df[score] = df[score].cat.codes
+    sizes = np.linspace(30, 100, n_bins)
+    if -1 in df[score].unique():
+        sizes = np.insert(sizes, 0, 60)
+    sizes = {size: sizes[i] for i, size in enumerate(sorted(df[score].unique()))}
 
-    return df
+    return df, sizes
 
 
 def q_test(data, mean):
