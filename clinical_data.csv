@@ -52,7 +52,6 @@ id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,group
 55,65,femenino,27/04/2021,Cognitivo,3,1,1,32-channel head,control
 56,67,femenino,27/04/2023,Cognitivo,3,1,1,32-channel head,control
 57,53,masculino,5/05/2022,Cognitivo,3,1,1,32-channel head,control
-58,46,femenino,30/11/2021,Cognitivo,3,1,1,32-channel head,control
 59,49,masculino,13/09/2022,Cognitivo,3,1,1,32-channel head,control
 60,53,femenino,19/11/2022,Cognitivo,3,1,1,32-channel head,control
 61,44,femenino,23/03/2023,Cognitivo,3,1,1,32-channel head,control
