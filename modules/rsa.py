@@ -1,5 +1,6 @@
 import numpy as np
 from rsatoolbox import rdm
+from sklearn import mixture
 from .utils import time_series, plot_rdm
 from .connectome_manager import connectivity_matrix
 
@@ -20,6 +21,8 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
                                                             t_r), axis=1)
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
+    gmm = mixture.GaussianMixture(n_components=2, covariance_type='full', random_state=42)
+    subjects_df['cluster'] = gmm.fit_predict(connectivity_distance_matrix)
 
     connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}',
                                        output, rdm_decomposition)

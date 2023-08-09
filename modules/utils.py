@@ -18,7 +18,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, anno
                                                 'x': embeddings[:, 0], 'y': embeddings[:, 1]})
     fig, ax = plt.subplots()
     if by_group:
-        sns.scatterplot(groups_embeddings, x='x', y='y', hue='group',
+        sns.scatterplot(groups_embeddings, x='x', y='y', hue='group', style='cluster',
                         hue_order=sorted(groups_embeddings['group'].unique()), ax=ax)
     else:
         sns.scatterplot(groups_embeddings, x='x', y='y', ax=ax)
