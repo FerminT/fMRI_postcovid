@@ -14,14 +14,14 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
-    subjects_df['emb_x'], subjects_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
-    subjects_df['composite_global'] = pd.qcut(subjects_df['composite_global'], q=3)
-    subjects_df['composite_global'] = subjects_df['composite_global'].cat.codes
+    rdm_df = subjects_df.copy()
+    rdm_df['emb_x'], rdm_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
+    rdm_df = score_to_bins(rdm_df, 'global')
     fig, ax = plt.subplots()
-    sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='composite_global',
-                    hue_order=sorted(subjects_df['group'].unique()), ax=ax)
+    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='global',
+                    hue_order=sorted(rdm_df['group'].unique()), ax=ax)
     if draw_labels:
-        for i, txt in enumerate(subjects_df.index.to_list()):
+        for i, txt in enumerate(rdm_df.index.to_list()):
             ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
     title = title.replace(' ', '_') + f'_{method}'
@@ -141,6 +141,13 @@ def load_datapaths(subjects_paths, subjects_df):
             subjects_df.loc[subj_id, 'mask_path'] = str(mask_file)
 
     return subjects_df
+
+
+def score_to_bins(df, score):
+    df[score] = pd.qcut(df[score], q=3)
+    df[score] = df[score].cat.codes
+
+    return df
 
 
 def q_test(data, mean):
