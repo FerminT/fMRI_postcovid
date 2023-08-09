@@ -49,11 +49,11 @@ def load_networks_mapping(networks_mapping_file='brain_networks.json'):
 
 def extract_network(atlas, network_name):
     networks_mapping = load_networks_mapping()
-    if atlas.name == 'msdl':
+    if 'msdl' in atlas.name:
         network_img, network_labels = extract_network_from_msdl(atlas, network_name)
-    elif atlas.name == 'aal':
+    elif 'aal' in atlas.name:
         network_img, network_labels = extract_network_from_aal(atlas, network_name, networks_mapping)
-    elif atlas.name == 'schaefer':
+    elif 'schaefer' in atlas.name:
         network_img, network_labels = extract_network_from_schaefer(atlas, network_name)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
