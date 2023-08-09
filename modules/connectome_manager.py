@@ -19,7 +19,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df = build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r)
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
-    if atlas.name == 'schaefer':
+    if 'schaefer' in atlas.name:
         networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
         utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
                                         group_by='group', output=conn_output)
