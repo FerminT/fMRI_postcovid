@@ -11,17 +11,14 @@ from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
 
-def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, annotate=False):
+def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
     subjects_df['emb_x'], subjects_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
     fig, ax = plt.subplots()
-    if by_group:
-        sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster',
-                        hue_order=sorted(subjects_df['group'].unique()), ax=ax)
-    else:
-        sns.scatterplot(subjects_df, x='emb_x', y='emb_y', ax=ax)
-    if annotate:
+    sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster',
+                    hue_order=sorted(subjects_df['group'].unique()), ax=ax)
+    if draw_labels:
         for i, txt in enumerate(subjects_df.index.to_list()):
             ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
