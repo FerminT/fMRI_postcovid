@@ -1,4 +1,4 @@
-id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,composite_memory,composite_language,composite_attention,composite_executive,composite_visuoespatial,composite_global,group
+id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,language,attention,executive,visuoespatial,global,group
 1,47,femenino,3/04/2022,Covid,3,1,1,32-channel head,-1.82,-0.605,-1.36,-3.125,-0.55,-2.66333333333333,covid
 3,80,femenino,31/03/2022,Covid,3,1,1,32-channel head,-0.72,-1.12,-0.63,-0.14,0.53,-0.34,covid
 4,75,femenino,12/05/2022,Covid,3,1,1,32-channel head,-0.675,0.93,0.045,0.105,0.43,0.0733333333333333,covid
