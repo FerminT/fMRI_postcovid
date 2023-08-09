@@ -17,9 +17,10 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     rdm_df = subjects_df.copy()
     rdm_df['emb_x'], rdm_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
     rdm_df = score_to_bins(rdm_df, 'global')
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
     sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='global',
                     hue_order=sorted(rdm_df['group'].unique()), ax=ax)
+    sns.move_legend(ax, 'upper left', bbox_to_anchor=(1, 1))
     if draw_labels:
         for i, txt in enumerate(rdm_df.index.to_list()):
             ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
