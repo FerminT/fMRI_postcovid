@@ -95,6 +95,10 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     return time_series
 
 
+def is_network(atlas_name):
+    return len(atlas_name.split('_')) > 1
+
+
 def is_probabilistic_atlas(atlas_maps):
     atlas_maps_img = image.load_img(atlas_maps)
     return len(atlas_maps_img.shape) == 4

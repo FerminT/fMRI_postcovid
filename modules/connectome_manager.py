@@ -19,7 +19,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df = build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r)
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
-    if 'schaefer' in atlas.name:
+    if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
         groups_diff_over_networks(subjects_df, atlas.labels, conn_output)
 
     subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
