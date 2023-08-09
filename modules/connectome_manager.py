@@ -20,11 +20,8 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
     if 'schaefer' in atlas.name:
-        networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas.labels)
-        utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
-                                        group_by='group', output=conn_output)
-        utils.save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
-                                       tri='full', output=conn_output)
+        groups_diff_over_networks(subjects_df, atlas.labels, conn_output)
+
     subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
                                                                                   apply_threshold(matrix,
                                                                                                   threshold))
@@ -55,6 +52,14 @@ def groups_connectome_analysis(subjects_df, atlas, threshold, conn_output):
         groups_connectomes[group] = group_connectome
 
     save_groups_matrices(groups_connectomes, atlas.labels, conn_output)
+
+
+def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
+    networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas_labels)
+    utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
+                                    group_by='group', output=conn_output)
+    utils.save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
+                                   tri='full', output=conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
