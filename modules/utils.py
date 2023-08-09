@@ -14,7 +14,7 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, annotate=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
-    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'],
+    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'], 'cluster': subjects_df['cluster'],
                                                 'x': embeddings[:, 0], 'y': embeddings[:, 1]})
     fig, ax = plt.subplots()
     if by_group:
