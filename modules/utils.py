@@ -108,28 +108,23 @@ def pad_timeseries(timeseries, pad_value=np.nan):
     return timeseries
 
 
-def load_subjects(subjects, data_path, clinical_file, group_analysis):
+def load_subjects(subjects, data_path, clinical_file):
     if subjects == 'all':
         subjects = [sub for sub in data_path.glob('sub-*') if sub.is_dir()]
     else:
         subjects = [data_path / f'sub-{subjects.zfill(3)}']
 
-    subjects_df = load_clinical_data(clinical_file, group_analysis)
+    subjects_df = load_clinical_data(clinical_file)
     subjects_df = load_datapaths(subjects, subjects_df)
 
     return subjects_df
 
 
-def load_clinical_data(clinical_datafile, group_analysis):
+def load_clinical_data(clinical_datafile):
     cg = pd.read_csv(clinical_datafile, na_filter=False)
     subjects_data = cg[~cg['id'].isna()]
     subjects_data = subjects_data.astype({'id': int})
     subjects_data = subjects_data.set_index('id')
-    if ['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'] in subjects_data.columns.to_list():
-        subjects_data = subjects_data.drop(['whodas_total', 'fss_63', 'hads_ansiedad', 'hads_depresion'], axis=1)
-
-    if group_analysis:
-        subjects_data = subjects_data[~(subjects_data['group'] == 'NA')]
 
     return subjects_data
 

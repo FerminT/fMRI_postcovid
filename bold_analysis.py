@@ -10,7 +10,7 @@ from modules.rsa import rsa
 def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition,
          data_path, clinical_file, group_analysis, output):
-    subjects_df = utils.load_subjects(subjects, data_path, clinical_file, group_analysis)
+    subjects_df = utils.load_subjects(subjects, data_path, clinical_file)
     atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
