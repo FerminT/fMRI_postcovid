@@ -14,16 +14,15 @@ from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 def plot_rdm(rdm, subjects_df, title, output, method='TSNE', by_group=True, annotate=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
-    groups_embeddings = pd.DataFrame.from_dict({'group': subjects_df['group'], 'cluster': subjects_df['cluster'],
-                                                'x': embeddings[:, 0], 'y': embeddings[:, 1]})
+    subjects_df['emb_x'], subjects_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
     fig, ax = plt.subplots()
     if by_group:
-        sns.scatterplot(groups_embeddings, x='x', y='y', hue='group', style='cluster',
-                        hue_order=sorted(groups_embeddings['group'].unique()), ax=ax)
+        sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster',
+                        hue_order=sorted(subjects_df['group'].unique()), ax=ax)
     else:
-        sns.scatterplot(groups_embeddings, x='x', y='y', ax=ax)
+        sns.scatterplot(subjects_df, x='emb_x', y='emb_y', ax=ax)
     if annotate:
-        for i, txt in enumerate(groups_embeddings.index.to_list()):
+        for i, txt in enumerate(subjects_df.index.to_list()):
             ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
 
     title = title.replace(' ', '_') + f'_{method}'
