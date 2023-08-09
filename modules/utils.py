@@ -15,6 +15,8 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
     subjects_df['emb_x'], subjects_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
+    subjects_df['composite_global'] = pd.qcut(subjects_df['composite_global'], q=3)
+    subjects_df['composite_global'] = subjects_df['composite_global'].cat.codes
     fig, ax = plt.subplots()
     sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='composite_global',
                     hue_order=sorted(subjects_df['group'].unique()), ax=ax)
