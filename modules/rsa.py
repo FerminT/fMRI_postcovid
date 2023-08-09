@@ -5,16 +5,18 @@ from .utils import time_series, plot_rdm
 from .connectome_manager import connectivity_matrix
 
 
-def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, output):
+def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition,
+        clinical_score, output):
     connectivity_embeddings = connectome_rsa(subjects_df, conf_strategy, atlas,
-                                             low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, output)
+                                             low_pass, high_pass, smoothing_fwhm, t_r,
+                                             rdm_decomposition, clinical_score, output)
     behavioral_embeddings = behavioral_rsa(subjects_df, rdm_decomposition, output)
 
     return connectivity_embeddings, behavioral_embeddings
 
 
 def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
-                   rdm_decomposition, output):
+                   rdm_decomposition, clinical_score, output):
     timeseries = subjects_df.apply(lambda subj: time_series(subj['func_path'], subj['mask_path'],
                                                             conf_strategy, atlas.maps,
                                                             low_pass, high_pass, smoothing_fwhm,
@@ -24,7 +26,7 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
     subjects_df['cluster'] = clusters_rdm(connectivity_distance_matrix)
 
     connectivity_embeddings = plot_rdm(connectivity_distance_matrix, subjects_df, f'Connectivity {atlas.name}',
-                                       output, rdm_decomposition)
+                                       output, rdm_decomposition, clinical_score)
 
     return connectivity_embeddings
 

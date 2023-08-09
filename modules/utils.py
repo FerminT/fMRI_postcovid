@@ -11,14 +11,14 @@ from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
 
-def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
+def plot_rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
     rdm_df = subjects_df.copy()
     rdm_df['emb_x'], rdm_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
-    rdm_df, sizes = score_to_bins(rdm_df, 'global')
+    rdm_df, sizes = score_to_bins(rdm_df, clinical_score)
     fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
-    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='global', sizes=sizes,
+    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size=clinical_score, sizes=sizes,
                     hue_order=sorted(rdm_df['group'].unique()), ax=ax)
     sns.move_legend(ax, 'upper left', bbox_to_anchor=(1, 1))
     if draw_labels:
