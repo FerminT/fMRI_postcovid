@@ -16,7 +16,7 @@ def plot_rdm(rdm, subjects_df, title, output, method='TSNE', draw_labels=False):
     embeddings = embedding.fit_transform(rdm)
     subjects_df['emb_x'], subjects_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
     fig, ax = plt.subplots()
-    sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster',
+    sns.scatterplot(subjects_df, x='emb_x', y='emb_y', hue='group', style='cluster', size='composite_global',
                     hue_order=sorted(subjects_df['group'].unique()), ax=ax)
     if draw_labels:
         for i, txt in enumerate(subjects_df.index.to_list()):
@@ -121,12 +121,11 @@ def load_subjects(subjects, data_path, clinical_file):
 
 
 def load_clinical_data(clinical_datafile):
-    cg = pd.read_csv(clinical_datafile, na_filter=False)
-    subjects_data = cg[~cg['id'].isna()]
-    subjects_data = subjects_data.astype({'id': int})
-    subjects_data = subjects_data.set_index('id')
+    subjects_df = pd.read_csv(clinical_datafile)
+    subjects_df = subjects_df.astype({'id': int})
+    subjects_df = subjects_df.set_index('id')
 
-    return subjects_data
+    return subjects_df
 
 
 def load_datapaths(subjects_paths, subjects_df):
