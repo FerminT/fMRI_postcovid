@@ -177,7 +177,7 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
 
 def apply_threshold(connectivity_matrix, threshold):
     lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
-    n_connections = threshold * len(lower_part)
+    n_connections = int(threshold * len(lower_part))
     max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
     lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
     thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
