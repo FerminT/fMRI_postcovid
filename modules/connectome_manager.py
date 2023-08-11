@@ -155,6 +155,8 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         group_metrics['avg_node_connectivity'].append(nx.average_node_connectivity(connectome))
         avg_neighbor_degree = nx.average_neighbor_degree(connectome, weight='weight')
         group_metrics['avg_neighbor_degree'].append(np.mean(list(avg_neighbor_degree.values())))
+        group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
+        group_metrics['omega'].append(nx.omega(connectome, seed=42))
         group_metrics['num_nodes'].append(len(connectome.nodes))
 
     mean_metrics = {}
