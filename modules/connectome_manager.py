@@ -147,7 +147,8 @@ def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False)
 
 
 def global_connectivity_metrics(group, connectivity_matrices, threshold, filename):
-    group_metrics = {'avg_clustering': [], 'avg_neighbor_degree': [], 'sigma': [], 'omega': [], 'num_nodes': []}
+    group_metrics = {'avg_clustering': [], 'avg_neighbor_degree': [], 'sigma': [], 'omega': [],
+                     'num_nodes': [], 'num_edges': []}
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
         connectome = nx.from_numpy_array(connectivity_matrix)
@@ -157,6 +158,7 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
         group_metrics['omega'].append(nx.omega(connectome, seed=42))
         group_metrics['num_nodes'].append(len(connectome.nodes))
+        group_metrics['num_edges'].append(len(connectome.edges))
 
     mean_metrics = {}
     for metric in group_metrics:
@@ -168,6 +170,7 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
     print(f'Average node connectivity: {mean_metrics["avg_node_connectivity"]}')
     print(f'Average neighbor degree: {mean_metrics["avg_neighbor_degree"]}')
     print(f'Number of nodes: {mean_metrics["num_nodes"]}')
+    print(f'Number of edges: {mean_metrics["num_edges"]}')
     mean_metrics.update({'group': group, 'threshold': threshold})
 
     utils.add_to_csv(mean_metrics, filename)
