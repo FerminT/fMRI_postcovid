@@ -13,20 +13,18 @@ from nilearn import connectome
 def build_connectome(subjects_df, conf_strategy, atlas,
                      threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
-    conn_output = output / 'connectivity_matrices'
-    conn_output.mkdir(exist_ok=True, parents=True)
-
     subjects_df = build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r)
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
+    output.mkdir(exist_ok=True, parents=True)
     if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
-        groups_diff_over_networks(subjects_df, atlas.labels, conn_output)
+        groups_diff_over_networks(subjects_df, atlas.labels, output)
 
     subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
                                                                                   apply_threshold(matrix,
                                                                                                   threshold))
-    save_connectivity_matrices(subjects_df, atlas.labels, conn_output)
-    groups_connectome_analysis(subjects_df, atlas, threshold, conn_output)
+    save_connectivity_matrices(subjects_df, atlas.labels, output)
+    groups_connectome_analysis(subjects_df, atlas, threshold, output)
 
 
 def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r):
