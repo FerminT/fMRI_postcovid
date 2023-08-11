@@ -147,12 +147,11 @@ def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False)
 
 
 def global_connectivity_metrics(group, connectivity_matrices, threshold, filename):
-    group_metrics = {'avg_clustering': [], 'avg_node_connectivity': [], 'avg_neighbor_degree': [], 'num_nodes': []}
+    group_metrics = {'avg_clustering': [], 'avg_neighbor_degree': [], 'sigma': [], 'omega': [], 'num_nodes': []}
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
         connectome = nx.from_numpy_array(connectivity_matrix)
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
-        group_metrics['avg_node_connectivity'].append(nx.average_node_connectivity(connectome))
         avg_neighbor_degree = nx.average_neighbor_degree(connectome, weight='weight')
         group_metrics['avg_neighbor_degree'].append(np.mean(list(avg_neighbor_degree.values())))
         group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
