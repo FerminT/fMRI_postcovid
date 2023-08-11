@@ -167,8 +167,7 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
     print(f'Average node connectivity: {mean_metrics["avg_node_connectivity"]}')
     print(f'Average neighbor degree: {mean_metrics["avg_neighbor_degree"]}')
     print(f'Number of nodes: {mean_metrics["num_nodes"]}')
-    mean_metrics['group'] = group
-    mean_metrics['threshold'] = threshold
+    mean_metrics.update({'group': group, 'threshold': threshold})
 
     utils.add_to_csv(mean_metrics, filename)
 
