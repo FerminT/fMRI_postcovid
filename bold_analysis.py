@@ -39,7 +39,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--confounds_strategy', nargs='*', type=str,
                             default=['motion', 'high_pass', 'wm_csf'],
                             help='Strategy for loading fMRIPrep denoising strategies.')
-    arg_parser.add_argument('-a', '--atlas', type=str, default='aal',
+    arg_parser.add_argument('-a', '--atlas', type=str, default='schaefer',
                             help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--network', type=str, default=None,
                             help='Network to extract from atlas. If None, the whole atlas is used')
