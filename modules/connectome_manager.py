@@ -153,8 +153,9 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         avg_neighbor_degree = nx.average_neighbor_degree(connectome, weight='weight')
         group_metrics['avg_neighbor_degree'].append(np.mean(list(avg_neighbor_degree.values())))
-        group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
-        group_metrics['omega'].append(nx.omega(connectome, seed=42))
+        if nx.is_connected(connectome):
+            group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
+            group_metrics['omega'].append(nx.omega(connectome, seed=42))
         group_metrics['num_nodes'].append(len(connectome.nodes))
         group_metrics['num_edges'].append(len(connectome.edges))
 
