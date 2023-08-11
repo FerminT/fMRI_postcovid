@@ -159,11 +159,13 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         group_metrics['num_nodes'].append(len(connectome.nodes))
         group_metrics['num_edges'].append(len(connectome.edges))
 
-    mean_metrics = {}
+    mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
     for metric in group_metrics:
         if len(group_metrics[metric]) > 0:
             mean_metrics[metric] = np.mean(group_metrics[metric])
-            mean_metrics[f'{metric}_std'] = np.std(group_metrics[metric])
+            std = np.std(group_metrics[metric])
+            if std > 0:
+                mean_metrics[f'{metric}_std'] = np.std(group_metrics[metric])
 
     print(f'\nGlobal connectivity metrics on group {group}:')
     print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
@@ -173,7 +175,6 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         print(f'Small-worldness (omega): {mean_metrics["omega"]}')
     print(f'Number of nodes: {mean_metrics["num_nodes"]}')
     print(f'Number of edges: {mean_metrics["num_edges"]}')
-    mean_metrics.update({'group': group, 'threshold': threshold})
 
     utils.add_to_csv(mean_metrics, filename)
 
