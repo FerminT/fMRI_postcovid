@@ -5,7 +5,6 @@ cache
 *.nii.gz
 *.gii
 *.h5
-*.csv
 *.tsv
 *.txt
 *.toml
