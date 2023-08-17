@@ -149,7 +149,7 @@ def score_to_bins(df, score, n_bins=3):
     df[score] = df[score].cat.codes
     sizes = np.linspace(30, 100, n_bins)
     if -1 in df[score].unique():
-        sizes = np.insert(sizes, 0, 60)
+        sizes = np.insert(sizes, 0, 100)
     sizes = {size: sizes[i] for i, size in enumerate(sorted(df[score].unique()))}
 
     return df, sizes
