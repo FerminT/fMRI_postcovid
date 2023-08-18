@@ -86,3 +86,6 @@ id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,langua
 94,64,femenino,20/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 95,70,masculino,13/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 96,68,femenino,26/12/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
+98,74,femenino,04/05/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
+99,55,femenino,11/10/19,Cognitivo,3,1,1,32-channel head,,,,,,,control
+100,53,masculino,11/11/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
