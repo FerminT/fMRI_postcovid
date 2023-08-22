@@ -1,4 +1,8 @@
 cache
+__pycache__
+
+# pycharm
+.idea
 
 # data and metadata
 *.json
