@@ -146,14 +146,12 @@ def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False)
 
 
 def global_efficiency(connectivity_matrix):
-    abs_matrix = np.abs(connectivity_matrix)
-    e_glob = bct.efficiency_wei(abs_matrix, local=False)
+    e_glob = bct.efficiency_wei(connectivity_matrix, local=False)
     return e_glob
 
 
 def mean_local_efficiency(connectivity_matrix):
-    abs_matrix = np.abs(connectivity_matrix)
-    e_loc = bct.efficiency_wei(abs_matrix, local=True)
+    e_loc = bct.efficiency_wei(connectivity_matrix, local=True)
     mean_e_loc = np.mean(e_loc)
     return mean_e_loc
 
@@ -163,10 +161,11 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
                      'num_nodes': [], 'num_edges': []}
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
-        connectome = nx.from_numpy_array(connectivity_matrix)
+        abs_connectivity_matrix = np.abs(connectivity_matrix)
+        connectome = nx.from_numpy_array(abs_connectivity_matrix)
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
-        group_metrics['global_efficiency'].append(global_efficiency(connectivity_matrix))
-        group_metrics['avg_local_efficiency'].append(mean_local_efficiency(connectivity_matrix))
+        group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
+        group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
         group_metrics['num_nodes'].append(len(connectome.nodes))
         group_metrics['num_edges'].append(len(connectome.edges))
 
