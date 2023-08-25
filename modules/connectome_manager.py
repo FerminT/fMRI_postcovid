@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import networkx as nx
+import bct
 from . import utils
 from .atlas_manager import get_schaefer_networks_indices
 
@@ -145,17 +146,13 @@ def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False)
 
 
 def global_connectivity_metrics(group, connectivity_matrices, threshold, filename):
-    group_metrics = {'avg_clustering': [], 'avg_neighbor_degree': [], 'sigma': [], 'omega': [],
-                     'num_nodes': [], 'num_edges': []}
+    group_metrics = {'avg_clustering': [], 'avg_neighbor_degree': [], 'num_nodes': [], 'num_edges': []}
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
         connectome = nx.from_numpy_array(connectivity_matrix)
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         avg_neighbor_degree = nx.average_neighbor_degree(connectome, weight='weight')
         group_metrics['avg_neighbor_degree'].append(np.mean(list(avg_neighbor_degree.values())))
-        if nx.is_connected(connectome):
-            group_metrics['sigma'].append(nx.sigma(connectome, seed=42))
-            group_metrics['omega'].append(nx.omega(connectome, seed=42))
         group_metrics['num_nodes'].append(len(connectome.nodes))
         group_metrics['num_edges'].append(len(connectome.edges))
 
@@ -170,9 +167,6 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
     print(f'\nGlobal connectivity metrics on group {group}:')
     print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
     print(f'Average neighbor degree: {mean_metrics["avg_neighbor_degree"]}')
-    if 'sigma' and 'omega' in mean_metrics:
-        print(f'Small-worldness (sigma): {mean_metrics["sigma"]}')
-        print(f'Small-worldness (omega): {mean_metrics["omega"]}')
     print(f'Number of nodes: {mean_metrics["num_nodes"]}')
     print(f'Number of edges: {mean_metrics["num_edges"]}')
 
