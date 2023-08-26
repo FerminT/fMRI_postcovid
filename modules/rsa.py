@@ -22,6 +22,7 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
                                                             low_pass, high_pass, smoothing_fwhm,
                                                             t_r), axis=1)
     connectivity_matrices = np.stack(timeseries.apply(lambda ts: connectivity_matrix([ts])[0][0]))
+    connectivity_similarity_matrix = connectivity_similarity(connectivity_matrices, atlas.labels)
     connectivity_distance_matrix = connectivity_distance(connectivity_matrices)
     subjects_df['cluster'] = clusters_rdm(connectivity_distance_matrix)
 
@@ -46,6 +47,18 @@ def behavioral_rsa(subjects_df, rdm_decomposition, output):
                                          output, rdm_decomposition)
 
     return behavioral_embeddings
+
+
+def connectivity_similarity(connectivity_matrices, atlas_labels):
+    n_rois, n_subjects = len(atlas_labels.name), connectivity_matrices.shape[0]
+    triu_inds = np.triu_indices(n_rois, 1)
+    linearized_triu = np.empty((n_subjects, n_rois * (n_rois - 1) // 2))
+    for i in range(n_subjects):
+        subj_connectivity_matrix = connectivity_matrices[i]
+        linearized_triu[i] = subj_connectivity_matrix[triu_inds]
+    connectivity_similarity_matrix = np.corrcoef(linearized_triu)
+
+    return connectivity_similarity_matrix
 
 
 def connectivity_distance(connectivity_matrices):
