@@ -8,18 +8,18 @@ from modules.rsa import rsa
 
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
-         threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition,
+         threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, rdm_similarity,
          data_path, clinical_file, clinical_score, group_analysis, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file)
     atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, clinical_score, output, group_analysis)
+                rdm_decomposition, rdm_similarity, clinical_score, output, group_analysis)
 
 
 def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, clinical_score, output, group_analysis):
+                rdm_decomposition, rdm_similarity, clinical_score, output, group_analysis):
     if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          output / atlas.name)
@@ -30,7 +30,7 @@ def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_
     else:
         # Data-driven approach
         rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
-            rdm_decomposition, clinical_score, output / 'rsa')
+            rdm_decomposition, rdm_similarity, clinical_score, output / 'rsa')
 
 
 if __name__ == '__main__':
@@ -68,6 +68,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('-dc', '--decomposition', type=str, default='TSNE',
                             help='Decomposition to use for plotting relational distance matrix. \
                             Options are TSNE, MDS, ISOMAP, PCA')
+    arg_parser.add_argument('-sm', '--similarity', type=str, default='distance',
+                            help='Similarity measure for computing relational distance matrix. \
+                            Options are distance, correlation')
     arg_parser.add_argument('-cs', '--clinical_score', type=str, default='global',
                             help='Clinical score to use when plotting relational distance matrix.')
     arg_parser.add_argument('-o', '--output_path', type=str, default='results')
@@ -84,4 +87,4 @@ if __name__ == '__main__':
     high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
          args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time, args.decomposition,
-         data_path, args.clinical_file, args.clinical_score, args.group_analysis, output)
+         args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis, output)
