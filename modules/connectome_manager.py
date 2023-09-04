@@ -180,9 +180,9 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
     for metric in group_metrics:
         if len(group_metrics[metric]) > 0:
             mean_metrics[metric] = np.mean(group_metrics[metric])
-            std = np.std(group_metrics[metric])
-            if std > 0:
-                mean_metrics[f'{metric}_std'] = np.std(group_metrics[metric])
+            ste = np.std(group_metrics[metric]) / np.sqrt(len(group_metrics[metric]))
+            if ste > 0:
+                mean_metrics[f'{metric}_ste'] = ste
 
     print(f'\nGlobal connectivity metrics on group {group}:')
     print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
