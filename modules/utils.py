@@ -162,6 +162,7 @@ def q_test(data, mean):
     return q, df
 
 
+# TODO: refactorizar
 def add_to_csv(dict_values, filename):
     series = pd.Series(dict_values)
     if filename.exists():
@@ -170,6 +171,19 @@ def add_to_csv(dict_values, filename):
         df = pd.DataFrame(columns=list(dict_values.keys()))
     df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_csv(filename)
+
+
+def add_to_df(group, threshold, group_metrics, group_filename):
+    group_metrics = group_metrics.copy()
+    group_metrics['group'] = group
+    group_metrics['threshold'] = np.round(threshold, 4)
+    series = pd.Series(group_metrics)
+    if group_filename.exists():
+        df = pd.read_pickle(group_filename)
+    else:
+        df = pd.DataFrame(columns=list(group_metrics.keys()))
+    df = pd.concat([df, series.to_frame().T], ignore_index=True)
+    df.to_pickle(group_filename)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):

@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import bct
+from pathlib import Path
 from . import utils
 from .atlas_manager import get_schaefer_networks_indices
 
@@ -175,6 +176,9 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
         group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
         group_metrics['num_nodes'].append(len(connectome.nodes))
         group_metrics['num_edges'].append(len(connectome.edges))
+
+    group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
+    utils.add_to_df(group, threshold, group_metrics, group_filename)
 
     mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
     for metric in group_metrics:
