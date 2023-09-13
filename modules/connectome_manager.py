@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import bct
-from pathlib import Path
 from . import utils
 from .atlas_manager import get_schaefer_networks_indices
 
@@ -13,7 +12,7 @@ from nilearn import connectome
 
 
 def build_connectome(subjects_df, conf_strategy, atlas,
-                     threshold, low_pass, high_pass, smoothing_fwhm, t_r,
+                     thresholds, low_pass, high_pass, smoothing_fwhm, t_r,
                      output):
     subjects_df = build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r)
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
@@ -22,11 +21,8 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
         groups_diff_over_networks(subjects_df, atlas.labels, output)
 
-    subjects_df['connectivity_matrix'] = subjects_df['connectivity_matrix'].apply(lambda matrix:
-                                                                                  apply_threshold(matrix,
-                                                                                                  threshold))
     save_connectivity_matrices(subjects_df, atlas.labels, output)
-    groups_connectome_analysis(subjects_df, atlas, threshold, output)
+    groups_connectome_analysis(subjects_df, atlas, thresholds, output)
 
 
 def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -39,19 +35,24 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
     return subjects_df
 
 
-def groups_connectome_analysis(subjects_df, atlas, threshold, conn_output):
-    groups_connectomes = {group: None for group in subjects_df['group'].unique()}
-    for group in groups_connectomes:
-        group_df = subjects_df[subjects_df['group'] == group]
-        group_connectivity_matrices = group_df['connectivity_matrix'].values
-        group_connectome = mean_connectivity_matrix(group_connectivity_matrices)
-        global_connectivity_metrics(group, group_connectivity_matrices.tolist(),
-                                    threshold, conn_output / f'global_metrics.csv')
-        save_connectome(group_connectome, atlas,
-                        f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', conn_output)
-        groups_connectomes[group] = group_connectome
+def groups_connectome_analysis(subjects_df, atlas, thresholds, output):
+    for threshold in thresholds:
+        threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
+        threshold_output.mkdir(exist_ok=True)
+        groups_connectomes = {group: None for group in subjects_df['group'].unique()}
+        for group in groups_connectomes:
+            group_df = subjects_df[subjects_df['group'] == group]
+            thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
+                                                                                      apply_threshold(matrix,
+                                                                                                      threshold))
+            global_connectivity_metrics(group, thresholded_matrices.tolist(),
+                                        threshold, output / f'global_metrics.csv')
+            group_connectome = mean_connectivity_matrix(thresholded_matrices)
+            save_connectome(group_connectome, atlas,
+                            f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', threshold_output)
+            groups_connectomes[group] = group_connectome
 
-    save_groups_matrices(groups_connectomes, atlas.labels, conn_output)
+        save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
 
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
@@ -164,6 +165,13 @@ def modularity(connectome):
 
 
 def global_connectivity_metrics(group, connectivity_matrices, threshold, filename):
+    if filename.exists():
+        computed_thresholds = pd.read_csv(filename, index_col=0)
+        if group in computed_thresholds['group'].unique():
+            group_thresholds = computed_thresholds[computed_thresholds['group'] == group]['threshold'].values
+            if np.round(threshold, 4) in group_thresholds:
+                print(f'Group {group} on connection density {threshold} already computed')
+                return
     group_metrics = {'avg_clustering': [], 'global_efficiency': [], 'avg_local_efficiency': [], 'modularity': [],
                      'num_nodes': [], 'num_edges': []}
     for connectivity_matrix in connectivity_matrices:

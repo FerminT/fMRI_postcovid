@@ -48,8 +48,9 @@ if __name__ == '__main__':
                             If specified, the atlas is ignored')
     arg_parser.add_argument('-nr', '--n_rois', type=int, default=100,
                             help='Number of ROIs for Schaefer atlas. Otherwise ignored.')
-    arg_parser.add_argument('-t', '--threshold', type=float, default=0.1,
-                            help='Activity threshold for connectome (percent of max connections)')
+    arg_parser.add_argument('-t', '--threshold', type=float, nargs='+', default=[0.1],
+                            help='Connection density for connectome construction. If a list is provided, \
+                            a connectome is built for each value')
     arg_parser.add_argument('-lp', '--low_pass', type=float, default=0.08,
                             help='Low pass filtering value for signal extraction')
     arg_parser.add_argument('-hp', '--high_pass', type=float, default=0.01,
