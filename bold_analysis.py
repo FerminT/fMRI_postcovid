@@ -9,20 +9,20 @@ from modules.rsa import rsa
 
 def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, rdm_similarity,
-         data_path, clinical_file, clinical_score, group_analysis, output):
+         data_path, clinical_file, clinical_score, group_analysis, force, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file)
     atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, rdm_similarity, clinical_score, output, group_analysis)
+                rdm_decomposition, rdm_similarity, clinical_score, force, output, group_analysis)
 
 
 def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, rdm_similarity, clinical_score, output, group_analysis):
+                rdm_decomposition, rdm_similarity, clinical_score, force, output, group_analysis):
     if group_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                         output / atlas.name)
+                         force, output / atlas.name)
         if n_components:
             extract_group_components(subjects_df, conf_strategy, n_components,
                                      low_pass, high_pass, smoothing_fwhm, t_r,
@@ -74,6 +74,8 @@ if __name__ == '__main__':
                             Options are distance, correlation')
     arg_parser.add_argument('-cs', '--clinical_score', type=str, default='global',
                             help='Clinical score to use when plotting relational distance matrix.')
+    arg_parser.add_argument('-f', '--force', action='store_true',
+                            help='Recompute global results')
     arg_parser.add_argument('-o', '--output_path', type=str, default='results')
 
     args = arg_parser.parse_args()
@@ -88,4 +90,4 @@ if __name__ == '__main__':
     high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
          args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time, args.decomposition,
-         args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis, output)
+         args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis, args.force, output)
