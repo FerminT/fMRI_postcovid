@@ -26,7 +26,7 @@ def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_
         if n_components:
             extract_group_components(subjects_df, conf_strategy, n_components,
                                      low_pass, high_pass, smoothing_fwhm, t_r,
-                                     output / 'components')
+                                     output / atlas.name / 'components')
     else:
         # Data-driven approach
         rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
