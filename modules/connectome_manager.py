@@ -21,7 +21,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
         groups_diff_over_networks(subjects_df, atlas.labels, output)
 
-    save_connectivity_matrices(subjects_df, atlas.labels, output)
+    save_connectivity_matrices(subjects_df, atlas.labels, output / 'connectivity_matrices')
     groups_connectome_analysis(subjects_df, atlas, thresholds, output)
 
 
@@ -49,7 +49,7 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, output):
                                         threshold, output / f'global_metrics.csv')
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             save_connectome(group_connectome, atlas,
-                            f'{atlas.name}, {group}', f'{atlas.name}_{group}_connectome.png', threshold_output)
+                            f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
 
         save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
@@ -103,7 +103,7 @@ def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_l
 def mean_connectivity_matrix(connectivity_matrices):
     mean_connectivity_matrix = np.mean(connectivity_matrices.tolist(), axis=0)
     q, df = utils.q_test(connectivity_matrices.tolist(), mean_connectivity_matrix)
-    print(f'Q test: {q}; degrees of freedom: {df}')
+    print(f'\nMean connectivity matrix: Q test: {q}; degrees of freedom: {df}')
 
     return mean_connectivity_matrix
 
@@ -143,6 +143,8 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
 
 
 def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False):
+    if not output.exists():
+        output.mkdir(parents=True)
     subjects_df.apply(lambda subj: utils.save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
                                                                   atlas_labels, output, reorder=reorder), axis=1)
 
@@ -196,13 +198,11 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, filenam
             if ste > 0:
                 mean_metrics[f'{metric}_ste'] = ste
 
-    print(f'\nGlobal connectivity metrics on group {group}:')
+    print(f'\nGroup {group}; connection density {np.round(threshold, 4)}:')
     print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
     print(f'Average global efficiency: {mean_metrics["global_efficiency"]}')
     print(f'Average local efficiency: {mean_metrics["avg_local_efficiency"]}')
     print(f'Average modularity: {mean_metrics["modularity"]}')
-    print(f'Number of nodes: {mean_metrics["num_nodes"]}')
-    print(f'Number of edges: {mean_metrics["num_edges"]}')
 
     utils.add_to_csv(mean_metrics, filename)
 
