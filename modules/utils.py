@@ -206,3 +206,18 @@ def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by,
     fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
     fig.savefig(output / f'networks_mean_corrcoef.png')
     plt.show()
+
+
+def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename):
+    mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
+    for metric in group_metrics:
+        if len(group_metrics[metric]) > 0:
+            mean_metrics[metric] = np.mean(group_metrics[metric])
+            ste = np.std(group_metrics[metric]) / np.sqrt(len(group_metrics[metric]))
+            if ste > 0:
+                mean_metrics[f'{metric}_ste'] = ste
+    mean_metrics['num_nodes'] = num_nodes
+    mean_metrics['num_edges'] = num_edges
+    add_to_csv(mean_metrics, filename)
+
+    return mean_metrics

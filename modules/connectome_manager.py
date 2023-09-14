@@ -172,10 +172,10 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, force, 
         if group in computed_thresholds['group'].unique():
             group_thresholds = computed_thresholds[computed_thresholds['group'] == group]['threshold'].values
             if np.round(threshold, 4) in group_thresholds:
-                print(f'Group {group} on connection density {threshold} already computed')
+                print(f'Group {group} on graph density {threshold} already computed')
                 return
-    group_metrics = {'avg_clustering': [], 'global_efficiency': [], 'avg_local_efficiency': [], 'modularity': [],
-                     'num_nodes': [], 'num_edges': []}
+    group_metrics = {'avg_clustering': [], 'global_efficiency': [], 'avg_local_efficiency': [], 'modularity': []}
+    num_nodes, num_edges = 0, 0
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
         abs_connectivity_matrix = np.abs(connectivity_matrix)
@@ -184,27 +184,17 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, force, 
         group_metrics['modularity'].append(modularity(connectome))
         group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
         group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
-        group_metrics['num_nodes'].append(len(connectome.nodes))
-        group_metrics['num_edges'].append(len(connectome.edges))
+        num_nodes, num_edges = len(connectome.nodes), len(connectome.edges)
 
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
     utils.add_to_df(group, threshold, group_metrics, group_filename)
+    mean_metrics = utils.compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename)
 
-    mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
-    for metric in group_metrics:
-        if len(group_metrics[metric]) > 0:
-            mean_metrics[metric] = np.mean(group_metrics[metric])
-            ste = np.std(group_metrics[metric]) / np.sqrt(len(group_metrics[metric]))
-            if ste > 0:
-                mean_metrics[f'{metric}_ste'] = ste
-
-    print(f'\nGroup {group}; connection density {np.round(threshold, 4)}:')
+    print(f'\nGroup {group}; graph density {np.round(threshold, 4)}:')
     print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
     print(f'Average global efficiency: {mean_metrics["global_efficiency"]}')
     print(f'Average local efficiency: {mean_metrics["avg_local_efficiency"]}')
     print(f'Average modularity: {mean_metrics["modularity"]}')
-
-    utils.add_to_csv(mean_metrics, filename)
 
 
 def apply_threshold(connectivity_matrix, threshold):
