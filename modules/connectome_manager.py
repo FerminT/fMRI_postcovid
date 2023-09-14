@@ -186,6 +186,43 @@ def largest_connected_component(connectome):
     return len(largest_cc) / len(connectome.nodes)
 
 
+def participation_coefficient(connectome, module_partition):
+    '''
+    Computes the participation coefficient of nodes of G with partition
+    defined by module_partition.
+    (Guimera et al. 2005).
+
+    Parameters
+    ----------
+    connectome : :class:`networkx.Graph`
+    module_partition : dict
+        a dictionary mapping each community name to a list of nodes in G
+
+    Returns
+    -------
+    dict
+        a dictionary mapping the nodes of G to their participation coefficient
+        under the participation specified by module_partition.
+    '''
+    pc_dict = {}
+
+    # Loop over modules to calculate participation coefficient for each node
+    for module in module_partition.keys():
+        module_subgraph = set(module_partition[module])
+        for node in module_subgraph:
+            # Calculate the degree of v in G
+            degree = float(nx.degree(G=connectome, nbunch=node))
+
+            # Calculate the number of intramodule degree of v
+            wm_degree = float(sum([1 for u in module_subgraph if (u, node) in connectome.edges()]))
+
+            # The participation coeficient is 1 - the square of
+            # the ratio of the within module degree and the total degree
+            pc_dict[node] = 1 - ((float(wm_degree) / float(degree))**2)
+
+    return pc_dict
+
+
 def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, force, filename):
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
