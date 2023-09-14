@@ -13,16 +13,16 @@ from nilearn import connectome
 
 def build_connectome(subjects_df, conf_strategy, atlas,
                      thresholds, low_pass, high_pass, smoothing_fwhm, t_r,
-                     force, output):
+                     force, no_plot, output):
     subjects_df = build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r)
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
     output.mkdir(exist_ok=True, parents=True)
-    if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
+    if 'schaefer' in atlas.name and not utils.is_network(atlas.name) and not no_plot:
         groups_diff_over_networks(subjects_df, atlas.labels, output)
 
-    save_connectivity_matrices(subjects_df, atlas.labels, output / 'connectivity_matrices')
-    groups_connectome_analysis(subjects_df, atlas, thresholds, force, output)
+    save_connectivity_matrices(subjects_df, atlas.labels, no_plot, output / 'connectivity_matrices')
+    groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, output)
 
 
 def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -35,7 +35,7 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
     return subjects_df
 
 
-def groups_connectome_analysis(subjects_df, atlas, thresholds, force, output):
+def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity'}
     metrics_filename = 'global_metrics.csv'
@@ -46,22 +46,26 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, output):
         for group in groups_connectomes:
             group_df = subjects_df[subjects_df['group'] == group]
             thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
-                                                                                      apply_threshold(matrix,
-                                                                                                      threshold))
+                                                                         apply_threshold(matrix,
+                                                                                         threshold))
             global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold,
                                         force, output / metrics_filename)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
-            save_connectome(group_connectome, atlas,
-                            f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
+            if not no_plot:
+                save_connectome(group_connectome, atlas,
+                                f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
 
-        save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
+        if not no_plot:
+            save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
 
-    for metric in global_metrics:
-        atlas_basename = atlas.name if not utils.is_network(atlas.name) else atlas.name.split('_')[0]
-        atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
-        utils.plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
-                           output.parent, metrics_filename)
+    if not no_plot:
+        for metric in global_metrics:
+            atlas_basename = atlas.name if not utils.is_network(atlas.name) else atlas.name.split('_')[0]
+            atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
+                              dir_.is_dir() and atlas_basename in dir_.name]
+            utils.plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
+                               output.parent, metrics_filename)
 
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
@@ -151,11 +155,12 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
     fig.savefig(output / 'groups_comparison.png')
 
 
-def save_connectivity_matrices(subjects_df, atlas_labels, output, reorder=False):
+def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reorder=False):
     if not output.exists():
         output.mkdir(parents=True)
-    subjects_df.apply(lambda subj: utils.save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
-                                                                  atlas_labels, output, reorder=reorder), axis=1)
+    if not no_plot:
+        subjects_df.apply(lambda subj: utils.save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
+                                                                      atlas_labels, output, reorder=reorder), axis=1)
 
 
 def global_efficiency(connectivity_matrix):
