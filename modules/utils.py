@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.manifold import MDS, Isomap, TSNE
 from sklearn.decomposition import PCA
+from sklearn.metrics import auc
 
 # NiLearn methods and classes
 from nilearn import image, plotting, connectome
@@ -206,6 +207,43 @@ def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by,
     fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
     fig.savefig(output / f'networks_mean_corrcoef.png')
     plt.show()
+
+
+def add_curve(graph_densities, measure, lower_error, upper_error, group, ax):
+    ax.plot(graph_densities, measure, label=group)
+    ax.plot(graph_densities, lower_error, alpha=0.1)
+    ax.plot(graph_densities, upper_error, alpha=0.1)
+    ax.legend()
+    ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
+
+
+def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
+    fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
+    aucs = {network: {} for network in networks}
+    for i, network in enumerate(networks):
+        metrics_values = pd.read_csv(output / network / filename, index_col=0)
+        ax = axes[i // 2, i % 2]
+        groups = metrics_values['group'].unique()
+        for group in groups:
+            group_values = metrics_values[metrics_values['group'] == group]
+            densities = group_values['threshold'].values
+            measure_values = group_values[measure_label].values
+            lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
+                                       group_values[measure_label] + group_values[f'{measure_label}_ste']
+            aucs[network][group] = auc(densities, measure_values)
+            add_curve(densities, measure_values, lower_error, upper_error, group, ax)
+
+        network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
+        ax.set_title(f'{network_name}')
+        ax.set_xlabel('Graph density')
+        ax.set_ylabel(measure_desc)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+    fig.suptitle(measure_desc)
+    fig.savefig(output / f'{measure_label}.png')
+    plt.show()
+
+    return aucs
 
 
 def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename):

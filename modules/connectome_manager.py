@@ -36,6 +36,9 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 
 
 def groups_connectome_analysis(subjects_df, atlas, thresholds, force, output):
+    global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
+                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity'}
+    metrics_filename = 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
         threshold_output.mkdir(exist_ok=True)
@@ -45,14 +48,20 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, output):
             thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
                                                                                       apply_threshold(matrix,
                                                                                                       threshold))
-            global_connectivity_metrics(group, thresholded_matrices.tolist(), threshold,
-                                        force, output / f'global_metrics.csv')
+            global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold,
+                                        force, output / metrics_filename)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             save_connectome(group_connectome, atlas,
                             f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
 
         save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
+
+    for metric in global_metrics:
+        atlas_basename = atlas.name if not utils.is_network(atlas.name) else atlas.name.split('_')[0]
+        atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
+        utils.plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
+                           output.parent, metrics_filename)
 
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
@@ -166,7 +175,7 @@ def modularity(connectome):
     return q
 
 
-def global_connectivity_metrics(group, connectivity_matrices, threshold, force, filename):
+def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, force, filename):
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
         if group in computed_thresholds['group'].unique():
@@ -174,7 +183,7 @@ def global_connectivity_metrics(group, connectivity_matrices, threshold, force, 
             if np.round(threshold, 4) in group_thresholds:
                 print(f'Group {group} on graph density {threshold} already computed')
                 return
-    group_metrics = {'avg_clustering': [], 'global_efficiency': [], 'avg_local_efficiency': [], 'modularity': []}
+    group_metrics = {metric: [] for metric in global_metrics}
     num_nodes, num_edges = 0, 0
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
