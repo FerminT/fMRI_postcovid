@@ -37,7 +37,8 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 
 def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
-                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity'}
+                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
+                      'largest_cc': 'Largest Connected Component'}
     metrics_filename = 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
@@ -180,6 +181,11 @@ def modularity(connectome):
     return q
 
 
+def largest_connected_component(connectome):
+    largest_cc = max(nx.connected_components(connectome), key=len)
+    return len(largest_cc) / len(connectome.nodes)
+
+
 def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, force, filename):
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
@@ -196,6 +202,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         group_metrics['modularity'].append(modularity(connectome))
+        group_metrics['largest_cc'].append(largest_connected_component(connectome))
         group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
         group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
         num_nodes, num_edges = len(connectome.nodes), len(connectome.edges)
@@ -209,6 +216,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
     print(f'Average global efficiency: {mean_metrics["global_efficiency"]}')
     print(f'Average local efficiency: {mean_metrics["avg_local_efficiency"]}')
     print(f'Average modularity: {mean_metrics["modularity"]}')
+    print(f'Average largest cc: {mean_metrics["largest_cc"]}')
 
 
 def apply_threshold(connectivity_matrix, threshold):
