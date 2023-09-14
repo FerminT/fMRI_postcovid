@@ -49,7 +49,7 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
             thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
                                                                          apply_threshold(matrix,
                                                                                          threshold))
-            global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold,
+            global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold, atlas,
                                         force, output / metrics_filename)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             if not no_plot:
@@ -96,6 +96,35 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
     networks_labels = pd.DataFrame({'name': list(networks.keys())})
 
     return diff_connmatrix, networks_labels
+
+
+def schaefer_networks(connectivity_matrix, atlas_labels):
+    networks_size = get_schaefer_networks_size(atlas_labels)
+    all_regions = atlas_labels['name'].values
+    networks = {network: {'connectome': np.empty((networks_size[network], networks_size[network])),
+                'nodes': []} for network in networks_size}
+    for i, row_region in enumerate(all_regions):
+        row_network = row_region.split('_')[1]
+        networks[row_network]['nodes'].append(i)
+        for j, col_region in enumerate(all_regions):
+            col_network = col_region.split('_')[1]
+            if row_network == col_network:
+                networks[row_network][i, j] = connectivity_matrix[i, j]
+
+    return networks
+
+
+def get_schaefer_networks_size(atlas_labels):
+    all_atlas_labels = atlas_labels['name'].values
+    networks = {}
+    for region in all_atlas_labels:
+        network = region.split('_')[1]
+        if network not in networks:
+            networks[network] = 1
+        else:
+            networks[network] += 1
+
+    return networks
 
 
 def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_labels):
@@ -186,8 +215,8 @@ def largest_connected_component(connectome):
     return len(largest_cc) / len(connectome.nodes)
 
 
-def participation_coefficient(connectome, module_partition):
-    '''
+def mean_participation_coefficient(connectome, module_partition):
+    """
     Computes the participation coefficient of nodes of G with partition
     defined by module_partition.
     (Guimera et al. 2005).
@@ -203,12 +232,12 @@ def participation_coefficient(connectome, module_partition):
     dict
         a dictionary mapping the nodes of G to their participation coefficient
         under the participation specified by module_partition.
-    '''
-    pc_dict = {}
+    """
+    pc_dict = {module: [] for module in module_partition}
 
     # Loop over modules to calculate participation coefficient for each node
-    for module in module_partition.keys():
-        module_subgraph = set(module_partition[module])
+    for module in module_partition:
+        module_subgraph = set(module_partition[module]['indices'])
         for node in module_subgraph:
             # Calculate the degree of v in G
             degree = float(nx.degree(G=connectome, nbunch=node))
@@ -218,12 +247,14 @@ def participation_coefficient(connectome, module_partition):
 
             # The participation coeficient is 1 - the square of
             # the ratio of the within module degree and the total degree
-            pc_dict[node] = 1 - ((float(wm_degree) / float(degree))**2)
+            pc_dict[module].append(1 - ((float(wm_degree) / float(degree))**2))
+
+    pc_dict = {module: np.mean(pc_dict[module]) for module in pc_dict}
 
     return pc_dict
 
 
-def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, force, filename):
+def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
         if group in computed_thresholds['group'].unique():
@@ -237,6 +268,9 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         np.fill_diagonal(connectivity_matrix, 0)
         abs_connectivity_matrix = np.abs(connectivity_matrix)
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
+        if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
+            networks = schaefer_networks(abs_connectivity_matrix, atlas.labels)
+            group_metrics['participation_coefficient'].append(mean_participation_coefficient(connectome, networks))
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         group_metrics['modularity'].append(modularity(connectome))
         group_metrics['largest_cc'].append(largest_connected_component(connectome))
