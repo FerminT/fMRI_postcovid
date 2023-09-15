@@ -98,31 +98,13 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
     return diff_connmatrix, networks_labels
 
 
-def schaefer_networks(connectivity_matrix, atlas_labels):
-    networks_size = get_schaefer_networks_size(atlas_labels)
-    all_regions = atlas_labels['name'].values
-    networks = {network: {'connectome': np.empty((networks_size[network], networks_size[network])),
-                'nodes': []} for network in networks_size}
-    for i, row_region in enumerate(all_regions):
-        row_network = row_region.split('_')[1]
-        networks[row_network]['nodes'].append(i)
-        for j, col_region in enumerate(all_regions):
-            col_network = col_region.split('_')[1]
-            if row_network == col_network:
-                networks[row_network][i, j] = connectivity_matrix[i, j]
-
-    return networks
-
-
-def get_schaefer_networks_size(atlas_labels):
-    all_atlas_labels = atlas_labels['name'].values
-    networks = {}
-    for region in all_atlas_labels:
-        network = region.split('_')[1]
-        if network not in networks:
-            networks[network] = 1
-        else:
-            networks[network] += 1
+def schaefer_networks_from_matrix(connectivity_matrix, atlas_labels):
+    networks_names = atlas_labels.name.str.split('_', expand=True)[1].unique()
+    networks = {network: {'connectome': None, 'nodes': []} for network in networks_names}
+    for network in networks:
+        network_indices = atlas_labels[atlas_labels.name.str.contains(network)].index.to_list()
+        networks[network]['nodes'] = network_indices
+        networks[network]['connectome'] = connectivity_matrix[network_indices, :][:, network_indices]
 
     return networks
 
@@ -237,7 +219,7 @@ def mean_participation_coefficient(connectome, module_partition):
 
     # Loop over modules to calculate participation coefficient for each node
     for module in module_partition:
-        module_subgraph = set(module_partition[module]['indices'])
+        module_subgraph = set(module_partition[module]['nodes'])
         for node in module_subgraph:
             # Calculate the degree of v in G
             degree = float(nx.degree(G=connectome, nbunch=node))
@@ -269,7 +251,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         abs_connectivity_matrix = np.abs(connectivity_matrix)
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
         if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
-            networks = schaefer_networks(abs_connectivity_matrix, atlas.labels)
+            networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
             group_metrics['participation_coefficient'].append(mean_participation_coefficient(connectome, networks))
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         group_metrics['modularity'].append(modularity(connectome))
