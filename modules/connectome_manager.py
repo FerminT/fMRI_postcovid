@@ -38,7 +38,8 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
-                      'largest_cc': 'Largest Connected Component'}
+                      'largest_cc': 'Largest Connected Component',
+                      'avg_participation_coefficient': 'Mean Participation Coefficient'}
     metrics_filename = 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
@@ -198,38 +199,21 @@ def largest_connected_component(connectome):
 
 
 def mean_participation_coefficient(connectome, module_partition):
-    """
-    Computes the participation coefficient of nodes of G with partition
-    defined by module_partition.
-    (Guimera et al. 2005).
-
-    Parameters
-    ----------
-    connectome : :class:`networkx.Graph`
-    module_partition : dict
-        a dictionary mapping each community name to a list of nodes in G
-
-    Returns
-    -------
-    dict
-        a dictionary mapping the nodes of G to their participation coefficient
-        under the participation specified by module_partition.
-    """
     pc_dict = {module: [] for module in module_partition}
 
-    # Loop over modules to calculate participation coefficient for each node
     for module in module_partition:
         module_subgraph = set(module_partition[module]['nodes'])
         for node in module_subgraph:
-            # Calculate the degree of v in G
             degree = float(nx.degree(G=connectome, nbunch=node))
-
-            # Calculate the number of intramodule degree of v
+            # intramodule degree of node
             wm_degree = float(sum([1 for u in module_subgraph if (u, node) in connectome.edges()]))
 
             # The participation coeficient is 1 - the square of
             # the ratio of the within module degree and the total degree
-            pc_dict[module].append(1 - ((float(wm_degree) / float(degree))**2))
+            if degree == 0:
+                pc_dict[module].append(0)
+            else:
+                pc_dict[module].append(1 - (wm_degree / degree)**2)
 
     pc_dict = {module: np.mean(pc_dict[module]) for module in pc_dict}
 
@@ -252,7 +236,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
         if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
             networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
-            group_metrics['participation_coefficient'].append(mean_participation_coefficient(connectome, networks))
+            group_metrics['avg_participation_coefficient'].append(mean_participation_coefficient(connectome, networks))
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         group_metrics['modularity'].append(modularity(connectome))
         group_metrics['largest_cc'].append(largest_connected_component(connectome))
