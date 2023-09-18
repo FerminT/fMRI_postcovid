@@ -170,9 +170,11 @@ def add_to_csv(dict_values, filename):
         df = pd.read_csv(filename, index_col=0)
     else:
         df = pd.DataFrame(columns=list(dict_values.keys()))
-    if series['threshold'] in df['threshold'].values:
+    group_df = df[df['group'] == series['group']]
+    if series['threshold'] in group_df['threshold'].values:
         # TODO: hacer update de los valores, agregando nuevos si los hay
-        df = df[df['threshold'] != series['threshold']]
+        group_df = group_df[group_df['threshold'] != series['threshold']]
+        df = pd.concat([df, group_df], ignore_index=True)
     df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_csv(filename)
 
