@@ -171,6 +171,7 @@ def add_to_csv(dict_values, filename):
     else:
         df = pd.DataFrame(columns=list(dict_values.keys()))
     if series['threshold'] in df['threshold'].values:
+        # TODO: hacer update de los valores, agregando nuevos si los hay
         df = df[df['threshold'] != series['threshold']]
     df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_csv(filename)
@@ -227,6 +228,8 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
         for group in groups:
             group_values = metrics_values[metrics_values['group'] == group]
             densities = group_values['threshold'].values
+            if not measure_label in group_values.columns:
+                continue
             measure_values = group_values[measure_label].values
             lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
@@ -249,11 +252,23 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
 def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename):
     mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
     for metric in group_metrics:
-        if len(group_metrics[metric]) > 0:
-            mean_metrics[metric] = np.mean(group_metrics[metric])
-            ste = np.std(group_metrics[metric]) / np.sqrt(len(group_metrics[metric]))
-            if ste > 0:
-                mean_metrics[f'{metric}_ste'] = ste
+        values = group_metrics[metric]
+        if len(values) > 0:
+            if isinstance(values, dict):
+                values = list(values.values())
+                means = np.mean(values, axis=1)
+                stes = np.std(values, axis=1) / np.sqrt(np.shape(values)[1])
+                for idx, network in enumerate(values):
+                    network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
+                    if network_path.exists():
+                        network_file = network_path / filename.name
+                        add_to_csv({'group': group, 'threshold': np.round(threshold, 4), metric: means[idx],
+                                    f'{metric}_ste': stes[idx]}, network_file)
+            else:
+                mean_metrics[metric] = np.mean(values)
+                ste = np.std(values) / np.sqrt(len(values))
+                if ste > 0:
+                    mean_metrics[f'{metric}_ste'] = ste
     mean_metrics['num_nodes'] = num_nodes
     mean_metrics['num_edges'] = num_edges
     add_to_csv(mean_metrics, filename)
