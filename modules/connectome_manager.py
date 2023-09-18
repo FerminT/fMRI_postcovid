@@ -38,8 +38,7 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
-                      'largest_cc': 'Largest Connected Component',
-                      'avg_participation_coefficient': 'Mean Participation Coefficient'}
+                      'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
     metrics_filename = 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
@@ -234,11 +233,12 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         np.fill_diagonal(connectivity_matrix, 0)
         abs_connectivity_matrix = np.abs(connectivity_matrix)
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
-        if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
-            networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
-            group_metrics['avg_participation_coefficient'].append(mean_participation_coefficient(connectome, networks))
+        if not utils.is_network(atlas.name):
+            group_metrics['modularity'].append(modularity(connectome))
+            if 'schaefer' in atlas.name:
+                networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
+                group_metrics['avg_pc'].append(mean_participation_coefficient(connectome, networks))
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
-        group_metrics['modularity'].append(modularity(connectome))
         group_metrics['largest_cc'].append(largest_connected_component(connectome))
         group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
         group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
