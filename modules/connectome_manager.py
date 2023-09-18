@@ -210,7 +210,7 @@ def mean_participation_coefficient(connectome, module_partition, modules_pc):
             if degree == 0:
                 nodes_pc.append(0)
             else:
-                nodes_pc.append(1 - (wm_degree / degree)**2)
+                nodes_pc.append(1 - (wm_degree / degree) ** 2)
         modules_pc[module].append(np.mean(nodes_pc))
 
     return modules_pc
@@ -244,7 +244,15 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         num_nodes, num_edges = len(connectome.nodes), len(connectome.edges)
 
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
-    utils.add_to_df(group, threshold, group_metrics, group_filename)
+    for network in group_metrics['avg_pc']:
+        network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
+        values = group_metrics['avg_pc'][network]
+        if network_path.exists():
+            network_file = network_path / group_filename.name
+            utils.add_to_df(group, threshold, {'avg_pc': values}, network_file)
+    group_metrics_cp = group_metrics.copy()
+    group_metrics_cp.pop('avg_pc')
+    utils.add_to_df(group_metrics_cp, threshold, group_metrics, group_filename)
     mean_metrics = utils.compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename)
 
     print(f'\nGroup {group}; graph density {np.round(threshold, 4)}:')

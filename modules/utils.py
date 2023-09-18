@@ -228,7 +228,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
         for group in groups:
             group_values = metrics_values[metrics_values['group'] == group]
             densities = group_values['threshold'].values
-            if not measure_label in group_values.columns:
+            if measure_label not in group_values.columns:
                 continue
             measure_values = group_values[measure_label].values
             lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
@@ -255,9 +255,9 @@ def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename
         values = group_metrics[metric]
         if len(values) > 0:
             if isinstance(values, dict):
-                values = list(values.values())
-                means = np.mean(values, axis=1)
-                stes = np.std(values, axis=1) / np.sqrt(np.shape(values)[1])
+                networks_values = list(values.values())
+                means = np.mean(networks_values, axis=1)
+                stes = np.std(networks_values, axis=1) / np.sqrt(np.shape(networks_values)[1])
                 for idx, network in enumerate(values):
                     network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
                     if network_path.exists():
