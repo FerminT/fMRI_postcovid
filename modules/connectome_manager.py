@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 import bct
-from . import utils
-from .atlas_manager import get_schaefer_networks_indices
+from . import utils, atlas_manager
 
 # NiLearn methods and classes
 from nilearn import plotting
@@ -79,7 +78,7 @@ def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
     # Only for Schaefer atlas: compute the difference between groups connectivity matrices over networks
-    networks = get_schaefer_networks_indices(atlas_labels)
+    networks = atlas_manager.get_schaefer_networks_indices(atlas_labels)
     all_atlas_labels = atlas_labels['name'].values
     subjects_df['networks_connmatrix'] = subjects_df['connectivity_matrix'].apply(lambda conn_matrix:
                                                                                   networks_connectivity_matrix(
@@ -99,7 +98,7 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
 
 
 def schaefer_networks_from_matrix(connectivity_matrix, atlas_labels):
-    networks_names = atlas_labels.name.str.split('_', expand=True)[1].unique()
+    networks_names = atlas_manager.get_schaefer_networks_names(atlas_labels)
     networks = {network: {'connectome': None, 'nodes': []} for network in networks_names}
     for network in networks:
         network_indices = atlas_labels[atlas_labels.name.str.contains(network)].index.to_list()
@@ -197,26 +196,24 @@ def largest_connected_component(connectome):
     return len(largest_cc) / len(connectome.nodes)
 
 
-def mean_participation_coefficient(connectome, module_partition):
-    pc_dict = {module: [] for module in module_partition}
-
+def mean_participation_coefficient(connectome, module_partition, modules_pc):
     for module in module_partition:
         module_subgraph = set(module_partition[module]['nodes'])
+        nodes_pc = []
         for node in module_subgraph:
             degree = float(nx.degree(G=connectome, nbunch=node))
             # intramodule degree of node
             wm_degree = float(sum([1 for u in module_subgraph if (u, node) in connectome.edges()]))
 
-            # The participation coeficient is 1 - the square of
+            # The participation coefficient is 1 - the square of
             # the ratio of the within module degree and the total degree
             if degree == 0:
-                pc_dict[module].append(0)
+                nodes_pc.append(0)
             else:
-                pc_dict[module].append(1 - (wm_degree / degree)**2)
+                nodes_pc.append(1 - (wm_degree / degree)**2)
+        modules_pc[module].append(np.mean(nodes_pc))
 
-    pc_dict = {module: np.mean(pc_dict[module]) for module in pc_dict}
-
-    return pc_dict
+    return modules_pc
 
 
 def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
@@ -228,6 +225,8 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
                 print(f'Group {group} on graph density {threshold} already computed')
                 return
     group_metrics = {metric: [] for metric in global_metrics}
+    if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
+        group_metrics['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
     num_nodes, num_edges = 0, 0
     for connectivity_matrix in connectivity_matrices:
         np.fill_diagonal(connectivity_matrix, 0)
@@ -237,7 +236,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
             group_metrics['modularity'].append(modularity(connectome))
             if 'schaefer' in atlas.name:
                 networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
-                group_metrics['avg_pc'].append(mean_participation_coefficient(connectome, networks))
+                mean_participation_coefficient(connectome, networks, group_metrics['avg_pc'])
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
         group_metrics['largest_cc'].append(largest_connected_component(connectome))
         group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))

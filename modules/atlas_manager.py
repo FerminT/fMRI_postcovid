@@ -32,6 +32,11 @@ def get_schaefer_networks_indices(atlas_labels):
     return networks_location
 
 
+def get_schaefer_networks_names(atlas_labels):
+    networks_names = atlas_labels.name.str.split('_', expand=True)[1].unique()
+    return networks_names
+
+
 def get_network_img(atlas, network_indices):
     atlas_img = image.load_img(atlas.maps)
     atlas_affine, atlas_data = atlas_img.affine, atlas_img.get_fdata()
