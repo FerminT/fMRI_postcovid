@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import MDS, Isomap, TSNE
 from sklearn.decomposition import PCA
 from sklearn.metrics import auc
+from scipy.stats import mannwhitneyu
 
 # NiLearn methods and classes
 from nilearn import image, plotting, connectome
@@ -224,7 +225,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
     fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
     aucs = {network: {} for network in networks}
     for i, network in enumerate(networks):
-        metrics_values = pd.read_csv(output / network / filename, index_col=0)
+        metrics_values = pd.read_csv(output / network / filename.name, index_col=0)
         ax = axes[i // 2, i % 2]
         groups = metrics_values['group'].unique()
         for group in groups:
@@ -276,3 +277,23 @@ def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename
     add_to_csv(mean_metrics, filename)
 
     return mean_metrics
+
+
+def rank_sum(groups, global_metrics, metrics_file):
+    mean_measurements = pd.read_csv(metrics_file, index_col=0)
+    groups_measurements = [pd.read_pickle(metrics_file.parent / f'{metrics_file.stem}_{group}.pkl') for group in groups]
+    measures = set(global_metrics.keys()).intersection(groups_measurements[0].columns)
+    densities = groups_measurements[0]['threshold'].values
+    for density in densities:
+        fst_group = groups_measurements[0][groups_measurements[0]['threshold'] == density]
+        snd_group = groups_measurements[1][groups_measurements[1]['threshold'] == density]
+        if not len(fst_group) > 0 and len(snd_group) > 0:
+            print(f'No group measurements found for density {density}')
+            continue
+        for measure in measures:
+            x, y = fst_group[measure].values, snd_group[measure].values
+            if len(x) > 0 and len(y) > 0:
+                _, pvalue = mannwhitneyu(x, y)
+                mean_measurements.loc[mean_measurements['threshold'] == density, f'{measure}_p'] = pvalue
+
+    mean_measurements.to_csv(metrics_file)

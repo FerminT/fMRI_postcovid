@@ -38,7 +38,7 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
-    metrics_filename = 'global_metrics.csv'
+    metrics_file = output / 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
         threshold_output.mkdir(exist_ok=True)
@@ -49,23 +49,22 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
                                                                          apply_threshold(matrix,
                                                                                          threshold))
             global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold, atlas,
-                                        force, output / metrics_filename)
+                                        force, metrics_file)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             if not no_plot:
                 save_connectome(group_connectome, atlas,
                                 f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
-
         if not no_plot:
             save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
-
+    utils.rank_sum(subjects_df['group'].unique(), global_metrics, metrics_file)
     if not no_plot:
         for metric in global_metrics:
             atlas_basename = atlas.name if not utils.is_network(atlas.name) else atlas.name.split('_')[0]
             atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
                               dir_.is_dir() and atlas_basename in dir_.name]
             utils.plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
-                               output.parent, metrics_filename)
+                               output.parent, metrics_file)
 
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
