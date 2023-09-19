@@ -38,6 +38,8 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
+    if utils.is_network(atlas.name):
+        global_metrics.pop('modularity')
     metrics_file = output / 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
