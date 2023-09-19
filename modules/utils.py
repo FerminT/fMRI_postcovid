@@ -175,7 +175,9 @@ def add_to_csv(dict_values, filename):
     if series['threshold'] in group_df['threshold'].values:
         idx = df[(df['threshold'] == series['threshold']) & (df['group'] == series['group'])].index[0]
         for metric in dict_values:
-            df.loc[idx, metric] = series[metric]
+            if metric in df and isinstance(series[metric], list):
+                df[metric] = df[metric].astype(object)
+            df.at[idx, metric] = series[metric]
     else:
         df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_csv(filename)
@@ -193,7 +195,9 @@ def add_to_df(group, threshold, group_metrics, group_filename):
     if series['threshold'] in df['threshold'].values:
         idx = df[(df['threshold'] == series['threshold']) & (df['group'] == series['group'])].index[0]
         for metric in group_metrics:
-            df.loc[idx, metric] = series[metric]
+            if metric not in df:
+                df[metric] = None
+            df.at[idx, metric] = series[metric]
     else:
         df = pd.concat([df, series.to_frame().T], ignore_index=True)
     df.to_pickle(group_filename)
