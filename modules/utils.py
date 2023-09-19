@@ -184,7 +184,7 @@ def add_to_csv(dict_values, filename):
 def add_to_df(group, threshold, group_metrics, group_filename):
     group_metrics = group_metrics.copy()
     group_metrics['group'] = group
-    group_metrics['threshold'] = np.round(threshold, 4)
+    group_metrics['threshold'] = threshold
     series = pd.Series(group_metrics)
     if group_filename.exists():
         df = pd.read_pickle(group_filename)
@@ -257,7 +257,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
 
 
 def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename):
-    mean_metrics = {'group': group, 'threshold': np.round(threshold, 4)}
+    mean_metrics = {'group': group, 'threshold': threshold}
     for metric in group_metrics:
         values = group_metrics[metric]
         if len(values) > 0:
@@ -269,7 +269,7 @@ def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename
                     network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
                     if network_path.exists():
                         network_file = network_path / filename.name
-                        add_to_csv({'group': group, 'threshold': np.round(threshold, 4), metric: means[idx],
+                        add_to_csv({'group': group, 'threshold': threshold, metric: means[idx],
                                     f'{metric}_ste': stes[idx]}, network_file)
             else:
                 mean_metrics[metric] = np.mean(values)

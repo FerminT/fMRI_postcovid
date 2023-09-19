@@ -48,8 +48,8 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
             thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
                                                                          apply_threshold(matrix,
                                                                                          threshold))
-            global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), threshold, atlas,
-                                        force, metrics_file)
+            global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), np.round(threshold, 4),
+                                        atlas, force, metrics_file)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             if not no_plot:
                 save_connectome(group_connectome, atlas,
@@ -219,8 +219,8 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
         if group in computed_thresholds['group'].unique():
-            group_thresholds = computed_thresholds[computed_thresholds['group'] == group]['threshold'].values
-            if np.round(threshold, 4) in group_thresholds:
+            group_thresholds = computed_thresholds[computed_thresholds['group'] == group]
+            if threshold in group_thresholds.threshold.values:
                 print(f'Group {group} on graph density {threshold} already computed')
                 return
     group_metrics = {metric: [] for metric in global_metrics}
@@ -255,7 +255,7 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
     mean_metrics = utils.compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename)
 
     metrics = set(mean_metrics.keys()).intersection(global_metrics.keys())
-    print(f'\nGroup {group}; graph density {np.round(threshold, 4)}:')
+    print(f'\nGroup {group}; graph density {threshold}:')
     for metric in metrics:
         print(f'{global_metrics[metric]}: {mean_metrics[metric]}')
 
