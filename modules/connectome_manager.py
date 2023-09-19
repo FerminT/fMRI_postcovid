@@ -251,15 +251,13 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
             utils.add_to_df(group, threshold, {'avg_pc': values}, network_file)
     group_metrics_cp = group_metrics.copy()
     group_metrics_cp.pop('avg_pc')
-    utils.add_to_df(group_metrics_cp, threshold, group_metrics, group_filename)
+    utils.add_to_df(group, threshold, group_metrics_cp, group_filename)
     mean_metrics = utils.compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename)
 
+    metrics = set(mean_metrics.keys()).intersection(global_metrics.keys())
     print(f'\nGroup {group}; graph density {np.round(threshold, 4)}:')
-    print(f'Average clustering coefficient: {mean_metrics["avg_clustering"]}')
-    print(f'Average global efficiency: {mean_metrics["global_efficiency"]}')
-    print(f'Average local efficiency: {mean_metrics["avg_local_efficiency"]}')
-    print(f'Average modularity: {mean_metrics["modularity"]}')
-    print(f'Average largest cc: {mean_metrics["largest_cc"]}')
+    for metric in metrics:
+        print(f'{global_metrics[metric]}: {mean_metrics[metric]}')
 
 
 def apply_threshold(connectivity_matrix, threshold):
