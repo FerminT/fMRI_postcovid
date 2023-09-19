@@ -221,8 +221,10 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         if group in computed_thresholds['group'].unique():
             group_thresholds = computed_thresholds[computed_thresholds['group'] == group]
             if threshold in group_thresholds.threshold.values:
-                print(f'Group {group} on graph density {threshold} already computed')
-                return
+                all_computed = not group_thresholds[group_thresholds['threshold'] == threshold].isnull().values.any()
+                if all_computed:
+                    print(f'Group {group} on graph density {threshold} already computed')
+                    return
     group_metrics = {metric: [] for metric in global_metrics}
     if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
         group_metrics['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
