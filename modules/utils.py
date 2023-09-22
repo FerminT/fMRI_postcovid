@@ -234,6 +234,23 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, ax):
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
 
+def add_statistical_significance(p_at_thresholds, ax, significance_level=0.05, eps=1e-4):
+    pvalues = p_at_thresholds[p_at_thresholds.columns[0]]
+    significant_values = pvalues[pvalues < significance_level]
+    spacing = pvalues.index[1] - pvalues.index[0] + eps
+    # Build a list of tuples with the start and end of each significant region
+    if len(significant_values) > 0:
+        significant_regions = [(significant_values.index[0], significant_values.index[0])]
+        for i, threshold in enumerate(significant_values.index):
+            if i > 0:
+                if threshold - significant_values.index[i - 1] > spacing:
+                    significant_regions.append((threshold, threshold))
+                else:
+                    significant_regions[-1] = (significant_regions[-1][0], threshold)
+        for region in significant_regions:
+            ax.plot(region, [ax.get_ylim()[1] * 0.98, ax.get_ylim()[1] * 0.98], linewidth=1, color='k', alpha=0.5)
+
+
 def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
     fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
     aucs = {network: {} for network in networks}
@@ -251,7 +268,9 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
             aucs[network][group] = auc(densities, measure_values)
             add_curve(densities, measure_values, lower_error, upper_error, group, ax)
-
+        if f'{measure_label}_p' in metrics_values.columns:
+            p_at_thresholds = metrics_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index('threshold')
+            add_statistical_significance(p_at_thresholds, ax)
         network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
         ax.set_title(f'{network_name}')
         ax.set_xlabel('Graph density')
