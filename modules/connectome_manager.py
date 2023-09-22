@@ -43,7 +43,6 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
     metrics_file = output / 'global_metrics.csv'
     for threshold in thresholds:
         threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
-        threshold_output.mkdir(exist_ok=True)
         groups_connectomes = {group: None for group in subjects_df['group'].unique()}
         for group in groups_connectomes:
             group_df = subjects_df[subjects_df['group'] == group]
@@ -54,6 +53,7 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
                                         atlas, force, metrics_file)
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             if not no_plot:
+                threshold_output.mkdir(exist_ok=True)
                 save_connectome(group_connectome, atlas,
                                 f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
