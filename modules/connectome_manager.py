@@ -54,7 +54,7 @@ def groups_connectome_analysis(subjects_df, atlas, thresholds, force, no_plot, o
             group_connectome = mean_connectivity_matrix(thresholded_matrices)
             if not no_plot:
                 threshold_output.mkdir(exist_ok=True)
-                save_connectome(group_connectome, atlas,
+                save_connectome(group, group_connectome, atlas,
                                 f'{atlas.name}, {group}', f'{group}_connectome.png', threshold_output)
             groups_connectomes[group] = group_connectome
         if not no_plot:
@@ -140,8 +140,8 @@ def connectivity_matrix(time_series, kind='correlation'):
     return connectivity_matrix, connectivity_measure
 
 
-def save_connectome(connectivity_matrix, atlas, fig_title, fig_name, conn_output):
-    utils.save_gephi_data(connectivity_matrix, atlas, conn_output)
+def save_connectome(group_name, connectivity_matrix, atlas, fig_title, fig_name, conn_output):
+    utils.save_gephi_data(group_name, connectivity_matrix, atlas, conn_output)
     if utils.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:

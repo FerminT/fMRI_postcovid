@@ -332,7 +332,7 @@ def rank_sum(groups, global_metrics, metrics_file):
     mean_measurements.to_csv(metrics_file)
 
 
-def save_gephi_data(connectivity_matrix, atlas, conn_output):
+def save_gephi_data(group_name, connectivity_matrix, atlas, conn_output):
     # Connectivity matrix and atlas.labels follow the same order
     n_rois = connectivity_matrix.shape[0]
     ids, zeros = np.arange(n_rois), np.zeros(n_rois)
@@ -348,7 +348,7 @@ def save_gephi_data(connectivity_matrix, atlas, conn_output):
         nodes_colors.append('%.03f,%.03f,%.03f' % (color[0] * 255, color[1] * 255, color[2] * 255))
     items = np.transpose([ids, zeros, zeros, networks_ids, nodes_colors, zeros, zeros, zeros])
     nodes_df = pd.DataFrame(items, columns=['Id', 'Label', 'Interval', 'Network', 'Color', 'Hub1', 'Hub2', 'Hub3'])
-    nodes_df.to_csv(conn_output / f'gephi_nodes.csv', index=False)
+    nodes_df.to_csv(conn_output / f'gephi_nodes_{group_name}.csv', index=False)
 
     # Upper triangulize connectivity matrix
     connectivity_matrix = np.triu(connectivity_matrix, k=1)
@@ -362,4 +362,4 @@ def save_gephi_data(connectivity_matrix, atlas, conn_output):
     items = np.transpose([source, target, types, ids, zeros, zeros, weights, ones, ones, ones])
     edges_df = pd.DataFrame(items, columns=['Source', 'Target', 'Type', 'Id', 'Label', 'Interval', 'Weight', 'Hub1',
                                             'Hub2', 'Hub3'])
-    edges_df.to_csv(conn_output / f'gephi_edges.csv', index=False)
+    edges_df.to_csv(conn_output / f'gephi_edges_{group_name}.csv', index=False)
