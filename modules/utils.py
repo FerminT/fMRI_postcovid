@@ -7,6 +7,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import auc
 from scipy.stats import mannwhitneyu
 from filelock import FileLock
+from . import atlas_manager
 
 # NiLearn methods and classes
 from nilearn import image, plotting, connectome
@@ -329,3 +330,36 @@ def rank_sum(groups, global_metrics, metrics_file):
                 mean_measurements.loc[mean_measurements['threshold'] == density, f'{measure}_p'] = pvalue
 
     mean_measurements.to_csv(metrics_file)
+
+
+def save_gephi_data(connectivity_matrix, atlas, conn_output):
+    # Connectivity matrix and atlas.labels follow the same order
+    n_rois = connectivity_matrix.shape[0]
+    ids, zeros = np.arange(n_rois), np.zeros(n_rois)
+    if not is_network(atlas.name) and 'schaefer' in atlas.name:
+        networks = atlas_manager.get_schaefer_networks_names(atlas.labels)
+        network_mapping = {network: i for i, network in enumerate(networks)}
+        networks_ids = [network_mapping[region.split('_')[1]] for region in atlas.labels.name]
+    else:
+        networks_ids = zeros
+    nodes_colors = []
+    for roi in range(n_rois):
+        color = sns.color_palette()[networks_ids[roi]]
+        nodes_colors.append('%.03f,%.03f,%.03f' % (color[0] * 255, color[1] * 255, color[2] * 255))
+    items = np.transpose([ids, zeros, zeros, networks_ids, nodes_colors, zeros, zeros, zeros])
+    nodes_df = pd.DataFrame(items, columns=['Id', 'Label', 'Interval', 'Network', 'Color', 'Hub1', 'Hub2', 'Hub3'])
+    nodes_df.to_csv(conn_output / f'gephi_nodes.csv', index=False)
+
+    # Upper triangulize connectivity matrix
+    connectivity_matrix = np.triu(connectivity_matrix, k=1)
+    edges_indices = np.where(connectivity_matrix != 0)
+    n_edges = len(edges_indices[0])
+    source, target = edges_indices[0], edges_indices[1]
+    weights = connectivity_matrix[edges_indices]
+    types = np.full(n_edges, 'Undirected')
+    ids = np.arange(n_edges)
+    zeros, ones = np.zeros(n_edges), np.ones(n_edges)
+    items = np.transpose([source, target, types, ids, zeros, zeros, weights, ones, ones, ones])
+    edges_df = pd.DataFrame(items, columns=['Source', 'Target', 'Type', 'Id', 'Label', 'Interval', 'Weight', 'Hub1',
+                                            'Hub2', 'Hub3'])
+    edges_df.to_csv(conn_output / f'gephi_edges.csv', index=False)
