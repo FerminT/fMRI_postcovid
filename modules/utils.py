@@ -267,7 +267,8 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
             measure_values = group_values[measure_label].values
             lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
-            aucs[network][group] = auc(densities, measure_values)
+            sorted_densities = np.argsort(densities)
+            aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
             add_curve(densities, measure_values, lower_error, upper_error, group, ax)
         if f'{measure_label}_p' in metrics_values.columns:
             p_at_thresholds = metrics_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index('threshold')
