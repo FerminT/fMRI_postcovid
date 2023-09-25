@@ -336,7 +336,7 @@ def rank_sum(groups, global_metrics, metrics_file):
 def save_gephi_data(group_name, connectivity_matrix, atlas, conn_output):
     # Connectivity matrix and atlas.labels follow the same order
     n_rois = connectivity_matrix.shape[0]
-    ids, zeros = np.arange(n_rois), np.zeros(n_rois)
+    ids, zeros = np.arange(n_rois), np.zeros(n_rois, dtype=int)
     if not is_network(atlas.name) and 'schaefer' in atlas.name:
         networks = atlas_manager.get_schaefer_networks_names(atlas.labels)
         network_mapping = {network: i for i, network in enumerate(networks)}
