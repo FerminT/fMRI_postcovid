@@ -258,7 +258,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
     for i, network in enumerate(networks):
         metrics_values = pd.read_csv(output / network / filename.name, index_col=0)
         ax = axes[i // 2, i % 2]
-        groups = metrics_values['group'].unique()
+        groups = sorted(metrics_values['group'].unique())
         for group in groups:
             group_values = metrics_values[metrics_values['group'] == group]
             densities = group_values['threshold'].values
