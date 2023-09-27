@@ -227,10 +227,10 @@ def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by,
     plt.show()
 
 
-def add_curve(graph_densities, measure, lower_error, upper_error, group, ax):
-    ax.plot(graph_densities, measure, label=group)
-    ax.plot(graph_densities, lower_error, alpha=0.1)
-    ax.plot(graph_densities, upper_error, alpha=0.1)
+def add_curve(graph_densities, measure, lower_error, upper_error, group, color_index, ax):
+    ax.plot(graph_densities, measure, label=group, color=f'C{color_index}')
+    ax.plot(graph_densities, lower_error, alpha=0.1, color=f'C{color_index}')
+    ax.plot(graph_densities, upper_error, alpha=0.1, color=f'C{color_index}')
     ax.legend()
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
@@ -267,7 +267,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
         metrics_values = pd.read_csv(output / network / filename.name, index_col=0)
         ax = axes[i // 2, i % 2]
         groups = sorted(metrics_values['group'].unique())
-        for group in groups:
+        for color_index, group in enumerate(groups):
             group_values = metrics_values[metrics_values['group'] == group]
             densities = group_values['threshold'].values
             if measure_label not in group_values.columns:
@@ -277,7 +277,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
             sorted_densities = np.argsort(densities)
             aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
-            add_curve(densities, measure_values, lower_error, upper_error, group, ax)
+            add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
         if f'{measure_label}_p' in metrics_values.columns:
             p_at_thresholds = metrics_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index('threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
