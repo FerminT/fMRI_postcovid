@@ -2,13 +2,13 @@ id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,langua
 1,47,femenino,3/04/2022,Covid,3,1,1,32-channel head,-1.82,-0.605,-1.36,-3.125,-0.55,-2.66333333333333,covid
 3,80,femenino,31/03/2022,Covid,3,1,1,32-channel head,-0.72,-1.12,-0.63,-0.14,0.53,-0.34,covid
 4,75,femenino,12/05/2022,Covid,3,1,1,32-channel head,-0.675,0.93,0.045,0.105,0.43,0.0733333333333333,covid
-5,53,femenino,23/06/2022,Covid,3,1,1,32-channel head,0.3,-0.39,-0.085,0.055,0.17,-0.276666666666667,covid
+5,52,femenino,23/06/2022,Covid,3,1,1,32-channel head,0.3,-0.39,-0.085,0.055,0.17,-0.276666666666667,covid
 6,42,masculino,16/02/2022,Covid,3,1,1,32-channel head,-0.15,0.52,-0.37,-0.05,0,0.1,covid
 7,51,masculino,4/07/2022,Covid,3,1,1,32-channel head,0.805,0.495,-0.595,-1.265,0,-0.246666666666667,covid
 8,48,femenino,22/02/2022,Covid,3,1,1,32-channel head,-1.035,-0.865,-1.125,-2.485,0.17,-2.00666666666667,covid
-9,72,femenino,4/06/2022,Covid,3,1,1,32-channel head,-0.555,0.25,-1.76,-0.98,-0.43,-0.49,covid
-10,45,femenino,24/03/2022,Covid,3,1,1,32-channel head,0.445,0.575,-2.15,-0.595,0.17,-0.116666666666667,covid
-11,70,femenino,27/06/2022,Angulo pontocerebeloso,3,1,1,32-channel head,-1.5,-0.795,-1.065,-0.07,-1.07,-0.366666666666667,covid
+9,72,masculino,4/06/2022,Covid,3,1,1,32-channel head,-0.555,0.25,-1.76,-0.98,-0.43,-0.49,covid
+10,44,femenino,24/03/2022,Covid,3,1,1,32-channel head,0.445,0.575,-2.15,-0.595,0.17,-0.116666666666667,covid
+11,70,masculino,27/06/2022,Angulo pontocerebeloso,3,1,1,32-channel head,-1.5,-0.795,-1.065,-0.07,-1.07,-0.366666666666667,covid
 12,38,femenino,20/05/2022,Covid,3,1,1,32-channel head,-1.14,0.36,-2.075,-0.715,0.17,-1.15333333333333,covid
 13,37,femenino,31/05/2022,Covid,3,1,1,32-channel head,-1.945,-0.825,-0.25,-1.39,0.17,-1.35666666666667,covid
 14,46,femenino,6/03/2022,Cognitivo,3,1,1,32-channel head,-3.095,0.225,-1.11,-0.01,0.36,-1.03,covid
@@ -63,7 +63,6 @@ id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,langua
 68,51,femenino,17/09/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 70,45,masculino,21/06/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
 71,51,masculino,22/08/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-72,34,masculino,23/02/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 75,48,masculino,29/11/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 78,67,masculino,3/03/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
 79,77,femenino,20/09/2019,Cognitivo,3,1,1,32-channel head,,,,,,,control
@@ -83,5 +82,5 @@ id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,langua
 95,70,masculino,13/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 96,68,femenino,26/12/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
 98,74,femenino,04/05/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
-99,55,femenino,11/10/19,Cognitivo,3,1,1,32-channel head,,,,,,,control
+99,56,femenino,11/10/19,Cognitivo,3,1,1,32-channel head,,,,,,,control
 100,53,masculino,11/11/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
