@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from nilearn import plotting, connectome
 
+import modules.export
 from modules import plot
 from . import utils, atlas_manager, graph_measures
 
@@ -147,7 +148,7 @@ def connectivity_matrix(time_series, kind='correlation'):
 
 
 def save_connectome(group_name, connectivity_matrix, atlas, fig_title, fig_name, conn_output):
-    utils.save_gephi_data(group_name, connectivity_matrix, atlas, conn_output)
+    modules.export.to_gephi(group_name, connectivity_matrix, atlas, conn_output)
     if utils.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
