@@ -1,86 +1,86 @@
-id,edad,sexo,fecha_rmn,protocolo,tesla,t1_volumetrico,resting,coil,memory,language,attention,executive,visuoespatial,global,group
-1,47,femenino,3/04/2022,Covid,3,1,1,32-channel head,-1.82,-0.605,-1.36,-3.125,-0.55,-2.66333333333333,covid
-3,80,femenino,31/03/2022,Covid,3,1,1,32-channel head,-0.72,-1.12,-0.63,-0.14,0.53,-0.34,covid
-4,75,femenino,12/05/2022,Covid,3,1,1,32-channel head,-0.675,0.93,0.045,0.105,0.43,0.0733333333333333,covid
-5,52,femenino,23/06/2022,Covid,3,1,1,32-channel head,0.3,-0.39,-0.085,0.055,0.17,-0.276666666666667,covid
-6,42,masculino,16/02/2022,Covid,3,1,1,32-channel head,-0.15,0.52,-0.37,-0.05,0,0.1,covid
-7,51,masculino,4/07/2022,Covid,3,1,1,32-channel head,0.805,0.495,-0.595,-1.265,0,-0.246666666666667,covid
-8,48,femenino,22/02/2022,Covid,3,1,1,32-channel head,-1.035,-0.865,-1.125,-2.485,0.17,-2.00666666666667,covid
-9,72,masculino,4/06/2022,Covid,3,1,1,32-channel head,-0.555,0.25,-1.76,-0.98,-0.43,-0.49,covid
-10,44,femenino,24/03/2022,Covid,3,1,1,32-channel head,0.445,0.575,-2.15,-0.595,0.17,-0.116666666666667,covid
-11,70,masculino,27/06/2022,Angulo pontocerebeloso,3,1,1,32-channel head,-1.5,-0.795,-1.065,-0.07,-1.07,-0.366666666666667,covid
-12,38,femenino,20/05/2022,Covid,3,1,1,32-channel head,-1.14,0.36,-2.075,-0.715,0.17,-1.15333333333333,covid
-13,37,femenino,31/05/2022,Covid,3,1,1,32-channel head,-1.945,-0.825,-0.25,-1.39,0.17,-1.35666666666667,covid
-14,46,femenino,6/03/2022,Cognitivo,3,1,1,32-channel head,-3.095,0.225,-1.11,-0.01,0.36,-1.03,covid
-15,40,femenino,6/07/2022,Covid,3,1,1,32-channel head,1.23,0.295,-2.29,-1.36,0.36,-0.256666666666667,covid
-16,69,femenino,28/06/2022,Covid,3,1,1,32-channel head,-2.285,-2.155,-5.19,,-0.81,,covid
-18,42,femenino,28/05/2022,Covid,3,1,1,32-channel head,-0.235,-0.45,-1.85,-1.425,0.17,-0.673333333333333,covid
-19,46,femenino,31/4/2022,Cognitivo,3,1,1,32-channel head,-0.54,-0.36,-1.46,-2,-0.67,-1.36666666666667,covid
-20,53,femenino,28/06/2022,RMN de encefalo,3,1,1,32-channel head,-0.385,0.415,-0.225,-0.155,1,-0.393333333333333,covid
-21,66,femenino,30/06/2022,RMN de encefalo,3,1,1,32-channel head,-2.085,-0.965,-1.33,-0.29,0.36,-0.683333333333333,covid
-22,43,femenino,20/08/2022,RMN de encefalo,3,1,1,32-channel head,-1.66,-0.105,0.95,0.38,0,-0.706666666666667,covid
-23,50,femenino,25/08/2022,Covid,3,1,1,32-channel head,-1.445,-0.26,-0.37,-0.505,-0.67,-0.193333333333333,covid
-24,53,masculino,25/07/2022,RMN de encefalo,3,1,1,32-channel head,-1.245,-0.385,0.00499999999999999,-0.34,0,-1.24666666666667,covid
-25,60,femenino,22/09/2022,RMN de encefalo,3,1,1,32-channel head,-1.575,,-2.22,-1.155,0.17,-1.17333333333333,covid
-26,50,femenino,27/08/2023,Covid,3,1,1,32-channel head,-2.225,-1.275,-1.805,-2.125,0.17,-2.2,covid
-27,72,masculino,13/08/2022,RMN de encefalo,3,1,1,32-channel head,-0.195,-0.18,-0.81,-0.255,-0.23,0.04,covid
-28,67,masculino,18/09/2022,Covid,3,1,1,32-channel head,-2.49,-0.035,-0.99,-1.98,0.25,-2.67,covid
-29,70,masculino,28/10/2022,Covid,3,1,1,32-channel head,-0.305,1,0.195,0.01,0.54,0.0866666666666667,covid
-30,63,femenino,14/09/2022,Covid,3,1,1,32-channel head,-1.005,-0.525,-0.755,0.42,0.44,-0.273333333333333,covid
-31,52,femenino,14/10/2023,Covid,3,1,1,HNS,-0.895,0.14,-1.195,-1.335,0.17,-1.08666666666667,covid
-32,58,masculino,16/10/2023,RMN de encefalo,3,1,1,32-channel head,0.125,-1.215,-0.84,-0.945,0,-1.48,covid
-33,51,femenino,16/10/2023,RMN de encefalo,3,1,1,32-channel head,-1.955,0.15,-0.635,-0.05,-0.55,-0.84,covid
-34,76,femenino,15/10/2023,Covid,3,1,1,32-channel head,-0.935,-1,-0.145,-0.67,-0.65,-0.4,covid
-35,53,femenino,6/11/2023,Covid,3,1,1,32-channel head,-1.31,-0.775,-1.92,-1.765,0.36,-1.58333333333333,covid
-36,39,masculino,17/09/2022,Covid,3,1,1,32-channel head,-3.305,0.88,-0.72,-0.4,0,-1.80333333333333,covid
-37,70,femenino,29/10/2022,Covid,3,1,1,32-channel head,-0.74,-0.64,-1.79,-0.785,-0.36,-0.33,covid
-38,47,femenino,22/02/2023,RMN de encefalo,3,1,1,32-channel head,-1.56,-0.955,-0.63,-1.58,0.17,-1.67,covid
-39,74,masculino,25/02/2023,Covid,3,1,1,32-channel head,-3.4,-4.95,-5.93,,-0.43,,covid
-40,49,femenino,15/12/2023,RMN de encefalo,3,1,1,32-channel head,-0.77,0.69,-0.965,0.295,0.17,-0.00666666666666667,covid
-41,68,femenino,28/12/2022,RMN de encefalo,3,1,1,32-channel head,-4.055,-2.745,-2.17,-1.3,0.09,-2.98666666666667,covid
-42,57,masculino,1/03/2023,Covid,3,1,1,32-channel head,-1.385,-0.015,-0.5,-1.72,0,-1.06,covid
-43,57,femenino,19/02/2023,Covid,3,1,1,32-channel head,0.585,-0.545,-2.5,-0.845,0.36,-0.17,covid
-44,69,femenino,22/02/2023,Covid,3,1,1,32-channel head,-0.025,-0.55,-0.235,-0.235,0.36,0.0166666666666667,covid
-47,58,femenino,26/05/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-48,73,masculino,26/09/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-49,67,masculino,13/12/2020,Cognitivo,3,1,1,32-channel head,,,,,,,control
-50,51,femenino,16/04/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-51,61,masculino,1/10/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-52,64,femenino,29/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-53,62,femenino,22/01/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-54,56,femenino,30/12/2020,Cognitivo,3,1,1,32-channel head,,,,,,,control
-55,65,femenino,27/04/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-56,67,femenino,27/04/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-57,53,masculino,5/05/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-59,49,masculino,13/09/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-60,53,femenino,19/11/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-62,50,femenino,26/07/2019,Cognitivo,3,1,1,32-channel head,,,,,,,control
-63,48,masculino,27/11/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-64,49,femenino,10/04/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-65,58,femenino,22/04/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-66,37,femenino,10/11/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-67,47,masculino,2/09/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-68,51,femenino,17/09/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-70,45,masculino,21/06/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-71,51,masculino,22/08/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-75,48,masculino,29/11/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-78,67,masculino,3/03/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-79,77,femenino,20/09/2019,Cognitivo,3,1,1,32-channel head,,,,,,,control
-80,65,masculino,13/05/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-81,61,masculino,13/10/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-82,64,femenino,29/03/2023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-83,62,femenino,26/04/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-84,62,femenino,25/0572023,Cognitivo,3,1,1,32-channel head,,,,,,,control
-86,72,femenino,11/09/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-87,72,masculino,13/02/2020,Cognitivo,3,1,1,32-channel head,,,,,,,control
-88,66,femenino,27/09/2022,Cognitivo,3,1,1,32-channel head,,,,,,,control
-89,70,femenino,13/02/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-91,43,masculino,14/10/2020,Cognitivo,3,1,1,32-channel head,,,,,,,control
-92,69,masculino,31/01/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-93,76,femenino,20/02/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-94,64,femenino,20/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-95,70,masculino,13/03/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-96,68,femenino,26/12/2021,Cognitivo,3,1,1,32-channel head,,,,,,,control
-98,74,femenino,04/05/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
-99,56,femenino,11/10/19,Cognitivo,3,1,1,32-channel head,,,,,,,control
-100,53,masculino,11/11/22,Cognitivo,3,1,1,32-channel head,,,,,,,control
+id,edad,sexo,nivel_educativo,group,fecha_enc,fecha_rmn,protocolo,tesla,coil,memory,language,attention,executive,visuoespatial,global
+1,47,femenino,14,covid,17/03/2022,3/04/2022,Covid,3,32-channel head,-1.82,-0.605,-1.36,-3.125,-0.55,-2.66333333333333
+3,80,femenino,12,covid,17/2/2022,31/03/2022,Covid,3,32-channel head,-0.72,-1.12,-0.63,-0.14,0.53,-0.34
+4,75,femenino,15,covid,17/03/2022,12/05/2022,Covid,3,32-channel head,-0.675,0.93,0.045,0.105,0.43,0.0733333333333333
+5,52,femenino,18,covid,24/02/2022,23/06/2022,Covid,3,32-channel head,0.3,-0.39,-0.085,0.055,0.17,-0.276666666666667
+6,42,masculino,18,covid,16/02/2022,16/02/2022,Covid,3,32-channel head,-0.15,0.52,-0.37,-0.05,0,0.1
+7,51,masculino,17,covid,28/05/2022,4/07/2022,Covid,3,32-channel head,0.805,0.495,-0.595,-1.265,0,-0.246666666666667
+8,48,femenino,,covid,,22/02/2022,Covid,3,32-channel head,-1.035,-0.865,-1.125,-2.485,0.17,-2.00666666666667
+9,72,masculino,17,covid,28/04/2022,4/06/2022,Covid,3,32-channel head,-0.555,0.25,-1.76,-0.98,-0.43,-0.49
+10,44,femenino,18,covid,29/05/2021,24/03/2022,Covid,3,32-channel head,0.445,0.575,-2.15,-0.595,0.17,-0.116666666666667
+11,70,masculino,12,covid,12/06/2021,27/06/2022,Angulo pontocerebeloso,3,32-channel head,-1.5,-0.795,-1.065,-0.07,-1.07,-0.366666666666667
+12,38,femenino,16,covid,22/05/2022,20/05/2022,Covid,3,32-channel head,-1.14,0.36,-2.075,-0.715,0.17,-1.15333333333333
+13,37,femenino,17,covid,08/04/2022,31/05/2022,Covid,3,32-channel head,-1.945,-0.825,-0.25,-1.39,0.17,-1.35666666666667
+14,46,femenino,15,covid,16/03/2023,6/03/2022,Cognitivo,3,32-channel head,-3.095,0.225,-1.11,-0.01,0.36,-1.03
+15,40,femenino,14,covid,29/03/2022,6/07/2022,Covid,3,32-channel head,1.23,0.295,-2.29,-1.36,0.36,-0.256666666666667
+16,69,femenino,12,covid,23/07/2022,28/06/2022,Covid,3,32-channel head,-2.285,-2.155,-5.19,,-0.81,
+18,42,femenino,17,covid,12/05/2022,28/05/2022,Covid,3,32-channel head,-0.235,-0.45,-1.85,-1.425,0.17,-0.673333333333333
+19,46,femenino,16,covid,23/06/2022,31/4/2022,Cognitivo,3,32-channel head,-0.54,-0.36,-1.46,-2,-0.67,-1.36666666666667
+20,53,femenino,17,covid,26/05/2022,28/06/2022,RMN de encefalo,3,32-channel head,-0.385,0.415,-0.225,-0.155,1,-0.393333333333333
+21,66,femenino,15,covid,17/03/2022,30/06/2022,RMN de encefalo,3,32-channel head,-2.085,-0.965,-1.33,-0.29,0.36,-0.683333333333333
+22,43,femenino,17,covid,24/06/2022,20/08/2022,RMN de encefalo,3,32-channel head,-1.66,-0.105,0.95,0.38,0,-0.706666666666667
+23,50,femenino,18,covid,19/08/2022,25/08/2022,Covid,3,32-channel head,-1.445,-0.26,-0.37,-0.505,-0.67,-0.193333333333333
+24,53,masculino,17,covid,01/07/2022,25/07/2022,RMN de encefalo,3,32-channel head,-1.245,-0.385,0.00499999999999999,-0.34,0,-1.24666666666667
+25,60,femenino,18,covid,15/07/2022,22/09/2022,RMN de encefalo,3,32-channel head,-1.575,,-2.22,-1.155,0.17,-1.17333333333333
+26,50,femenino,18,covid,23/04/2022,27/08/2023,Covid,3,32-channel head,-2.225,-1.275,-1.805,-2.125,0.17,-2.2
+27,72,masculino,15,covid,12/07/2022,13/08/2022,RMN de encefalo,3,32-channel head,-0.195,-0.18,-0.81,-0.255,-0.23,0.04
+28,67,masculino,18,covid,12/8/2022,18/09/2022,Covid,3,32-channel head,-2.49,-0.035,-0.99,-1.98,0.25,-2.67
+29,70,masculino,15,covid,16/12/2022,28/10/2022,Covid,3,32-channel head,-0.305,1,0.195,0.01,0.54,0.0866666666666667
+30,63,femenino,12,covid,09/09/2022,14/09/2022,Covid,3,32-channel head,-1.005,-0.525,-0.755,0.42,0.44,-0.273333333333333
+31,52,femenino,20,covid,28/10/2022,14/10/2023,Covid,3,HNS,-0.895,0.14,-1.195,-1.335,0.17,-1.08666666666667
+32,58,masculino,18,covid,15/01/2023,16/10/2023,RMN de encefalo,3,32-channel head,0.125,-1.215,-0.84,-0.945,0,-1.48
+33,51,femenino,15,covid,05/01/2023,16/10/2023,RMN de encefalo,3,32-channel head,-1.955,0.15,-0.635,-0.05,-0.55,-0.84
+34,76,femenino,12,covid,16/09/2022,15/10/2023,Covid,3,32-channel head,-0.935,-1,-0.145,-0.67,-0.65,-0.4
+35,53,femenino,14,covid,12/11/2022,6/11/2023,Covid,3,32-channel head,-1.31,-0.775,-1.92,-1.765,0.36,-1.58333333333333
+36,39,masculino,17,covid,22/10/2022,17/09/2022,Covid,3,32-channel head,-3.305,0.88,-0.72,-0.4,0,-1.80333333333333
+37,70,femenino,15,covid,09/11/2022,29/10/2022,Covid,3,32-channel head,-0.74,-0.64,-1.79,-0.785,-0.36,-0.33
+38,47,femenino,18,covid,19/10/2022,22/02/2023,RMN de encefalo,3,32-channel head,-1.56,-0.955,-0.63,-1.58,0.17,-1.67
+39,74,masculino,18,covid,01/03/2023,25/02/2023,Covid,3,32-channel head,-3.4,-4.95,-5.93,,-0.43,
+40,49,femenino,18,covid,15/12/2022,15/12/2023,RMN de encefalo,3,32-channel head,-0.77,0.69,-0.965,0.295,0.17,-0.00666666666666667
+41,68,femenino,18,covid,17/12/2022,28/12/2022,RMN de encefalo,3,32-channel head,-4.055,-2.745,-2.17,-1.3,0.09,-2.98666666666667
+42,57,masculino,17,covid,16/03/2023,1/03/2023,Covid,3,32-channel head,-1.385,-0.015,-0.5,-1.72,0,-1.06
+43,57,femenino,15,covid,17/02/2023,19/02/2023,Covid,3,32-channel head,0.585,-0.545,-2.5,-0.845,0.36,-0.17
+44,69,femenino,13,covid,22/02/2023,22/02/2023,Covid,3,32-channel head,-0.025,-0.55,-0.235,-0.235,0.36,0.0166666666666667
+47,58,femenino,16,control,4/06/2021,26/05/2021,Cognitivo,3,32-channel head,0.17,-0.19,-0.755,-0.465,0.17,0.166666666666667
+48,73,masculino,17,control,9/26/2022,26/09/2022,Cognitivo,3,32-channel head,0.755,0.325,-0.315,-0.33,0.29,0.17
+49,67,masculino,18,control,5/02/2021,13/12/2020,Cognitivo,3,32-channel head,0.87,-0.315,0.495,-0.145,0.25,0.436666666666667
+50,51,femenino,15,control,14/01/2022,16/04/2022,Cognitivo,3,32-channel head,-0.055,0.17,-0.21,-1.13,0.36,-0.47
+51,61,masculino,17,control,24/09/2021,1/10/2021,Cognitivo,3,32-channel head,-0.155,0.52,0.48,-0.43,1.08,0.113333333333333
+52,64,femenino,18,control,16/03/2021,29/03/2021,Cognitivo,3,32-channel head,-0.36,0.01,0.28,0.355,-0.82,0.323333333333333
+53,62,femenino,17,control,15/01/2021,22/01/2021,Cognitivo,3,32-channel head,-0.345,-0.185,0.51,0.29,1,0.15
+54,56,femenino,15,control,28/12/2020,30/12/2020,Cognitivo,3,32-channel head,-1.19,0.91,-0.395,0.205,1.27,-0.43
+55,65,femenino,9,control,13/05/2021,27/04/2021,Cognitivo,3,32-channel head,0.87,0.205,,-0.435,0.31,0.333333333333333
+56,67,femenino,16,control,27/04/2023,27/04/2023,Cognitivo,3,32-channel head,0.63,-0.27,-0.87,0.035,0.36,0.39
+57,53,masculino,17,control,8/06/2022,5/05/2022,Cognitivo,3,32-channel head,-0.15,0.355,-0.365,-0.57,0,0.25
+59,49,masculino,18,control,5/10/2022,13/09/2022,Cognitivo,3,32-channel head,-0.555,0.525,-0.075,-0.29,0,-0.133333333333333
+60,53,femenino,12,control,7/12/2022,19/11/2022,Cognitivo,3,32-channel head,-0.315,0.585,-0.32,-0.385,0.46,0.0933333333333333
+62,50,femenino,18,control,3/10/2022,26/07/2019,Cognitivo,3,32-channel head,0.17,-0.125,-0.475,-0.835,-0.67,0.133333333333333
+63,48,masculino,15,control,12/10/2022,27/11/2022,Cognitivo,3,32-channel head,0.7,0.015,-0.63,0.655,0.43,0.51
+64,49,femenino,16,control,8/03/2023,10/04/2023,Cognitivo,3,32-channel head,0.425,0.165,-0.135,-0.215,0.17,-0.176666666666667
+65,58,femenino,18,control,16/05/2023,22/04/2023,Cognitivo,3,32-channel head,-0.635,0.555,0.395,-0.17,-0.67,-0.233333333333333
+66,37,femenino,14,control,10/22/2021,10/11/2021,Cognitivo,3,32-channel head,0.925,0.38,-1.18,0.22,0.43,0.503333333333333
+67,47,masculino,18,control,22/08/2022,2/09/2022,Cognitivo,3,32-channel head,0.845,1.295,0.115,0.325,0.17,0.59
+68,51,femenino,14,control,27/08/2021,17/09/2021,Cognitivo,3,32-channel head,0.96,0.62,0.245,0.45,0.36,0.52
+70,45,masculino,18,control,12/04/2022,21/06/2022,Cognitivo,3,32-channel head,-1.25,-0.21,0.215,-0.72,1.11,-0.513333333333333
+71,51,masculino,18,control,10/8/2022,22/08/2022,Cognitivo,3,32-channel head,0.535,0.59,-0.315,-0.145,0,0.123333333333333
+75,48,masculino,14,control,11/25/2021,29/11/2021,Cognitivo,3,32-channel head,0.23,0.05,-0.27,-0.06,0.43,0.516666666666667
+78,67,masculino,18,control,14/04/2023,3/03/2023,Cognitivo,3,32-channel head,-0.58,-0.5,0.24,0.08,0.25,-0.08
+79,77,femenino,14,control,5/4/2023,20/09/2019,Cognitivo,3,32-channel head,0.015,0.415,-0.375,-0.245,-0.29,0.00333333333333334
+80,65,masculino,18,control,26/08/2022,13/05/2022,Cognitivo,3,32-channel head,-1.32,0.24,-0.365,-0.72,-1.42,-0.803333333333333
+81,61,masculino,12,control,13/09/2022,13/10/2021,Cognitivo,3,32-channel head,-0.12,-0.875,-0.415,-0.025,-0.36,0.183333333333333
+82,64,femenino,17,control,19/04/2023,29/03/2023,Cognitivo,3,32-channel head,-1.22,1.47,0.935,1.39,0.09,0.0666666666666667
+83,62,femenino,14,control,24/06/2022,26/04/2022,Cognitivo,3,32-channel head,0.775,0.635,0.71,-0.18,0.36,0.396666666666667
+84,62,femenino,12,control,1/19/2023,25/0572023,Cognitivo,3,32-channel head,0.26,-0.08,0.645,-0.015,0.44,0.326666666666667
+86,72,femenino,7,control,3/10/2022,11/09/2022,Cognitivo,3,32-channel head,-1.27,0.115,-0.17,0.02,0.53,-0.07
+87,72,masculino,11,control,22/01/2020,13/02/2020,Cognitivo,3,32-channel head,,,0.145,-0.51,,
+88,66,femenino,15,control,11/11/2022,27/09/2022,Cognitivo,3,32-channel head,-0.345,-0.06,0.32,-0.235,0.36,0.313333333333333
+89,70,femenino,12,control,1/02/2021,13/02/2021,Cognitivo,3,32-channel head,-0.68,0.015,-2.405,-0.05,0.53,-0.113333333333333
+91,43,masculino,15,control,9/10/2020,14/10/2020,Cognitivo,3,32-channel head,,,-0.75,-0.25,,
+92,69,masculino,7,control,4/02/2021,31/01/2021,Cognitivo,3,32-channel head,-0.12,-0.49,-0.005,0.17,0.36,0.116666666666667
+93,76,femenino,7,control,20/02/2021,20/02/2021,Cognitivo,3,32-channel head,-0.05,-0.265,-0.73,-0.52,0.53,0.07
+94,64,femenino,15,control,3/03/2021,20/03/2021,Cognitivo,3,32-channel head,0.215,0.43,0.665,0.255,0.36,0.58
+95,70,masculino,18,control,13/03/2021,13/03/2021,Cognitivo,3,32-channel head,0.45,-0.22,-0.33,-0.935,0.25,0.153333333333333
+96,68,femenino,15,control,17/12/2021,26/12/2021,Cognitivo,3,32-channel head,-0.07,-0.035,-0.68,-0.225,0.36,0.28
+98,74,femenino,17,control,4/05/2022,04/05/22,Cognitivo,3,32-channel head,-1.42,-0.37,-0.955,-0.47,0.08,-0.54
+99,56,femenino,15,control,18/09/2020,11/10/19,Cognitivo,3,32-channel head,,,-0.155,-0.005,-0.4,
+100,53,masculino,17,control,23/11/2022,11/11/22,Cognitivo,3,32-channel head,-0.83,0.68,0.265,-0.875,0,-0.603333333333333
