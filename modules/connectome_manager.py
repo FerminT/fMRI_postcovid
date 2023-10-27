@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from nilearn import plotting, connectome
+
+import modules.plot
 from . import utils, atlas_manager, graph_measures
 
 
@@ -41,7 +43,7 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
                                      metrics_file)
     utils.rank_sum(subjects_df['group'].unique(), global_metrics, metrics_file)
     if not no_plot:
-        utils.plot_global_metrics(output, global_metrics, metrics_file, atlas.name)
+        modules.plot.plot_global_metrics(output, global_metrics, metrics_file, atlas.name)
 
 
 def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output, metrics_file):
@@ -75,10 +77,10 @@ def apply_threshold(connectivity_matrix, threshold):
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
     networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas_labels)
-    utils.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
-                                    group_by='group', output=conn_output)
-    utils.save_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
-                                   tri='full', output=conn_output)
+    modules.plot.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
+                                           group_by='group', output=conn_output)
+    modules.plot.plot_connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
+                                          tri='full', output=conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
@@ -167,7 +169,7 @@ def save_groups_matrices(groups_connectivity_matrices, atlas_labels, output):
             atlas_labels['name'] = pd.Categorical(atlas_labels['name'], categories=label_order, ordered=True)
             atlas_labels = atlas_labels.sort_values('name')
         reorder = i == 0
-        utils.plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], reorder=reorder)
+        modules.plot.plot_matrix_on_axis(group_connmatrix, atlas_labels, axes[i], reorder=reorder)
         axes[i].set_title(f'{group}')
     fig.savefig(output / 'groups_comparison.png')
 
@@ -176,8 +178,8 @@ def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reord
     if not output.exists():
         output.mkdir(parents=True)
     if not no_plot:
-        subjects_df.apply(lambda subj: utils.save_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
-                                                                      atlas_labels, output, reorder=reorder), axis=1)
+        subjects_df.apply(lambda subj: modules.plot.plot_connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
+                                                                             atlas_labels, output, reorder=reorder), axis=1)
 
 
 def global_connectivity_measures(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):

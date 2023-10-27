@@ -1,86 +1,14 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.manifold import MDS, Isomap, TSNE
-from sklearn.decomposition import PCA
-from sklearn.metrics import auc
 from scipy.stats import mannwhitneyu
 from filelock import FileLock
-from . import atlas_manager
+from . import atlas_manager, plot
 
 # NiLearn methods and classes
-from nilearn import image, plotting, connectome
+from nilearn import image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
-
-
-def plot_rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):
-    embedding = initialize_embedding(method)
-    embeddings = embedding.fit_transform(rdm)
-    rdm_df = subjects_df.copy()
-    rdm_df['emb_x'], rdm_df['emb_y'] = embeddings[:, 0], embeddings[:, 1]
-    rdm_df, sizes = score_to_bins(rdm_df, clinical_score)
-    fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
-    sns.scatterplot(rdm_df, x='emb_x', y='emb_y', hue='group', style='cluster', size=clinical_score, sizes=sizes,
-                    hue_order=sorted(rdm_df['group'].unique()), ax=ax)
-    sns.move_legend(ax, 'upper left', bbox_to_anchor=(1, 1))
-    if draw_labels:
-        for i, txt in enumerate(rdm_df.index.to_list()):
-            ax.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), alpha=0.6)
-
-    title = title.replace(' ', '_') + f'_{method}'
-    ax.set_title(title)
-    ax.axes.xaxis.set_visible(False), ax.axes.yaxis.set_visible(False)
-    plt.show()
-
-    output.mkdir(exist_ok=True, parents=True)
-    fig.savefig(output / f'{title}.png')
-
-    return embeddings
-
-
-def save_connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
-                             tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    fig, ax = plt.subplots(figsize=(10, 8))
-    plot_matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
-    fig.savefig(output / f'{fig_name}.png')
-    plt.close(fig)
-
-
-def initialize_embedding(method):
-    if method == 'MDS':
-        embedding = MDS(n_components=2,
-                        dissimilarity='precomputed',
-                        random_state=42)
-    elif method == 'TSNE':
-        embedding = TSNE(n_components=2,
-                         perplexity=20,
-                         random_state=42)
-    elif method == 'ISOMAP':
-        embedding = Isomap(n_components=2,
-                           n_neighbors=10,
-                           n_jobs=-1)
-    elif method == 'PCA':
-        embedding = PCA(n_components=2)
-    else:
-        raise NotImplementedError(f'Method {method} not implemented')
-
-    return embedding
-
-
-def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax,
-                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    # Get labels in the correct format until plot_matrix is fixed
-    labels = list(atlas_labels.name.values)
-    plotting.plot_matrix(connectivity_matrix,
-                         tri=tri,
-                         labels=labels,
-                         colorbar=True,
-                         vmin=vmin,
-                         vmax=vmax,
-                         reorder=reorder,
-                         axes=ax)
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -209,32 +137,6 @@ def add_to_df(group, threshold, group_metrics, group_filename):
         df.to_pickle(group_filename)
 
 
-def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
-    nrows = len(networks_labels) // 2
-    fig, axes = plt.subplots(nrows=nrows, ncols=nrows, figsize=(20, 20))
-    for i, network in enumerate(networks_labels.name):
-        ax = axes[i // nrows, i % nrows]
-        network_means, groups = {}, subjects_df[group_by].unique()
-        for group in groups:
-            networks_connmatrix = subjects_df[subjects_df[group_by] == group][attribute].to_list()
-            network_means[group] = [subj_connmatrix[i, i] for subj_connmatrix in networks_connmatrix]
-        df = pd.DataFrame.from_dict(data=network_means, orient='index').transpose()
-        sns.boxplot(data=df, order=sorted(groups), ax=ax)
-        ax.set_title(network)
-        ax.set_ylabel('Mean correlation coefficient')
-    fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
-    fig.savefig(output / f'networks_mean_corrcoef.png')
-    plt.show()
-
-
-def add_curve(graph_densities, measure, lower_error, upper_error, group, color_index, ax):
-    ax.plot(graph_densities, measure, label=group, color=f'C{color_index}')
-    ax.plot(graph_densities, lower_error, alpha=0.1, color=f'C{color_index}')
-    ax.plot(graph_densities, upper_error, alpha=0.1, color=f'C{color_index}')
-    ax.legend()
-    ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
-
-
 def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1e-4):
     pvalues = p_at_thresholds[p_at_thresholds.columns[0]]
     labels = ['*' * i for i in range(len(significance_levels), 0, -1)]
@@ -244,90 +146,39 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     categorized_pvalues = pd.cut(pvalues, significance_levels, right=False, labels=labels)
     spacing = pvalues.index[1] - pvalues.index[0] + eps
 
-    for label in labels:
-        significant_values = categorized_pvalues[categorized_pvalues == label]
-        # Build a list of tuples with the start and end of each significant region
-        if len(significant_values) > 0 and label not in 'ns':
-            significant_regions = [(significant_values.index[0], significant_values.index[0])]
-            for i, threshold in enumerate(significant_values.index):
-                if i > 0:
-                    if threshold - significant_values.index[i - 1] > spacing:
-                        significant_regions.append((threshold, threshold))
-                    else:
-                        significant_regions[-1] = (significant_regions[-1][0], threshold)
-            for region in significant_regions:
-                ax.plot(region, [ax.get_ylim()[1] * 0.98, ax.get_ylim()[1] * 0.98], marker=f'{label}', linewidth=1,
-                        color='k', alpha=0.8)
+    plot.plot_significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
-def plot_global_metrics(output, global_metrics, metrics_file, atlas_name):
-    for metric in global_metrics:
-        atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
-        atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
-                          dir_.is_dir() and atlas_basename in dir_.name]
-        plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
-                           output.parent, metrics_file)
+def networks_means(group, threshold, values, measure, filename):
+    networks_values = list(values.values())
+    means = np.mean(networks_values, axis=1)
+    stes = np.std(networks_values, axis=1) / np.sqrt(np.shape(networks_values)[1])
+    for idx, network in enumerate(values):
+        network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
+        if network_path.exists():
+            network_file = network_path / filename.name
+            add_to_csv({'group': group, 'threshold': threshold, measure: means[idx],
+                        f'{measure}_ste': stes[idx]}, network_file)
 
 
-def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
-    fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
-    aucs = {network: {} for network in networks}
-    for i, network in enumerate(networks):
-        metrics_values = pd.read_csv(output / network / filename.name, index_col=0)
-        ax = axes[i // 2, i % 2]
-        groups = sorted(metrics_values['group'].unique())
-        for color_index, group in enumerate(groups):
-            group_values = metrics_values[metrics_values['group'] == group]
-            densities = group_values['threshold'].values
-            if measure_label not in group_values.columns:
-                continue
-            measure_values = group_values[measure_label].values
-            lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
-                                       group_values[measure_label] + group_values[f'{measure_label}_ste']
-            sorted_densities = np.argsort(densities)
-            aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
-            add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
-        if f'{measure_label}_p' in metrics_values.columns:
-            p_at_thresholds = metrics_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index('threshold')
-            add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
-        network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
-        ax.set_title(f'{network_name}')
-        ax.set_xlabel('Graph density')
-        ax.set_ylabel(measure_desc)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-    fig.suptitle(measure_desc)
-    fig.savefig(output / f'{measure_label}.png')
-    plt.show()
+def compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename):
+    measures_mean = {'group': group, 'threshold': threshold}
+    for measure in group_measures:
+        values = group_measures[measure]
+        if not len(values):
+            continue
+        if isinstance(values, dict):
+            networks_means(group, threshold, values, measure, filename)
+        else:
+            measures_mean[measure] = np.mean(values)
+            ste = np.std(values) / np.sqrt(len(values))
+            if ste > 0:
+                measures_mean[f'{measure}_ste'] = ste
+    measures_mean['num_nodes'] = num_nodes
+    measures_mean['num_edges'] = num_edges
+    add_to_csv(measures_mean, filename)
 
-    return aucs
-
-
-def compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename):
-    mean_metrics = {'group': group, 'threshold': threshold}
-    for metric in group_metrics:
-        values = group_metrics[metric]
-        if len(values) > 0:
-            if isinstance(values, dict):
-                networks_values = list(values.values())
-                means = np.mean(networks_values, axis=1)
-                stes = np.std(networks_values, axis=1) / np.sqrt(np.shape(networks_values)[1])
-                for idx, network in enumerate(values):
-                    network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
-                    if network_path.exists():
-                        network_file = network_path / filename.name
-                        add_to_csv({'group': group, 'threshold': threshold, metric: means[idx],
-                                    f'{metric}_ste': stes[idx]}, network_file)
-            else:
-                mean_metrics[metric] = np.mean(values)
-                ste = np.std(values) / np.sqrt(len(values))
-                if ste > 0:
-                    mean_metrics[f'{metric}_ste'] = ste
-    mean_metrics['num_nodes'] = num_nodes
-    mean_metrics['num_edges'] = num_edges
-    add_to_csv(mean_metrics, filename)
-
-    return mean_metrics
+    return measures_mean
 
 
 def rank_sum(groups, global_metrics, metrics_file):
@@ -368,7 +219,6 @@ def save_gephi_data(group_name, connectivity_matrix, atlas, conn_output):
     nodes_df = pd.DataFrame(items, columns=['Id', 'Label', 'Interval', 'Network', 'Color', 'Hub1', 'Hub2', 'Hub3'])
     nodes_df.to_csv(conn_output / f'gephi_nodes_{group_name}.csv', index=False)
 
-    # Upper triangulize connectivity matrix
     connectivity_matrix = np.triu(connectivity_matrix, k=1)
     edges_indices = np.where(connectivity_matrix != 0)
     n_edges = len(edges_indices[0])

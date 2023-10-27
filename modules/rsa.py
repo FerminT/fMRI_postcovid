@@ -1,7 +1,8 @@
 import numpy as np
 from rsatoolbox import rdm
 from sklearn import mixture
-from .utils import time_series, plot_rdm
+from .utils import time_series
+from .plot import plot_rdm
 from .connectome_manager import connectivity_matrix
 
 
