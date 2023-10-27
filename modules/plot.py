@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE, Isomap
 from sklearn.metrics import auc
 
-from modules.utils import add_statistical_significance, score_to_bins
+from modules.utils import score_to_bins
 from modules.atlas_manager import is_network
 
 
@@ -98,6 +98,18 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
     plt.show()
 
     return aucs
+
+
+def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1e-4):
+    pvalues = p_at_thresholds[p_at_thresholds.columns[0]]
+    labels = ['*' * i for i in range(len(significance_levels), 0, -1)]
+    significance_levels.insert(0, 0.0)
+    significance_levels.append(1.)
+    labels.append('ns')
+    categorized_pvalues = pd.cut(pvalues, significance_levels, right=False, labels=labels)
+    spacing = pvalues.index[1] - pvalues.index[0] + eps
+
+    significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
