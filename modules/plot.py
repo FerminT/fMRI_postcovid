@@ -7,7 +7,8 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE, Isomap
 from sklearn.metrics import auc
 
-from modules.utils import is_network, add_statistical_significance, score_to_bins
+from modules.utils import add_statistical_significance, score_to_bins
+from modules.atlas_manager import is_network
 
 
 def rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):

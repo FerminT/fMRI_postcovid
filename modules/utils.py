@@ -5,9 +5,10 @@ from filelock import FileLock
 from . import plot
 
 # NiLearn methods and classes
-from nilearn import image
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
+
+from .atlas_manager import is_probabilistic_atlas
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -23,15 +24,6 @@ def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high
     time_series = nifti_masker.fit_transform(func_data, confounds=confounds, sample_mask=sample_mask)
 
     return time_series
-
-
-def is_network(atlas_name):
-    return len(atlas_name.split('_')) > 1
-
-
-def is_probabilistic_atlas(atlas_maps):
-    atlas_maps_img = image.load_img(atlas_maps)
-    return len(atlas_maps_img.shape) == 4
 
 
 def pad_timeseries(timeseries, pad_value=np.nan):

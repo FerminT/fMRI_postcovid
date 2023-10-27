@@ -141,3 +141,12 @@ def load_atlas(atlas_name, n_rois):
     atlas.name = atlas_name
 
     return atlas
+
+
+def is_probabilistic_atlas(atlas_maps):
+    atlas_maps_img = image.load_img(atlas_maps)
+    return len(atlas_maps_img.shape) == 4
+
+
+def is_network(atlas_name):
+    return len(atlas_name.split('_')) > 1

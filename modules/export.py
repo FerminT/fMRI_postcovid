@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 
 from modules import atlas_manager
-from modules.utils import is_network
+from modules.atlas_manager import is_network
 
 
 def to_gephi(group_name, connectivity_matrix, atlas, output):

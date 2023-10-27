@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from nilearn import plotting, connectome
 
+import modules.atlas_manager
 import modules.export
 from modules import plot
 from . import utils, atlas_manager, graph_measures
@@ -15,7 +16,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
     output.mkdir(exist_ok=True, parents=True)
-    if 'schaefer' in atlas.name and not utils.is_network(atlas.name) and not no_plot:
+    if 'schaefer' in atlas.name and not modules.atlas_manager.is_network(atlas.name) and not no_plot:
         groups_diff_over_networks(subjects_df, atlas.labels, output)
 
     save_connectivity_matrices(subjects_df, atlas.labels, no_plot, output / 'connectivity_matrices')
@@ -36,7 +37,7 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
-    if utils.is_network(atlas.name):
+    if modules.atlas_manager.is_network(atlas.name):
         global_metrics.pop('modularity')
     metrics_file = output / 'global_metrics.csv'
     for threshold in thresholds:
@@ -149,7 +150,7 @@ def connectivity_matrix(time_series, kind='correlation'):
 
 def save_connectome(group_name, connectivity_matrix, atlas, fig_title, fig_name, conn_output):
     modules.export.to_gephi(group_name, connectivity_matrix, atlas, conn_output)
-    if utils.is_probabilistic_atlas(atlas.maps):
+    if modules.atlas_manager.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
