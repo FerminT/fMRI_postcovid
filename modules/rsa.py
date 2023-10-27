@@ -1,9 +1,9 @@
 import numpy as np
 from rsatoolbox import rdm
 from sklearn import mixture
-from .utils import time_series
-from .plot import rdm
-from .connectome_manager import connectivity_matrix
+from modules.utils import time_series
+from modules.plot import rdm
+from modules.connectome_manager import connectivity_matrix
 
 
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,

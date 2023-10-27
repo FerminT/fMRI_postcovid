@@ -3,10 +3,8 @@ import pandas as pd
 import numpy as np
 from nilearn import plotting, connectome
 
-import modules.atlas_manager
-import modules.export
-from modules import plot
-from . import utils, atlas_manager, graph_measures
+from modules import plot, utils, atlas_manager, export
+from modules.graph_measures import compute_group_measures, get_num_nodes_edges
 
 
 def build_connectome(subjects_df, conf_strategy, atlas,
@@ -16,7 +14,7 @@ def build_connectome(subjects_df, conf_strategy, atlas,
     subjects_df['connectivity_matrix'] = subjects_df['time_series'].apply(lambda time_series:
                                                                           connectivity_matrix([time_series])[0][0])
     output.mkdir(exist_ok=True, parents=True)
-    if 'schaefer' in atlas.name and not modules.atlas_manager.is_network(atlas.name) and not no_plot:
+    if 'schaefer' in atlas.name and not atlas_manager.is_network(atlas.name) and not no_plot:
         groups_diff_over_networks(subjects_df, atlas.labels, output)
 
     save_connectivity_matrices(subjects_df, atlas.labels, no_plot, output / 'connectivity_matrices')
@@ -37,7 +35,7 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
-    if modules.atlas_manager.is_network(atlas.name):
+    if atlas_manager.is_network(atlas.name):
         global_metrics.pop('modularity')
     metrics_file = output / 'global_metrics.csv'
     for threshold in thresholds:
@@ -106,17 +104,6 @@ def connmatrices_over_networks(subjects_df, atlas_labels):
     return diff_connmatrix, networks_labels
 
 
-def schaefer_networks_from_matrix(connectivity_matrix, atlas_labels):
-    networks_names = atlas_manager.get_schaefer_networks_names(atlas_labels)
-    networks = {network: {'connectome': None, 'nodes': []} for network in networks_names}
-    for network in networks:
-        network_indices = atlas_labels[atlas_labels.name.str.contains(network)].index.to_list()
-        networks[network]['nodes'] = network_indices
-        networks[network]['connectome'] = connectivity_matrix[network_indices, :][:, network_indices]
-
-    return networks
-
-
 def networks_connectivity_matrix(subj_connectivity_matrix, networks, all_atlas_labels):
     networks_connmatrix = np.zeros((len(networks), len(networks)))
     terms_matrix = np.zeros((len(networks), len(networks)))
@@ -149,8 +136,8 @@ def connectivity_matrix(time_series, kind='correlation'):
 
 
 def save_connectome(group_name, connectivity_matrix, atlas, fig_title, fig_name, conn_output):
-    modules.export.to_gephi(group_name, connectivity_matrix, atlas, conn_output)
-    if modules.atlas_manager.is_probabilistic_atlas(atlas.maps):
+    export.to_gephi(group_name, connectivity_matrix, atlas, conn_output)
+    if atlas_manager.is_probabilistic_atlas(atlas.maps):
         coordinates = plotting.find_probabilistic_atlas_cut_coords(maps_img=atlas.maps)
     else:
         coordinates = plotting.find_parcellation_cut_coords(labels_img=atlas.maps)
@@ -190,12 +177,12 @@ def global_connectivity_measures(group, global_metrics, connectivity_matrices, t
         if all_computed:
             print(f'Group {group} on graph density {threshold} already computed')
             return
-    group_measures = graph_measures.compute_group_measures(connectivity_matrices, global_metrics, atlas)
+    group_measures = compute_group_measures(connectivity_matrices, global_metrics, atlas)
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
     utils.save_networks_pc(group, threshold, group_measures, filename, group_filename)
     utils.add_to_df(group, threshold, group_measures.copy().pop('avg_pc'), group_filename)
 
-    num_nodes, num_edges = graph_measures.get_num_nodes_edges(connectivity_matrices[0])
+    num_nodes, num_edges = get_num_nodes_edges(connectivity_matrices[0])
     mean_metrics = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
     metrics = set(mean_metrics.keys()).intersection(global_metrics.keys())
     print(f'\nGroup {group}; graph density {threshold}:')

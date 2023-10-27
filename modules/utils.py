@@ -2,13 +2,11 @@ import pandas as pd
 import numpy as np
 from scipy.stats import mannwhitneyu
 from filelock import FileLock
-from . import plot
+from modules.atlas_manager import is_probabilistic_atlas
 
 # NiLearn methods and classes
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
-
-from .atlas_manager import is_probabilistic_atlas
 
 
 def time_series(func_data, brain_mask, conf_strategy, atlas_maps, low_pass, high_pass, smoothing_fwhm, t_r):
@@ -126,18 +124,6 @@ def save_file(df, filename):
         df.to_csv(filename)
     else:
         df.to_pickle(filename)
-
-
-def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1e-4):
-    pvalues = p_at_thresholds[p_at_thresholds.columns[0]]
-    labels = ['*' * i for i in range(len(significance_levels), 0, -1)]
-    significance_levels.insert(0, 0.0)
-    significance_levels.append(1.)
-    labels.append('ns')
-    categorized_pvalues = pd.cut(pvalues, significance_levels, right=False, labels=labels)
-    spacing = pvalues.index[1] - pvalues.index[0] + eps
-
-    plot.significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def networks_means(group, threshold, values, measure, filename):

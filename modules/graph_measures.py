@@ -1,10 +1,7 @@
 import numpy as np
 import networkx as nx
 import bct
-
-import modules.atlas_manager
-from . import utils, atlas_manager
-from .connectome_manager import schaefer_networks_from_matrix
+from modules import atlas_manager
 
 
 def build_graph(connectivity_matrix):
@@ -18,10 +15,21 @@ def get_num_nodes_edges(connectivity_matrix):
     return len(connectome.nodes), len(connectome.edges)
 
 
+def schaefer_networks_from_matrix(connectivity_matrix, atlas_labels):
+    networks_names = atlas_manager.get_schaefer_networks_names(atlas_labels)
+    networks = {network: {'connectome': None, 'nodes': []} for network in networks_names}
+    for network in networks:
+        network_indices = atlas_labels[atlas_labels.name.str.contains(network)].index.to_list()
+        networks[network]['nodes'] = network_indices
+        networks[network]['connectome'] = connectivity_matrix[network_indices, :][:, network_indices]
+
+    return networks
+
+
 def add_subject_measures(connectivity_matrix, group_metrics, atlas):
     connectome = build_graph(connectivity_matrix)
     abs_connectivity_matrix = np.abs(connectivity_matrix)
-    if not modules.atlas_manager.is_network(atlas.name):
+    if not atlas_manager.is_network(atlas.name):
         group_metrics['modularity'].append(modularity(connectome))
         if 'schaefer' in atlas.name:
             networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
@@ -80,7 +88,7 @@ def mean_participation_coefficient(connectome, module_partition, modules_pc):
 
 def compute_group_measures(connectivity_matrices, global_metrics, atlas):
     group_measures = {metric: [] for metric in global_metrics}
-    if 'schaefer' in atlas.name and not modules.atlas_manager.is_network(atlas.name):
+    if 'schaefer' in atlas.name and not atlas_manager.is_network(atlas.name):
         group_measures['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
     for connectivity_matrix in connectivity_matrices:
         add_subject_measures(connectivity_matrix, group_measures, atlas)
