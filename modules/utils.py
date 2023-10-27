@@ -146,7 +146,7 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     categorized_pvalues = pd.cut(pvalues, significance_levels, right=False, labels=labels)
     spacing = pvalues.index[1] - pvalues.index[0] + eps
 
-    plot.plot_significance_bar(ax, categorized_pvalues, labels, spacing)
+    plot.significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def networks_means(group, threshold, values, measure, filename):

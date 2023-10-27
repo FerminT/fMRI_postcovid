@@ -10,7 +10,7 @@ from sklearn.metrics import auc
 from modules.utils import is_network, add_statistical_significance, score_to_bins
 
 
-def plot_rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):
+def rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):
     embedding = initialize_embedding(method)
     embeddings = embedding.fit_transform(rdm)
     rdm_df = subjects_df.copy()
@@ -56,7 +56,7 @@ def initialize_embedding(method):
     return embedding
 
 
-def plot_global_metrics(output, global_metrics, metrics_file, atlas_name):
+def global_measures(output, global_metrics, metrics_file, atlas_name):
     for metric in global_metrics:
         atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
         atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
@@ -117,8 +117,8 @@ def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by,
     plt.show()
 
 
-def plot_matrix_on_axis(connectivity_matrix, atlas_labels, ax,
-                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+def matrix_on_axis(connectivity_matrix, atlas_labels, ax,
+                   tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
     # Get labels in the correct format until plot_matrix is fixed
     labels = list(atlas_labels.name.values)
     plotting.plot_matrix(connectivity_matrix,
@@ -139,15 +139,15 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, color_i
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
 
-def plot_connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
-                             tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+def connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
+                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
     fig, ax = plt.subplots(figsize=(10, 8))
-    plot_matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
+    matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
     fig.savefig(output / f'{fig_name}.png')
     plt.close(fig)
 
 
-def plot_significance_bar(ax, categorized_pvalues, labels, spacing):
+def significance_bar(ax, categorized_pvalues, labels, spacing):
     for label in labels:
         significant_values = categorized_pvalues[categorized_pvalues == label]
         # Build a list of tuples with the start and end of each significant region

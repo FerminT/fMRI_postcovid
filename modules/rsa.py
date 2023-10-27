@@ -2,7 +2,7 @@ import numpy as np
 from rsatoolbox import rdm
 from sklearn import mixture
 from .utils import time_series
-from .plot import plot_rdm
+from .plot import rdm
 from .connectome_manager import connectivity_matrix
 
 
@@ -29,8 +29,8 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
         connectivity_similarity_matrix = connectivity_distance(connectivity_matrices)
     subjects_df['cluster'] = clusters_rdm(connectivity_similarity_matrix)
 
-    connectivity_embeddings = plot_rdm(connectivity_similarity_matrix, subjects_df, f'Connectivity {atlas.name}',
-                                       output, rdm_decomposition, clinical_score)
+    connectivity_embeddings = rdm(connectivity_similarity_matrix, subjects_df, f'Connectivity {atlas.name}',
+                                  output, rdm_decomposition, clinical_score)
 
     return connectivity_embeddings
 
@@ -46,8 +46,8 @@ def behavioral_rsa(subjects_df, rdm_decomposition, output):
         behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
         behavioral_data /= behavioral_data.std()
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
-        behavioral_embeddings = plot_rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral',
-                                         output, rdm_decomposition)
+        behavioral_embeddings = rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral',
+                                    output, rdm_decomposition)
 
     return behavioral_embeddings
 
