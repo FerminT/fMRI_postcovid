@@ -36,14 +36,13 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
 
 
 def behavioral_rsa(subjects_df, rdm_decomposition, output):
-    fields = ['sexo', 'edad', 'composite_attention', 'composite_visuoespatial', 'composite_language',
-              'composite_memory', 'composite_executive']
+    fields = ['sexo', 'edad', 'nivel_educativo', 'attention', 'visuoespatial', 'language', 'memory', 'executive']
     if fields not in subjects_df.columns.to_list():
         behavioral_embeddings = np.zeros((subjects_df.shape[0], 2))
     else:
         behavioral_data = subjects_df[fields].copy()
         behavioral_data.dropna(inplace=True)
-        behavioral_data['sexo'] = behavioral_data['sexo'].map({'Masculino': 0, 'Femenino': 1})
+        behavioral_data['sexo'] = behavioral_data['sexo'].map({'masculino': 0, 'femenino': 1})
         behavioral_data /= behavioral_data.std()
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
         behavioral_embeddings = rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral',
@@ -72,7 +71,6 @@ def connectivity_correlation(connectivity_matrices, atlas_labels):
 def connectivity_distance(connectivity_matrices):
     connectivity_std = np.std(connectivity_matrices, axis=0)
     np.fill_diagonal(connectivity_std, 1)
-    # Compute the distance between correlation matrices
     n_subjects = connectivity_matrices.shape[0]
     connectivity_distance_matrix = np.empty((n_subjects, n_subjects))
     for i in range(n_subjects):
@@ -86,13 +84,3 @@ def connectivity_distance(connectivity_matrices):
 def clusters_rdm(connectivity_distance_matrix):
     gmm = mixture.GaussianMixture(n_components=2, covariance_type='full', random_state=42)
     return gmm.fit_predict(connectivity_distance_matrix)
-
-
-def get_rdm(distance_matrix, descriptor, pattern_descriptors):
-    rdm_obj = rdm.RDMs(distance_matrix,
-                       dissimilarity_measure='Euclidean',
-                       rdm_descriptors={'name': [descriptor]},
-                       pattern_descriptors={'subjects': pattern_descriptors})
-    rdm_obj = rdm.transform(rdm_obj, lambda x: x / x.max())
-
-    return rdm_obj
