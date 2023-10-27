@@ -1,5 +1,4 @@
 import numpy as np
-from rsatoolbox import rdm
 from sklearn import mixture
 from modules.utils import time_series
 from modules.plot import rdm
