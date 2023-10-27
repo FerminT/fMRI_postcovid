@@ -2,12 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import networkx as nx
-import bct
-from . import utils, atlas_manager
+from . import utils, atlas_manager, graph_measures
 
 # NiLearn methods and classes
-from nilearn import plotting
-from nilearn import connectome
+from nilearn import plotting, connectome
 
 
 def build_connectome(subjects_df, conf_strategy, atlas,
@@ -34,6 +32,21 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
     return subjects_df
 
 
+def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
+    global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
+                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
+                      'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
+    if utils.is_network(atlas.name):
+        global_metrics.pop('modularity')
+    metrics_file = output / 'global_metrics.csv'
+    for threshold in thresholds:
+        groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output,
+                                     metrics_file)
+    utils.rank_sum(subjects_df['group'].unique(), global_metrics, metrics_file)
+    if not no_plot:
+        utils.plot_global_metrics(output, global_metrics, metrics_file, atlas.name)
+
+
 def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output, metrics_file):
     threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
     groups_connectomes = {group: None for group in subjects_df['group'].unique()}
@@ -54,19 +67,13 @@ def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, 
         save_groups_matrices(groups_connectomes, atlas.labels, threshold_output)
 
 
-def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
-    global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
-                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
-                      'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
-    if utils.is_network(atlas.name):
-        global_metrics.pop('modularity')
-    metrics_file = output / 'global_metrics.csv'
-    for threshold in thresholds:
-        groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output,
-                                     metrics_file)
-    utils.rank_sum(subjects_df['group'].unique(), global_metrics, metrics_file)
-    if not no_plot:
-        utils.plot_global_metrics(output, global_metrics, metrics_file, atlas.name)
+def apply_threshold(connectivity_matrix, threshold):
+    lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
+    n_connections = int(threshold * len(lower_part))
+    max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
+    lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
+    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
+    return thresholded_matrix
 
 
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
@@ -176,48 +183,6 @@ def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reord
                                                                       atlas_labels, output, reorder=reorder), axis=1)
 
 
-def global_efficiency(connectivity_matrix):
-    e_glob = bct.efficiency_wei(connectivity_matrix, local=False)
-    return e_glob
-
-
-def mean_local_efficiency(connectivity_matrix):
-    e_loc = bct.efficiency_wei(connectivity_matrix, local=True)
-    mean_e_loc = np.mean(e_loc)
-    return mean_e_loc
-
-
-def modularity(connectome):
-    partitions = nx.community.louvain_communities(connectome, weight='weight')
-    q = nx.community.modularity(connectome, partitions, weight='weight')
-    return q
-
-
-def largest_connected_component(connectome):
-    largest_cc = max(nx.connected_components(connectome), key=len)
-    return len(largest_cc) / len(connectome.nodes)
-
-
-def mean_participation_coefficient(connectome, module_partition, modules_pc):
-    for module in module_partition:
-        module_subgraph = set(module_partition[module]['nodes'])
-        nodes_pc = []
-        for node in module_subgraph:
-            degree = float(nx.degree(G=connectome, nbunch=node))
-            # intramodule degree of node
-            wm_degree = float(sum([1 for u in module_subgraph if (u, node) in connectome.edges()]))
-
-            # The participation coefficient is 1 - the square of
-            # the ratio of the within module degree and the total degree
-            if degree == 0:
-                nodes_pc.append(0)
-            else:
-                nodes_pc.append(1 - (wm_degree / degree) ** 2)
-        modules_pc[module].append(np.mean(nodes_pc))
-
-    return modules_pc
-
-
 def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
     if filename.exists() and not force:
         computed_thresholds = pd.read_csv(filename, index_col=0)
@@ -237,14 +202,14 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
         abs_connectivity_matrix = np.abs(connectivity_matrix)
         connectome = nx.from_numpy_array(abs_connectivity_matrix)
         if not utils.is_network(atlas.name):
-            group_metrics['modularity'].append(modularity(connectome))
+            group_metrics['modularity'].append(graph_measures.modularity(connectome))
             if 'schaefer' in atlas.name:
                 networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
-                mean_participation_coefficient(connectome, networks, group_metrics['avg_pc'])
+                graph_measures.mean_participation_coefficient(connectome, networks, group_metrics['avg_pc'])
         group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
-        group_metrics['largest_cc'].append(largest_connected_component(connectome))
-        group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
-        group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
+        group_metrics['largest_cc'].append(graph_measures.largest_connected_component(connectome))
+        group_metrics['global_efficiency'].append(graph_measures.global_efficiency(abs_connectivity_matrix))
+        group_metrics['avg_local_efficiency'].append(graph_measures.mean_local_efficiency(abs_connectivity_matrix))
         num_nodes, num_edges = len(connectome.nodes), len(connectome.edges)
 
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
@@ -263,13 +228,3 @@ def global_connectivity_metrics(group, global_metrics, connectivity_matrices, th
     print(f'\nGroup {group}; graph density {threshold}:')
     for metric in metrics:
         print(f'{global_metrics[metric]}: {mean_metrics[metric]}')
-
-
-def apply_threshold(connectivity_matrix, threshold):
-    lower_part = connectome.sym_matrix_to_vec(connectivity_matrix, discard_diagonal=True)
-    n_connections = int(threshold * len(lower_part))
-    max_nconnections_ind = np.argpartition(np.abs(lower_part), -n_connections)[-n_connections:]
-    lower_part[~np.isin(np.arange(len(lower_part)), max_nconnections_ind)] = 0
-    thresholded_matrix = connectome.vec_to_sym_matrix(lower_part, diagonal=np.diag(connectivity_matrix))
-
-    return thresholded_matrix
