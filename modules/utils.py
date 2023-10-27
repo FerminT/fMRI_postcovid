@@ -106,7 +106,8 @@ def update_file(series, filename, dict_values):
                 df = pd.read_pickle(filename)
         else:
             df = pd.DataFrame(columns=list(dict_values.keys()))
-        if series['threshold'] in df['threshold'].values:
+        group_df = df[df['group'] == series['group']]
+        if series['threshold'] in group_df['threshold'].values:
             idx = df[(df['threshold'] == series['threshold']) & (df['group'] == series['group'])].index[0]
             for metric in dict_values:
                 if metric not in df:
