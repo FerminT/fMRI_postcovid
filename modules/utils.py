@@ -260,6 +260,15 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
                         color='k', alpha=0.8)
 
 
+def plot_global_metrics(output, global_metrics, metrics_file, atlas_name):
+    for metric in global_metrics:
+        atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
+        atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
+                          dir_.is_dir() and atlas_basename in dir_.name]
+        plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
+                           output.parent, metrics_file)
+
+
 def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
     fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
     aucs = {network: {} for network in networks}
