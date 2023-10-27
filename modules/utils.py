@@ -94,25 +94,9 @@ def q_test(data, mean):
     return q, df
 
 
-# TODO: refactorizar
 def add_to_csv(dict_values, filename):
     series = pd.Series(dict_values)
-    lock = FileLock(filename.parent / f'{filename.name}.lock')
-    with lock:
-        if filename.exists():
-            df = pd.read_csv(filename, index_col=0)
-        else:
-            df = pd.DataFrame(columns=list(dict_values.keys()))
-        group_df = df[df['group'] == series['group']]
-        if series['threshold'] in group_df['threshold'].values:
-            idx = df[(df['threshold'] == series['threshold']) & (df['group'] == series['group'])].index[0]
-            for metric in dict_values:
-                if metric in df and isinstance(series[metric], list):
-                    df[metric] = df[metric].astype(object)
-                df.at[idx, metric] = series[metric]
-        else:
-            df = pd.concat([df, series.to_frame().T], ignore_index=True)
-        df.to_csv(filename)
+    update_file(series, filename, dict_values)
 
 
 def add_to_df(group, threshold, group_metrics, group_filename):
@@ -120,21 +104,37 @@ def add_to_df(group, threshold, group_metrics, group_filename):
     group_metrics['group'] = group
     group_metrics['threshold'] = threshold
     series = pd.Series(group_metrics)
-    lock = FileLock(group_filename.parent / f'{group_filename.name}.lock')
+    update_file(series, group_filename, group_metrics)
+
+
+def update_file(series, filename, dict_values):
+    lock = FileLock(filename.parent / f'{filename.name}.lock')
     with lock:
-        if group_filename.exists():
-            df = pd.read_pickle(group_filename)
+        if filename.exists():
+            if filename.name.endswith('.csv'):
+                df = pd.read_csv(filename, index_col=0)
+            else:
+                df = pd.read_pickle(filename)
         else:
-            df = pd.DataFrame(columns=list(group_metrics.keys()))
+            df = pd.DataFrame(columns=list(dict_values.keys()))
         if series['threshold'] in df['threshold'].values:
             idx = df[(df['threshold'] == series['threshold']) & (df['group'] == series['group'])].index[0]
-            for metric in group_metrics:
+            for metric in dict_values:
                 if metric not in df:
                     df[metric] = None
+                elif isinstance(series[metric], list):
+                    df[metric] = df[metric].astype(object)
                 df.at[idx, metric] = series[metric]
         else:
             df = pd.concat([df, series.to_frame().T], ignore_index=True)
-        df.to_pickle(group_filename)
+        save_file(df, filename)
+
+
+def save_file(df, filename):
+    if filename.name.endswith('.csv'):
+        df.to_csv(filename)
+    else:
+        df.to_pickle(filename)
 
 
 def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1e-4):
