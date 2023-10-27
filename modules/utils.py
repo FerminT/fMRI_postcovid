@@ -381,3 +381,13 @@ def save_gephi_data(group_name, connectivity_matrix, atlas, conn_output):
     edges_df = pd.DataFrame(items, columns=['Source', 'Target', 'Type', 'Id', 'Label', 'Interval', 'Weight', 'Hub1',
                                             'Hub2', 'Hub3'])
     edges_df.to_csv(conn_output / f'gephi_edges_{group_name}.csv', index=False)
+
+
+def check_for_computed_metrics(group, threshold, filename):
+    all_computed = False
+    computed_thresholds = pd.read_csv(filename, index_col=0)
+    if group in computed_thresholds['group'].unique():
+        group_thresholds = computed_thresholds[computed_thresholds['group'] == group]
+        if threshold in group_thresholds.threshold.values:
+            all_computed = not group_thresholds[group_thresholds['threshold'] == threshold].isnull().values.any()
+    return all_computed

@@ -2,10 +2,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import networkx as nx
-from . import utils, atlas_manager, graph_measures
-
-# NiLearn methods and classes
 from nilearn import plotting, connectome
+from . import utils, atlas_manager, graph_measures
 
 
 def build_connectome(subjects_df, conf_strategy, atlas,
@@ -185,32 +183,16 @@ def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reord
 
 def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
     if filename.exists() and not force:
-        computed_thresholds = pd.read_csv(filename, index_col=0)
-        if group in computed_thresholds['group'].unique():
-            group_thresholds = computed_thresholds[computed_thresholds['group'] == group]
-            if threshold in group_thresholds.threshold.values:
-                all_computed = not group_thresholds[group_thresholds['threshold'] == threshold].isnull().values.any()
-                if all_computed:
-                    print(f'Group {group} on graph density {threshold} already computed')
-                    return
+        all_computed = utils.check_for_computed_metrics(group, threshold, filename)
+        if all_computed:
+            print(f'Group {group} on graph density {threshold} already computed')
+            return
     group_metrics = {metric: [] for metric in global_metrics}
     if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
         group_metrics['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
-    num_nodes, num_edges = 0, 0
+    num_nodes, num_edges = graph_measures.get_num_nodes_edges(connectivity_matrices[0])
     for connectivity_matrix in connectivity_matrices:
-        np.fill_diagonal(connectivity_matrix, 0)
-        abs_connectivity_matrix = np.abs(connectivity_matrix)
-        connectome = nx.from_numpy_array(abs_connectivity_matrix)
-        if not utils.is_network(atlas.name):
-            group_metrics['modularity'].append(graph_measures.modularity(connectome))
-            if 'schaefer' in atlas.name:
-                networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
-                graph_measures.mean_participation_coefficient(connectome, networks, group_metrics['avg_pc'])
-        group_metrics['avg_clustering'].append(nx.average_clustering(connectome, weight='weight'))
-        group_metrics['largest_cc'].append(graph_measures.largest_connected_component(connectome))
-        group_metrics['global_efficiency'].append(graph_measures.global_efficiency(abs_connectivity_matrix))
-        group_metrics['avg_local_efficiency'].append(graph_measures.mean_local_efficiency(abs_connectivity_matrix))
-        num_nodes, num_edges = len(connectome.nodes), len(connectome.edges)
+        graph_measures.add_measures(connectivity_matrix, group_metrics, atlas)
 
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
     for network in group_metrics['avg_pc']:

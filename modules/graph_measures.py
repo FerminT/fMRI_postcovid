@@ -1,6 +1,37 @@
 import numpy as np
 import networkx as nx
 import bct
+from . import utils
+from .connectome_manager import schaefer_networks_from_matrix
+
+
+def build_graph(connectivity_matrix):
+    np.fill_diagonal(connectivity_matrix, 0)
+    abs_connectivity_matrix = np.abs(connectivity_matrix)
+    return nx.from_numpy_array(abs_connectivity_matrix)
+
+
+def get_num_nodes_edges(connectivity_matrix):
+    connectome = build_graph(connectivity_matrix)
+    return len(connectome.nodes), len(connectome.edges)
+
+
+def add_measures(connectivity_matrix, group_metrics, atlas):
+    connectome = build_graph(connectivity_matrix)
+    abs_connectivity_matrix = np.abs(connectivity_matrix)
+    if not utils.is_network(atlas.name):
+        group_metrics['modularity'].append(modularity(connectome))
+        if 'schaefer' in atlas.name:
+            networks = schaefer_networks_from_matrix(abs_connectivity_matrix, atlas.labels)
+            mean_participation_coefficient(connectome, networks, group_metrics['avg_pc'])
+    group_metrics['avg_clustering'].append(average_clustering(connectome))
+    group_metrics['largest_cc'].append(largest_connected_component(connectome))
+    group_metrics['global_efficiency'].append(global_efficiency(abs_connectivity_matrix))
+    group_metrics['avg_local_efficiency'].append(mean_local_efficiency(abs_connectivity_matrix))
+
+
+def average_clustering(connectome):
+    return nx.average_clustering(connectome, weight='weight')
 
 
 def global_efficiency(connectivity_matrix):
