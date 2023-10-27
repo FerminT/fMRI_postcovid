@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import networkx as nx
 from nilearn import plotting, connectome
 from . import utils, atlas_manager, graph_measures
 
@@ -53,8 +52,8 @@ def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, 
         thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
                                                                      apply_threshold(matrix,
                                                                                      threshold))
-        global_connectivity_metrics(group, global_metrics, thresholded_matrices.tolist(), np.round(threshold, 4),
-                                    atlas, force, metrics_file)
+        global_connectivity_measures(group, global_metrics, thresholded_matrices.tolist(), np.round(threshold, 4),
+                                     atlas, force, metrics_file)
         group_connectome = mean_connectivity_matrix(thresholded_matrices)
         if not no_plot:
             threshold_output.mkdir(exist_ok=True)
@@ -181,31 +180,19 @@ def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reord
                                                                       atlas_labels, output, reorder=reorder), axis=1)
 
 
-def global_connectivity_metrics(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
+def global_connectivity_measures(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
     if filename.exists() and not force:
         all_computed = utils.check_for_computed_metrics(group, threshold, filename)
         if all_computed:
             print(f'Group {group} on graph density {threshold} already computed')
             return
-    group_metrics = {metric: [] for metric in global_metrics}
-    if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
-        group_metrics['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
-    num_nodes, num_edges = graph_measures.get_num_nodes_edges(connectivity_matrices[0])
-    for connectivity_matrix in connectivity_matrices:
-        graph_measures.add_measures(connectivity_matrix, group_metrics, atlas)
-
+    group_measures = graph_measures.compute_group_measures(connectivity_matrices, global_metrics, atlas)
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
-    for network in group_metrics['avg_pc']:
-        network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
-        values = group_metrics['avg_pc'][network]
-        if network_path.exists():
-            network_file = network_path / group_filename.name
-            utils.add_to_df(group, threshold, {'avg_pc': values}, network_file)
-    group_metrics_cp = group_metrics.copy()
-    group_metrics_cp.pop('avg_pc')
-    utils.add_to_df(group, threshold, group_metrics_cp, group_filename)
-    mean_metrics = utils.compute_mean(group, threshold, group_metrics, num_nodes, num_edges, filename)
+    utils.save_networks_pc(group, threshold, group_measures, filename, group_filename)
+    utils.add_to_df(group, threshold, group_measures.copy().pop('avg_pc'), group_filename)
 
+    num_nodes, num_edges = graph_measures.get_num_nodes_edges(connectivity_matrices[0])
+    mean_metrics = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
     metrics = set(mean_metrics.keys()).intersection(global_metrics.keys())
     print(f'\nGroup {group}; graph density {threshold}:')
     for metric in metrics:

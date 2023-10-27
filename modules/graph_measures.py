@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
 import bct
-from . import utils
+from . import utils, atlas_manager
 from .connectome_manager import schaefer_networks_from_matrix
 
 
@@ -16,7 +16,7 @@ def get_num_nodes_edges(connectivity_matrix):
     return len(connectome.nodes), len(connectome.edges)
 
 
-def add_measures(connectivity_matrix, group_metrics, atlas):
+def add_subject_measures(connectivity_matrix, group_metrics, atlas):
     connectome = build_graph(connectivity_matrix)
     abs_connectivity_matrix = np.abs(connectivity_matrix)
     if not utils.is_network(atlas.name):
@@ -74,3 +74,13 @@ def mean_participation_coefficient(connectome, module_partition, modules_pc):
         modules_pc[module].append(np.mean(nodes_pc))
 
     return modules_pc
+
+
+def compute_group_measures(connectivity_matrices, global_metrics, atlas):
+    group_measures = {metric: [] for metric in global_metrics}
+    if 'schaefer' in atlas.name and not utils.is_network(atlas.name):
+        group_measures['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
+    for connectivity_matrix in connectivity_matrices:
+        add_subject_measures(connectivity_matrix, group_measures, atlas)
+
+    return group_measures

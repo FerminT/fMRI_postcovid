@@ -391,3 +391,12 @@ def check_for_computed_metrics(group, threshold, filename):
         if threshold in group_thresholds.threshold.values:
             all_computed = not group_thresholds[group_thresholds['threshold'] == threshold].isnull().values.any()
     return all_computed
+
+
+def save_networks_pc(group, threshold, group_measures, filename, group_filename):
+    for network in group_measures['avg_pc']:
+        network_path = filename.parents[1] / f'{filename.parent.name}_{network}'
+        values = group_measures['avg_pc'][network]
+        if network_path.exists():
+            network_file = network_path / group_filename.name
+            add_to_df(group, threshold, {'avg_pc': values}, network_file)
