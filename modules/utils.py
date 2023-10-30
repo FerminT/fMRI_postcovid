@@ -157,10 +157,10 @@ def compute_mean(group, threshold, group_measures, num_nodes, num_edges, filenam
     return measures_mean
 
 
-def rank_sum(groups, global_metrics, metrics_file):
-    mean_measurements = pd.read_csv(metrics_file, index_col=0)
-    groups_measurements = [pd.read_pickle(metrics_file.parent / f'{metrics_file.stem}_{group}.pkl') for group in groups]
-    measures = set(global_metrics.keys()).intersection(groups_measurements[0].columns)
+def rank_sum(groups, global_measures, results_file):
+    mean_measurements = pd.read_csv(results_file, index_col=0)
+    groups_measurements = [pd.read_pickle(results_file.parent / f'{results_file.stem}_{group}.pkl') for group in groups]
+    measures = set(global_measures.keys()).intersection(groups_measurements[0].columns)
     densities = groups_measurements[0]['threshold'].values
     for density in densities:
         fst_group = groups_measurements[0][groups_measurements[0]['threshold'] == density]
@@ -174,7 +174,7 @@ def rank_sum(groups, global_metrics, metrics_file):
                 _, pvalue = mannwhitneyu(x, y)
                 mean_measurements.loc[mean_measurements['threshold'] == density, f'{measure}_p'] = pvalue
 
-    mean_measurements.to_csv(metrics_file)
+    mean_measurements.to_csv(results_file)
 
 
 def check_for_computed_metrics(group, threshold, filename):

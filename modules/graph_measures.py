@@ -86,8 +86,8 @@ def mean_participation_coefficient(connectome, module_partition, modules_pc):
     return modules_pc
 
 
-def compute_group_measures(connectivity_matrices, global_metrics, atlas):
-    group_measures = {metric: [] for metric in global_metrics}
+def compute_group_measures(connectivity_matrices, global_measures, atlas):
+    group_measures = {measure: [] for measure in global_measures}
     if 'schaefer' in atlas.name and not atlas_manager.is_network(atlas.name):
         group_measures['avg_pc'] = {network: [] for network in atlas_manager.get_schaefer_networks_names(atlas.labels)}
     for connectivity_matrix in connectivity_matrices:

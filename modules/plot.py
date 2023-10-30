@@ -57,13 +57,13 @@ def initialize_embedding(method):
     return embedding
 
 
-def global_measures(output, global_metrics, metrics_file, atlas_name):
-    for metric in global_metrics:
+def global_measures(output, global_measures, metrics_file, atlas_name):
+    for measure in global_measures:
         atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
         atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
                           dir_.is_dir() and atlas_basename in dir_.name]
-        plot_measure(atlas_basename, atlas_networks, metric, global_metrics[metric],
-                           output.parent, metrics_file)
+        plot_measure(atlas_basename, atlas_networks, measure, global_measures[measure],
+                     output.parent, metrics_file)
 
 
 def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
