@@ -7,10 +7,11 @@ from modules.connectome_manager import connectivity_matrix
 
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
         rdm_decomposition, similarity_measure, clinical_score, output):
-    connectivity_embeddings = connectome_rsa(subjects_df, conf_strategy, atlas,
+    subjects_with_enc = subjects_df.dropna()
+    behavioral_embeddings = behavioral_rsa(subjects_with_enc, rdm_decomposition, output)
+    connectivity_embeddings = connectome_rsa(subjects_with_enc, conf_strategy, atlas,
                                              low_pass, high_pass, smoothing_fwhm, t_r,
                                              rdm_decomposition, similarity_measure, clinical_score, output)
-    behavioral_embeddings = behavioral_rsa(subjects_df, rdm_decomposition, output)
 
     return connectivity_embeddings, behavioral_embeddings
 
@@ -26,7 +27,6 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
         connectivity_similarity_matrix = connectivity_correlation(connectivity_matrices, atlas.labels)
     else:
         connectivity_similarity_matrix = connectivity_distance(connectivity_matrices)
-    subjects_df['cluster'] = clusters_rdm(connectivity_similarity_matrix)
 
     connectivity_embeddings = rdm(connectivity_similarity_matrix, subjects_df, f'Connectivity {atlas.name}',
                                   output, rdm_decomposition, clinical_score)
@@ -40,11 +40,11 @@ def behavioral_rsa(subjects_df, rdm_decomposition, output):
         behavioral_embeddings = np.zeros((subjects_df.shape[0], 2))
     else:
         behavioral_data = subjects_df[fields].copy()
-        behavioral_data.dropna(inplace=True)
         behavioral_data['sexo'] = behavioral_data['sexo'].map({'masculino': 0, 'femenino': 1})
         behavioral_data /= behavioral_data.std()
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
-        behavioral_embeddings = rdm(behavioral_distance, subjects_df.dropna(), 'Behavioral',
+        subjects_df.loc[:, 'cluster'] = clusters_rdm(behavioral_distance, n_components=4)
+        behavioral_embeddings = rdm(behavioral_distance, subjects_df, 'Behavioral',
                                     output, rdm_decomposition)
 
     return behavioral_embeddings
@@ -80,6 +80,6 @@ def connectivity_distance(connectivity_matrices):
     return connectivity_distance_matrix
 
 
-def clusters_rdm(connectivity_distance_matrix):
-    gmm = mixture.GaussianMixture(n_components=2, covariance_type='full', random_state=42)
+def clusters_rdm(connectivity_distance_matrix, n_components=2):
+    gmm = mixture.GaussianMixture(n_components=n_components, covariance_type='full', random_state=42)
     return gmm.fit_predict(connectivity_distance_matrix)
