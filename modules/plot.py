@@ -57,24 +57,25 @@ def initialize_embedding(method):
     return embedding
 
 
-def global_measures(output, global_measures, metrics_file, atlas_name):
+def global_measures(subjects_df, output, global_measures, networks_nce, results_file, atlas_name):
+    atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
+    atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
     for measure in global_measures:
-        atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
-        atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if
-                          dir_.is_dir() and atlas_basename in dir_.name]
         plot_measure(atlas_basename, atlas_networks, measure, global_measures[measure],
-                     output.parent, metrics_file)
+                     output.parent, results_file)
+        plot_measure_to_nce(atlas_basename, atlas_networks, subjects_df, measure, global_measures[measure],
+                            networks_nce, output.parent, results_file)
 
 
 def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
     fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
     aucs = {network: {} for network in networks}
     for i, network in enumerate(networks):
-        metrics_values = pd.read_csv(output / network / filename.name, index_col=0)
+        measures_values = pd.read_csv(output / network / filename.name, index_col=0)
         ax = axes[i // 2, i % 2]
-        groups = sorted(metrics_values['group'].unique())
+        groups = sorted(measures_values['group'].unique())
         for color_index, group in enumerate(groups):
-            group_values = metrics_values[metrics_values['group'] == group]
+            group_values = measures_values[measures_values['group'] == group]
             densities = group_values['threshold'].values
             if measure_label not in group_values.columns:
                 continue
@@ -84,8 +85,9 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
             sorted_densities = np.argsort(densities)
             aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
             add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
-        if f'{measure_label}_p' in metrics_values.columns:
-            p_at_thresholds = metrics_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index('threshold')
+        if f'{measure_label}_p' in measures_values.columns:
+            p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
+                'threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
         network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
         ax.set_title(f'{network_name}')
@@ -110,6 +112,33 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     spacing = pvalues.index[1] - pvalues.index[0] + eps
 
     significance_bar(ax, categorized_pvalues, labels, spacing)
+
+
+def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, measure_desc, networks_nce,
+                        output, filename):
+    fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
+    for i, network in enumerate(networks):
+        ax = axes[i // 2, i % 2]
+        network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
+        if network_name not in networks_nce:
+            continue
+        network_nce = networks_nce[network_name]
+        groups = sorted(subjects_df['group'].unique())
+        for group in groups:
+            group_df = subjects_df[subjects_df['group'] == group]
+            group_network_measures = pd.read_pickle(output / network / f'{filename.stem}_{group}.pkl')
+            measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
+            if measure_label not in measures_at_threshold.index:
+                continue
+            ax.scatter(measures_at_threshold[measure_label], group_df[network_nce].values, label=group)
+        ax.set_title(f'{network_name}')
+        ax.set_xlabel(f'{measure_desc}')
+        ax.set_ylabel(f'{network_nce} score')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+    fig.suptitle(measure_desc)
+    fig.savefig(output / f'{measure_label}_to_NCE.png')
+    plt.show()
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):

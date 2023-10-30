@@ -35,6 +35,8 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_measures = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                        'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                        'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
+    networks_nce = {'SalVentAttn': 'executive', 'DorsAttn': 'attention', 'Cont': 'memory', 'Default': 'global',
+                    'Vis': 'visuoespatial', 'Global': 'global'}
     if atlas_manager.is_network(atlas.name):
         global_measures.pop('modularity')
     results_file = output / 'global_measures.csv'
@@ -43,7 +45,7 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
                                      results_file)
     utils.rank_sum(subjects_df['group'].unique(), global_measures, results_file)
     if not no_plot:
-        plot.global_measures(output, global_measures, results_file, atlas.name)
+        plot.global_measures(subjects_df, output, global_measures, networks_nce, results_file, atlas.name)
 
 
 def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_measures, force, no_plot, output, metrics_file):
@@ -183,8 +185,8 @@ def global_connectivity_measures(group, global_measures, connectivity_matrices, 
     utils.add_to_df(group, threshold, group_measures.copy().pop('avg_pc'), group_filename)
 
     num_nodes, num_edges = get_num_nodes_edges(connectivity_matrices[0])
-    mean_metrics = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
-    metrics = set(mean_metrics.keys()).intersection(global_measures.keys())
+    mean_measures = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
+    measures_values = set(mean_measures.keys()).intersection(global_measures.keys())
     print(f'\nGroup {group}; graph density {threshold}:')
-    for metric in metrics:
-        print(f'{global_measures[metric]}: {mean_metrics[metric]}')
+    for measure_name in measures_values:
+        print(f'{global_measures[measure_name]}: {mean_measures[measure_name]}')
