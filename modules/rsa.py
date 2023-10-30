@@ -8,7 +8,7 @@ from modules.connectome_manager import connectivity_matrix
 def rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoothing_fwhm, t_r,
         rdm_decomposition, similarity_measure, clinical_score, output):
     subjects_with_enc = subjects_df.dropna()
-    behavioral_embeddings = behavioral_rsa(subjects_with_enc, rdm_decomposition, output)
+    behavioral_embeddings = behavioral_rsa(subjects_with_enc, rdm_decomposition, clinical_score, output)
     connectivity_embeddings = connectome_rsa(subjects_with_enc, conf_strategy, atlas,
                                              low_pass, high_pass, smoothing_fwhm, t_r,
                                              rdm_decomposition, similarity_measure, clinical_score, output)
@@ -34,8 +34,12 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
     return connectivity_embeddings
 
 
-def behavioral_rsa(subjects_df, rdm_decomposition, output):
-    fields = ['sexo', 'edad', 'nivel_educativo', 'attention', 'visuoespatial', 'language', 'memory', 'executive']
+def behavioral_rsa(subjects_df, rdm_decomposition, clinical_score, output):
+    fields = ['sexo', 'edad', 'nivel_educativo']
+    if clinical_score != 'global':
+        fields.extend([clinical_score])
+    else:
+        fields.extend(['attention', 'visuoespatial', 'language', 'memory', 'executive'])
     if not set(fields).issubset(subjects_df.columns.to_list()):
         behavioral_embeddings = np.zeros((subjects_df.shape[0], 2))
     else:
@@ -45,7 +49,7 @@ def behavioral_rsa(subjects_df, rdm_decomposition, output):
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
         subjects_df.loc[:, 'cluster'] = clusters_rdm(behavioral_distance, n_components=4)
         behavioral_embeddings = rdm(behavioral_distance, subjects_df, 'Behavioral',
-                                    output, rdm_decomposition)
+                                    output, rdm_decomposition, clinical_score)
 
     return behavioral_embeddings
 
