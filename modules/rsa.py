@@ -36,7 +36,7 @@ def connectome_rsa(subjects_df, conf_strategy, atlas, low_pass, high_pass, smoot
 
 def behavioral_rsa(subjects_df, rdm_decomposition, output):
     fields = ['sexo', 'edad', 'nivel_educativo', 'attention', 'visuoespatial', 'language', 'memory', 'executive']
-    if fields not in subjects_df.columns.to_list():
+    if not set(fields).issubset(subjects_df.columns.to_list()):
         behavioral_embeddings = np.zeros((subjects_df.shape[0], 2))
     else:
         behavioral_data = subjects_df[fields].copy()
