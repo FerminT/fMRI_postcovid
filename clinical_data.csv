@@ -5,7 +5,7 @@ id,edad,sexo,nivel_educativo,group,fecha_enc,fecha_rmn,protocolo,tesla,coil,memo
 5,52,femenino,18,covid,24/02/2022,23/06/2022,Covid,3,32-channel head,0.3,-0.39,-0.085,0.055,0.17,-0.276666666666667
 6,42,masculino,18,covid,16/02/2022,16/02/2022,Covid,3,32-channel head,-0.15,0.52,-0.37,-0.05,0,0.1
 7,51,masculino,17,covid,28/05/2022,4/07/2022,Covid,3,32-channel head,0.805,0.495,-0.595,-1.265,0,-0.246666666666667
-8,48,femenino,,covid,,22/02/2022,Covid,3,32-channel head,-1.035,-0.865,-1.125,-2.485,0.17,-2.00666666666667
+8,48,femenino,17,covid,18/02/2023,22/02/2022,Covid,3,32-channel head,-1.035,-0.865,-1.125,-2.485,0.17,-2.00666666666667
 9,72,masculino,17,covid,28/04/2022,4/06/2022,Covid,3,32-channel head,-0.555,0.25,-1.76,-0.98,-0.43,-0.49
 10,44,femenino,18,covid,29/05/2021,24/03/2022,Covid,3,32-channel head,0.445,0.575,-2.15,-0.595,0.17,-0.116666666666667
 11,70,masculino,12,covid,12/06/2021,27/06/2022,Angulo pontocerebeloso,3,32-channel head,-1.5,-0.795,-1.065,-0.07,-1.07,-0.366666666666667
