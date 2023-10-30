@@ -32,21 +32,21 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 
 
 def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
-    global_metrics = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
-                      'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
-                      'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
+    global_measures = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
+                       'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
+                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
     if atlas_manager.is_network(atlas.name):
-        global_metrics.pop('modularity')
-    metrics_file = output / 'global_metrics.csv'
+        global_measures.pop('modularity')
+    results_file = output / 'global_measures.csv'
     for threshold in thresholds:
-        groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output,
-                                     metrics_file)
-    utils.rank_sum(subjects_df['group'].unique(), global_metrics, metrics_file)
+        groups_analysis_at_threshold(subjects_df, atlas, threshold, global_measures, force, no_plot, output,
+                                     results_file)
+    utils.rank_sum(subjects_df['group'].unique(), global_measures, results_file)
     if not no_plot:
-        plot.global_measures(output, global_metrics, metrics_file, atlas.name)
+        plot.global_measures(output, global_measures, results_file, atlas.name)
 
 
-def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, force, no_plot, output, metrics_file):
+def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_measures, force, no_plot, output, metrics_file):
     threshold_output = output / f'density_{str(int(threshold * 100)).zfill(3)}'
     groups_connectomes = {group: None for group in subjects_df['group'].unique()}
     for group in groups_connectomes:
@@ -54,7 +54,7 @@ def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_metrics, 
         thresholded_matrices = group_df['connectivity_matrix'].apply(lambda matrix:
                                                                      apply_threshold(matrix,
                                                                                      threshold))
-        global_connectivity_measures(group, global_metrics, thresholded_matrices.tolist(), np.round(threshold, 4),
+        global_connectivity_measures(group, global_measures, thresholded_matrices.tolist(), np.round(threshold, 4),
                                      atlas, force, metrics_file)
         group_connectome = mean_connectivity_matrix(thresholded_matrices)
         if not no_plot:
@@ -78,9 +78,9 @@ def apply_threshold(connectivity_matrix, threshold):
 def groups_diff_over_networks(subjects_df, atlas_labels, conn_output):
     networks_diff, networks_labels = connmatrices_over_networks(subjects_df, atlas_labels)
     plot.networks_corrcoef_boxplot(subjects_df, 'networks_connmatrix', networks_labels,
-                                           group_by='group', output=conn_output)
+                                   group_by='group', output=conn_output)
     plot.connectivity_matrix(networks_diff, f'networks_diff', networks_labels,
-                                     tri='full', output=conn_output)
+                             tri='full', output=conn_output)
 
 
 def connmatrices_over_networks(subjects_df, atlas_labels):
@@ -168,23 +168,23 @@ def save_connectivity_matrices(subjects_df, atlas_labels, no_plot, output, reord
         output.mkdir(parents=True)
     if not no_plot:
         subjects_df.apply(lambda subj: plot.connectivity_matrix(subj['connectivity_matrix'], f'subj_{subj.name}',
-                                                                        atlas_labels, output, reorder=reorder), axis=1)
+                                                                atlas_labels, output, reorder=reorder), axis=1)
 
 
-def global_connectivity_measures(group, global_metrics, connectivity_matrices, threshold, atlas, force, filename):
+def global_connectivity_measures(group, global_measures, connectivity_matrices, threshold, atlas, force, filename):
     if filename.exists() and not force:
         all_computed = utils.check_for_computed_metrics(group, threshold, filename)
         if all_computed:
             print(f'Group {group} on graph density {threshold} already computed')
             return
-    group_measures = compute_group_measures(connectivity_matrices, global_metrics, atlas)
+    group_measures = compute_group_measures(connectivity_matrices, global_measures, atlas)
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
     utils.save_networks_pc(group, threshold, group_measures, filename, group_filename)
     utils.add_to_df(group, threshold, group_measures.copy().pop('avg_pc'), group_filename)
 
     num_nodes, num_edges = get_num_nodes_edges(connectivity_matrices[0])
     mean_metrics = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
-    metrics = set(mean_metrics.keys()).intersection(global_metrics.keys())
+    metrics = set(mean_metrics.keys()).intersection(global_measures.keys())
     print(f'\nGroup {group}; graph density {threshold}:')
     for metric in metrics:
-        print(f'{global_metrics[metric]}: {mean_metrics[metric]}')
+        print(f'{global_measures[metric]}: {mean_metrics[metric]}')

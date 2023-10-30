@@ -3,8 +3,6 @@ import numpy as np
 from scipy.stats import mannwhitneyu
 from filelock import FileLock
 from modules.atlas_manager import is_probabilistic_atlas
-
-# NiLearn methods and classes
 from nilearn.interfaces import fmriprep
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
 
