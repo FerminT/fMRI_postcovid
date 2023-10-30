@@ -8,7 +8,7 @@ from sklearn.manifold import MDS, TSNE, Isomap
 from sklearn.metrics import auc
 
 from modules.utils import score_to_bins
-from modules.atlas_manager import is_network
+from modules.atlas_manager import is_network, get_network_name
 
 
 def rdm(rdm, subjects_df, title, output, method='TSNE', clinical_score='global', draw_labels=False):
@@ -89,7 +89,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
                 'threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
-        network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
+        network_name = get_network_name(atlas_basename, network)
         ax.set_title(f'{network_name}')
         ax.set_xlabel('Graph density')
         ax.set_ylabel(measure_desc)
@@ -119,7 +119,7 @@ def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, me
     fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
     for i, network in enumerate(networks):
         ax = axes[i // 2, i % 2]
-        network_name = network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
+        network_name = get_network_name(atlas_basename, network)
         if network_name not in networks_nce:
             continue
         network_nce = networks_nce[network_name]
