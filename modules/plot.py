@@ -124,16 +124,18 @@ def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, me
             continue
         network_nce = networks_nce[network_name]
         groups = sorted(subjects_df['group'].unique())
+        graph_density = 0.0
         for group in groups:
             group_df = subjects_df[subjects_df['group'] == group]
             group_network_measures = pd.read_pickle(output / network / f'{filename.stem}_{group}.pkl')
             measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
             if measure_label not in measures_at_threshold.index:
                 continue
-            ax.scatter(measures_at_threshold[measure_label], group_df[network_nce].values, label=group)
+            graph_density = measures_at_threshold['threshold']
+            ax.scatter(group_df[network_nce].values, measures_at_threshold[measure_label], label=group)
         ax.set_title(f'{network_name}')
-        ax.set_xlabel(f'{measure_desc}')
-        ax.set_ylabel(f'{network_nce} score')
+        ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
+        ax.set_xlabel(f'{network_nce} score')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
     fig.suptitle(measure_desc)
