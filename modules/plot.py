@@ -44,6 +44,7 @@ def initialize_embedding(method):
     elif method == 'TSNE':
         embedding = TSNE(n_components=2,
                          perplexity=20,
+                         init='pca',
                          random_state=42)
     elif method == 'ISOMAP':
         embedding = Isomap(n_components=2,
