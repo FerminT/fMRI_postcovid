@@ -48,7 +48,7 @@ def behavioral_rsa(subjects_df, rdm_decomposition, clinical_score, output):
         behavioral_data /= behavioral_data.std()
         behavioral_distance = np.linalg.norm(behavioral_data.values[:, None] - behavioral_data.values[None, :], axis=2)
         subjects_df.loc[:, 'cluster'] = clusters_rdm(behavioral_distance, n_components=4)
-        behavioral_embeddings = rdm(behavioral_distance, subjects_df, 'Behavioral',
+        behavioral_embeddings = rdm(behavioral_distance, subjects_df, f'Behavioral {clinical_score}',
                                     output, rdm_decomposition, clinical_score)
 
     return behavioral_embeddings
