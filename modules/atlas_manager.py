@@ -10,7 +10,7 @@ def build_atlas(atlas_name, network_name, hemisphere, subjects_df, n_components,
                 low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
     if atlas_name:
-        atlas = load_atlas(atlas_name, n_rois, hemisphere)
+        atlas = load_atlas(atlas_name, n_rois)
         if network_name:
             atlas = extract_network(atlas, network_name, hemisphere)
     else:
@@ -68,6 +68,8 @@ def extract_network(atlas, network_name, hemisphere):
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
     atlas.name = f'{atlas.name}_{network_name}'
+    if hemisphere != 'both':
+        atlas.name += f'{hemisphere}'
     atlas.maps, atlas.labels = network_img, pd.DataFrame({'name': network_labels})
     return atlas
 
@@ -123,7 +125,7 @@ def atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pas
     return atlas
 
 
-def load_atlas(atlas_name, n_rois, hemisphere):
+def load_atlas(atlas_name, n_rois):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
@@ -142,8 +144,6 @@ def load_atlas(atlas_name, n_rois, hemisphere):
         atlas.labels = pd.DataFrame({'name': atlas.labels})
     else:
         raise NotImplementedError(f'Atlas {atlas_name} not implemented')
-    if hemisphere != 'both':
-        atlas_name = f'{hemisphere}_{atlas_name}'
     atlas.name = atlas_name
 
     return atlas
