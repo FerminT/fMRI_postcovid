@@ -72,7 +72,7 @@ def global_measures(subjects_df, output, global_measures, networks_nce, results_
 
 
 def plot_measure(atlas_basename, networks_dirs, measure_label, measure_desc, output, filename):
-    ncols, nrows = 2, len(networks_dirs) // 2 + 1
+    ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
     aucs = {network.name: {} for network in networks_dirs}
     for i, network in enumerate(networks_dirs):
@@ -124,7 +124,7 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
 
 def plot_measure_to_nce(atlas_basename, networks_dirs, subjects_df, measure_label, measure_desc, networks_nce,
                         output, filename):
-    ncols, nrows = 2, len(networks_dirs) // 2 + 1
+    ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
     for i, network in enumerate(networks_dirs):
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
