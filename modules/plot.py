@@ -60,20 +60,23 @@ def initialize_embedding(method):
 
 def global_measures(subjects_df, output, global_measures, networks_nce, results_file, atlas_name):
     atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
-    atlas_networks = [dir_.name for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
+    atlas_networks_dirs = [dir_ for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
+    output = output.parent / atlas_basename
+    if not output.exists():
+        output.mkdir()
     for measure in global_measures:
-        plot_measure(atlas_basename, atlas_networks, measure, global_measures[measure],
-                     output.parent, results_file)
-        plot_measure_to_nce(atlas_basename, atlas_networks, subjects_df, measure, global_measures[measure],
-                            networks_nce, output.parent, results_file)
+        plot_measure(atlas_basename, atlas_networks_dirs, measure, global_measures[measure],
+                     output, results_file)
+        plot_measure_to_nce(atlas_basename, atlas_networks_dirs, subjects_df, measure, global_measures[measure],
+                            networks_nce, output, results_file)
 
 
-def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
-    ncols, nrows = 2, len(networks) // 2 + 1
+def plot_measure(atlas_basename, networks_dirs, measure_label, measure_desc, output, filename):
+    ncols, nrows = 2, len(networks_dirs) // 2 + 1
     fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
-    aucs = {network: {} for network in networks}
-    for i, network in enumerate(networks):
-        measures_values = pd.read_csv(output / network / filename.name, index_col=0)
+    aucs = {network.name: {} for network in networks_dirs}
+    for i, network in enumerate(networks_dirs):
+        measures_values = pd.read_csv(network / filename.name, index_col=0)
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
         groups = sorted(measures_values['group'].unique())
         for color_index, group in enumerate(groups):
@@ -92,7 +95,7 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
                 'threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
-        network_name = get_network_name(atlas_basename, network)
+        network_name = get_network_name(atlas_basename, network.name)
         ax.set_title(f'{network_name}')
         ax.set_xlabel('Graph density')
         ax.set_ylabel(measure_desc)
@@ -119,13 +122,13 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
-def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, measure_desc, networks_nce,
+def plot_measure_to_nce(atlas_basename, networks_dirs, subjects_df, measure_label, measure_desc, networks_nce,
                         output, filename):
-    ncols, nrows = 2, len(networks) // 2 + 1
+    ncols, nrows = 2, len(networks_dirs) // 2 + 1
     fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
-    for i, network in enumerate(networks):
+    for i, network in enumerate(networks_dirs):
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
-        network_name = get_network_name(atlas_basename, network)
+        network_name = get_network_name(atlas_basename, network.name)
         if network_name not in networks_nce:
             continue
         network_nce = networks_nce[network_name]
@@ -133,7 +136,7 @@ def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, me
         graph_density = 0.0
         for group in groups:
             group_df = subjects_df[subjects_df['group'] == group]
-            group_network_measures = pd.read_pickle(output / network / f'{filename.stem}_{group}.pkl')
+            group_network_measures = pd.read_pickle(network / f'{filename.stem}_{group}.pkl')
             measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
             if measure_label not in measures_at_threshold.index:
                 continue
