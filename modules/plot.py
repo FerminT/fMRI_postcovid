@@ -89,7 +89,7 @@ def plot_measure(atlas_basename, networks_dirs, measure_label, measure_desc, out
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
             sorted_densities = np.argsort(densities)
             if len(densities) > 1:
-                aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
+                aucs[network.name][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
             add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
         if f'{measure_label}_p' in measures_values.columns:
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
