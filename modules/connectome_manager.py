@@ -182,7 +182,9 @@ def global_connectivity_measures(group, global_measures, connectivity_matrices, 
     group_measures = compute_group_measures(connectivity_matrices, global_measures, atlas)
     group_filename = filename.parent / f'{filename.stem}_{group}.pkl'
     utils.save_networks_pc(group, threshold, group_measures, filename, group_filename)
-    utils.add_to_df(group, threshold, group_measures.copy().pop('avg_pc'), group_filename)
+    group_measures_no_pc = group_measures.copy()
+    del group_measures_no_pc['avg_pc']
+    utils.add_to_df(group, threshold, group_measures_no_pc, group_filename)
 
     num_nodes, num_edges = get_num_nodes_edges(connectivity_matrices[0])
     mean_measures = utils.compute_mean(group, threshold, group_measures, num_nodes, num_edges, filename)
