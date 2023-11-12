@@ -7,11 +7,11 @@ from modules.connectome_manager import build_connectome
 from modules.rsa import rsa
 
 
-def main(subjects, conf_strategy, atlas_name, network_name, n_components, n_rois,
+def main(subjects, conf_strategy, atlas_name, network_name, hemisphere, n_components, n_rois,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, rdm_similarity,
          data_path, clinical_file, clinical_score, group_analysis, force, no_plot, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file)
-    atlas = build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass,
+    atlas = build_atlas(atlas_name, network_name, hemisphere, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
@@ -43,6 +43,9 @@ if __name__ == '__main__':
                             help='Atlas to use for brain parcellation')
     arg_parser.add_argument('-n', '--network', type=str, default=None,
                             help='Network to extract from atlas. If None, the whole atlas is used')
+    arg_parser.add_argument('-hs', '--hemisphere', type=str, default='both',
+                            help='Hemisphere to extract from atlas. If both, both hemispheres are used. \
+                                 \'LH\' and \'RH\' indicate left and right hemispheres, respectively')
     arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning. \
                             If specified, the atlas is ignored')
@@ -89,7 +92,7 @@ if __name__ == '__main__':
     output.mkdir(parents=True, exist_ok=True)
 
     high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
-    main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.n_components, args.n_rois,
-         args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time, args.decomposition,
-         args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis,
+    main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.hemisphere, args.n_components,
+         args.n_rois, args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time,
+         args.decomposition, args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis,
          args.force, args.no_plot, output)

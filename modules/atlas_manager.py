@@ -6,13 +6,13 @@ from nilearn import image, datasets
 from .ic_manager import extract_components, extract_regions
 
 
-def build_atlas(atlas_name, network_name, subjects_df, n_components, n_rois, low_pass, high_pass, smoothing_fwhm, t_r,
-                conf_strategy):
+def build_atlas(atlas_name, network_name, hemisphere, subjects_df, n_components, n_rois,
+                low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
     if atlas_name:
-        atlas = load_atlas(atlas_name, n_rois)
+        atlas = load_atlas(atlas_name, n_rois, hemisphere)
         if network_name:
-            atlas = extract_network(atlas, network_name)
+            atlas = extract_network(atlas, network_name, hemisphere)
     else:
         atlas = atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pass, smoothing_fwhm,
                                       t_r, conf_strategy)
@@ -56,14 +56,14 @@ def load_networks_mapping(networks_mapping_file='brain_networks.json'):
     return networks_mapping
 
 
-def extract_network(atlas, network_name):
+def extract_network(atlas, network_name, hemisphere):
     networks_mapping = load_networks_mapping()
     if 'msdl' in atlas.name:
         network_img, network_labels = extract_network_from_msdl(atlas, network_name)
     elif 'aal' in atlas.name:
         network_img, network_labels = extract_network_from_aal(atlas, network_name, networks_mapping)
     elif 'schaefer' in atlas.name:
-        network_img, network_labels = extract_network_from_schaefer(atlas, network_name)
+        network_img, network_labels = extract_network_from_schaefer(atlas, network_name, hemisphere)
     else:
         raise ValueError(f'Can not extract networks from {atlas.name} atlas')
 
@@ -72,13 +72,13 @@ def extract_network(atlas, network_name):
     return atlas
 
 
-def extract_network_from_schaefer(atlas, network_name):
+def extract_network_from_schaefer(atlas, network_name, hemisphere):
     # Add background region, since it is indexed as 0
     atlas.labels = pd.concat([pd.DataFrame({'name': ['_Background_']}), atlas.labels], ignore_index=True)
     network_indices = []
     for i, region in enumerate(atlas.labels.name):
-        network = region.split('_')[1]
-        if network == network_name:
+        region_hemisphere, region_network = region.split('_')[0], region.split('_')[1]
+        if region_network == network_name and (hemisphere == 'both' or hemisphere == region_hemisphere):
             network_indices.append(i)
     if len(network_indices) == 0:
         raise ValueError(f'Network {network_name} not in {atlas.name} atlas')
@@ -123,7 +123,7 @@ def atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pas
     return atlas
 
 
-def load_atlas(atlas_name, n_rois):
+def load_atlas(atlas_name, n_rois, hemisphere):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
@@ -142,6 +142,8 @@ def load_atlas(atlas_name, n_rois):
         atlas.labels = pd.DataFrame({'name': atlas.labels})
     else:
         raise NotImplementedError(f'Atlas {atlas_name} not implemented')
+    if hemisphere != 'both':
+        atlas_name = f'{hemisphere}_{atlas_name}'
     atlas.name = atlas_name
 
     return atlas
