@@ -69,11 +69,12 @@ def global_measures(subjects_df, output, global_measures, networks_nce, results_
 
 
 def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, filename):
-    fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
+    ncols, nrows = 2, len(networks) // 2 + 1
+    fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
     aucs = {network: {} for network in networks}
     for i, network in enumerate(networks):
         measures_values = pd.read_csv(output / network / filename.name, index_col=0)
-        ax = axes[i // 2, i % 2]
+        ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
         groups = sorted(measures_values['group'].unique())
         for color_index, group in enumerate(groups):
             group_values = measures_values[measures_values['group'] == group]
@@ -84,7 +85,8 @@ def plot_measure(atlas_basename, networks, measure_label, measure_desc, output, 
             lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
                                        group_values[measure_label] + group_values[f'{measure_label}_ste']
             sorted_densities = np.argsort(densities)
-            aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
+            if len(densities) > 1:
+                aucs[network][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
             add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
         if f'{measure_label}_p' in measures_values.columns:
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
@@ -110,16 +112,19 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     significance_levels.append(1.)
     labels.append('ns')
     categorized_pvalues = pd.cut(pvalues, significance_levels, right=False, labels=labels)
-    spacing = pvalues.index[1] - pvalues.index[0] + eps
+    spacing = 0.1
+    if len(pvalues) > 1:
+        spacing = pvalues.index[1] - pvalues.index[0] + eps
 
     significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def plot_measure_to_nce(atlas_basename, networks, subjects_df, measure_label, measure_desc, networks_nce,
                         output, filename):
-    fig, axes = plt.subplots(figsize=(15, 15), nrows=len(networks) // 2 + 1, ncols=2)
+    ncols, nrows = 2, len(networks) // 2 + 1
+    fig, axes = plt.subplots(figsize=(15, 15), nrows=nrows, ncols=ncols)
     for i, network in enumerate(networks):
-        ax = axes[i // 2, i % 2]
+        ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
         network_name = get_network_name(atlas_basename, network)
         if network_name not in networks_nce:
             continue
