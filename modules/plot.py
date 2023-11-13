@@ -6,6 +6,7 @@ from nilearn import plotting
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE, Isomap
 from sklearn.metrics import auc
+from sklearn.svm import SVC
 
 from modules.utils import score_to_bins
 from modules.atlas_manager import is_network, get_network_name
@@ -56,6 +57,14 @@ def initialize_embedding(method):
         raise NotImplementedError(f'Method {method} not implemented')
 
     return embedding
+
+
+def connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
+                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
+    fig.savefig(output / f'{fig_name}.png')
+    plt.close(fig)
 
 
 def global_measures(subjects_df, output, global_measures, results_file, atlas):
@@ -133,15 +142,20 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
             continue
         network_nce = networks_nce[network_basename]
         groups = sorted(subjects_df['group'].unique())
-        graph_density = 0.0
-        for group in groups:
+        graph_density, nces, values, categories = 0.0, [], [], []
+        for j, group in enumerate(groups):
             group_df = subjects_df[subjects_df['group'] == group]
             group_network_measures = pd.read_pickle(network / f'{filename.stem}_{group}.pkl')
             measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
             if measure_label not in measures_at_threshold.index:
                 continue
             graph_density = measures_at_threshold['threshold']
+            nces.extend(group_df[network_nce].values)
+            values.extend(measures_at_threshold[measure_label])
+            categories.extend([j] * len(group_df))
             ax.scatter(group_df[network_nce].values, measures_at_threshold[measure_label], label=group)
+        fit_and_plot_svm(ax, nces, values, categories)
+        ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
         ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
         ax.set_xlabel(f'{network_nce} score')
@@ -150,6 +164,16 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
     fig.suptitle(measure_desc)
     fig.savefig(output / f'{measure_label}_to_NCE.png')
     plt.show()
+
+
+def fit_and_plot_svm(ax, nces, values, categories):
+    df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
+    clf = SVC()
+    features = df[['nce', 'measure']].values.astype(float)
+    categories = df['group'].values.astype(int)
+    clf = clf.fit(features, categories)
+    xx, yy = meshgrid(features[:, 0], features[:, 1])
+    add_svm_contours(ax, clf, xx, yy, cmap='coolwarm', alpha=0.1)
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
@@ -192,14 +216,6 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, color_i
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
 
-def connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
-                        tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    fig, ax = plt.subplots(figsize=(10, 8))
-    matrix_on_axis(conn_matrix, atlas_labels, ax, tri=tri, vmin=vmin, vmax=vmax, reorder=reorder)
-    fig.savefig(output / f'{fig_name}.png')
-    plt.close(fig)
-
-
 def significance_bar(ax, categorized_pvalues, labels, spacing):
     for label in labels:
         significant_values = categorized_pvalues[categorized_pvalues == label]
@@ -215,3 +231,16 @@ def significance_bar(ax, categorized_pvalues, labels, spacing):
             for region in significant_regions:
                 ax.plot(region, [ax.get_ylim()[1] * 0.98, ax.get_ylim()[1] * 0.98], marker=f'{label}', linewidth=1,
                         color='k', alpha=0.8)
+
+
+def meshgrid(x, y, h=.02, offset=0.07):
+    x_min, x_max = x.min() - offset, x.max() + offset
+    y_min, y_max = y.min() - offset, y.max() + offset
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    return xx, yy
+
+
+def add_svm_contours(ax, clf, xx, yy, **params):
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    return ax.contourf(xx, yy, Z, **params)
