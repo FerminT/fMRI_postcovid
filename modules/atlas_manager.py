@@ -1,16 +1,16 @@
+import json
 import numpy as np
 import pandas as pd
-import json
 from sklearn.utils import Bunch
 from nilearn import image, datasets
-from .ic_manager import extract_components, extract_regions
+from modules.ic_manager import extract_components, extract_regions
 
 
 def build_atlas(atlas_name, network_name, hemisphere, subjects_df, n_components, n_rois,
                 low_pass, high_pass, smoothing_fwhm, t_r, conf_strategy):
     bold_imgs, mask_imgs = subjects_df['func_path'].values, subjects_df['mask_path'].values
     if atlas_name:
-        atlas = load_atlas(atlas_name, n_rois)
+        atlas = load_atlas(atlas_name, n_rois, 'networks_metadata.json')
         if network_name:
             atlas = extract_network(atlas, network_name, hemisphere)
     else:
@@ -51,9 +51,7 @@ def get_network_img(atlas, network_indices):
 
 
 def load_networks_mapping(networks_mapping_file='brain_networks.json'):
-    with open(networks_mapping_file, 'r') as f:
-        networks_mapping = json.load(f)
-    return networks_mapping
+    return load_json(networks_mapping_file)
 
 
 def extract_network(atlas, network_name, hemisphere):
@@ -125,7 +123,16 @@ def atlas_from_components(bold_imgs, mask_imgs, n_components, low_pass, high_pas
     return atlas
 
 
-def load_atlas(atlas_name, n_rois):
+def add_networks_metadata(atlas, atlas_name, metadata_filename):
+    atlas_metadata = load_json(metadata_filename)
+    if atlas_name in atlas_metadata:
+        atlas.networks_nce = atlas_metadata[atlas_name]['networks_nce']
+        atlas.networks_names = atlas_metadata[atlas_name]['networks_names']
+    else:
+        atlas.networks_nce, atlas.networks_names = None, None
+
+
+def load_atlas(atlas_name, n_rois, metadata_filename):
     if atlas_name == 'aal':
         atlas = datasets.fetch_atlas_aal()
         atlas.labels = pd.DataFrame({'name': atlas.labels})
@@ -145,6 +152,7 @@ def load_atlas(atlas_name, n_rois):
     else:
         raise NotImplementedError(f'Atlas {atlas_name} not implemented')
     atlas.name = atlas_name
+    add_networks_metadata(atlas, atlas_name, metadata_filename)
 
     return atlas
 
@@ -156,3 +164,9 @@ def is_probabilistic_atlas(atlas_maps):
 
 def is_network(atlas_name):
     return len(atlas_name.split('_')) > 1
+
+
+def load_json(json_file):
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+    return data

@@ -58,20 +58,20 @@ def initialize_embedding(method):
     return embedding
 
 
-def global_measures(subjects_df, output, global_measures, networks_nce, results_file, atlas_name):
-    atlas_basename = atlas_name if not is_network(atlas_name) else atlas_name.split('_')[0]
+def global_measures(subjects_df, output, global_measures, results_file, atlas):
+    atlas_basename = atlas.name if not is_network(atlas.name) else atlas.name.split('_')[0]
     atlas_networks_dirs = [dir_ for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
     output = output.parent / atlas_basename
     if not output.exists():
         output.mkdir()
     for measure in global_measures:
-        plot_measure(atlas_basename, atlas_networks_dirs, measure, global_measures[measure],
+        plot_measure(atlas_basename, atlas_networks_dirs, atlas.networks_names, measure, global_measures[measure],
                      output, results_file)
-        plot_measure_to_nce(atlas_basename, atlas_networks_dirs, subjects_df, measure, global_measures[measure],
-                            networks_nce, output, results_file)
+        plot_measure_to_nce(atlas_basename, atlas_networks_dirs, atlas.networks_names, subjects_df, measure,
+                            global_measures[measure], atlas.networks_nce, output, results_file)
 
 
-def plot_measure(atlas_basename, networks_dirs, measure_label, measure_desc, output, filename):
+def plot_measure(atlas_basename, networks_dirs, networks_names, measure_label, measure_desc, output, filename):
     ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 5 * nrows), nrows=nrows, ncols=ncols)
     aucs = {network.name: {} for network in networks_dirs}
@@ -95,8 +95,8 @@ def plot_measure(atlas_basename, networks_dirs, measure_label, measure_desc, out
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
                 'threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
-        network_name = get_network_name(atlas_basename, network.name)
-        ax.set_title(f'{network_name}')
+        network_basename = get_network_name(atlas_basename, network.name)
+        ax.set_title(f'{networks_names[network_basename]}')
         ax.set_xlabel('Graph density')
         ax.set_ylabel(measure_desc)
         ax.spines['top'].set_visible(False)
@@ -122,16 +122,16 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
-def plot_measure_to_nce(atlas_basename, networks_dirs, subjects_df, measure_label, measure_desc, networks_nce,
-                        output, filename):
+def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_df, measure_label, measure_desc,
+                        networks_nce, output, filename):
     ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 5 * nrows), nrows=nrows, ncols=ncols)
     for i, network in enumerate(networks_dirs):
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
-        network_name = get_network_name(atlas_basename, network.name)
-        if network_name not in networks_nce:
+        network_basename = get_network_name(atlas_basename, network.name)
+        if network_basename not in networks_nce:
             continue
-        network_nce = networks_nce[network_name]
+        network_nce = networks_nce[network_basename]
         groups = sorted(subjects_df['group'].unique())
         graph_density = 0.0
         for group in groups:
@@ -142,7 +142,7 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, subjects_df, measure_labe
                 continue
             graph_density = measures_at_threshold['threshold']
             ax.scatter(group_df[network_nce].values, measures_at_threshold[measure_label], label=group)
-        ax.set_title(f'{network_name}')
+        ax.set_title(f'{networks_names[network_basename]}')
         ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
         ax.set_xlabel(f'{network_nce} score')
         ax.spines['top'].set_visible(False)

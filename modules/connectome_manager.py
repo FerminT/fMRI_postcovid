@@ -35,9 +35,6 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_measures = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                        'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
                        'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
-    networks_nce = {'SalVentAttnLH': 'language', 'SalVentAttn': 'executive', 'DorsAttn': 'attention',
-                    'Cont': 'visuoespatial', 'Default': 'memory', 'Vis': 'visuoespatial', 'Limbic': 'memory',
-                    'Global': 'attention'}
     if atlas_manager.is_network(atlas.name):
         global_measures.pop('modularity')
     results_file = output / 'global_measures.csv'
@@ -46,7 +43,7 @@ def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
                                      results_file)
     utils.rank_sum(subjects_df['group'].unique(), global_measures, results_file)
     if not no_plot:
-        plot.global_measures(subjects_df, output, global_measures, networks_nce, results_file, atlas.name)
+        plot.global_measures(subjects_df, output, global_measures, results_file, atlas)
 
 
 def groups_analysis_at_threshold(subjects_df, atlas, threshold, global_measures, force, no_plot, output, metrics_file):
