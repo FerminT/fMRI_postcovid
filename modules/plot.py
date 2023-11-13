@@ -135,6 +135,7 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
                         networks_nce, output, filename):
     ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 5 * nrows), nrows=nrows, ncols=ncols)
+    gains = {network.name: {} for network in networks_dirs}
     for i, network in enumerate(networks_dirs):
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
         network_basename = get_network_name(atlas_basename, network.name)
@@ -154,7 +155,7 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
             values.extend(measures_at_threshold[measure_label])
             categories.extend([j] * len(group_df))
             ax.scatter(group_df[network_nce].values, measures_at_threshold[measure_label], label=group)
-        fit_and_plot_svm(ax, nces, values, categories)
+        gains[network.name] = fit_and_plot_svm(ax, nces, values, categories)
         ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
         ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
@@ -165,15 +166,23 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
     fig.savefig(output / f'{measure_label}_to_NCE.png')
     plt.show()
 
+    return gains
+
 
 def fit_and_plot_svm(ax, nces, values, categories):
     df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
-    clf = SVC()
+    clf_nces, clf = SVC(), SVC()
     features = df[['nce', 'measure']].values.astype(float)
     categories = df['group'].values.astype(int)
-    clf = clf.fit(features, categories)
+    nces = features[:, 0].reshape(-1, 1)
+    clf_nces.fit(nces, categories)
+    clf.fit(features, categories)
+    nces_accuracy = clf_nces.score(nces, categories)
+    measures_accuracy = clf.score(features, categories)
     xx, yy = meshgrid(features[:, 0], features[:, 1])
     add_svm_contours(ax, clf, xx, yy, cmap='coolwarm', alpha=0.1)
+
+    return measures_accuracy - nces_accuracy
 
 
 def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
