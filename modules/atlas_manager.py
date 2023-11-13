@@ -38,7 +38,7 @@ def get_schaefer_networks_names(atlas_labels):
 
 
 def get_network_name(atlas_basename, network):
-    return network.strip(f'{atlas_basename}_') if is_network(network) else 'Global'
+    return network.lstrip(f'{atlas_basename}_') if is_network(network) else 'Global'
 
 
 def get_network_img(atlas, network_indices):
