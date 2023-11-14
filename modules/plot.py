@@ -180,7 +180,8 @@ def plot_nce_to_measure(atlas_basename, networks_dirs, networks_names, subjects_
         graph_density, measure_df, group_mapping = get_measure_at_threshold(subjects_df, groups, measure_label, network,
                                                                             network_nce, filename)
         sns.scatterplot(data=measure_df, x='nce', y='measure', hue='group', ax=ax)
-        gains[network.name] = fit_and_plot_svm(measure_df, group_mapping, ax)
+        if not measure_df.empty:
+            gains[network.name] = fit_and_plot_svm(measure_df, group_mapping, ax)
         ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
         ax.set_xlabel(f'{network_nce} score'), ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
