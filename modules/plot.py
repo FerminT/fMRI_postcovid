@@ -67,6 +67,38 @@ def connectivity_matrix(conn_matrix, fig_name, atlas_labels, output,
     plt.close(fig)
 
 
+def matrix_on_axis(connectivity_matrix, atlas_labels, ax,
+                   tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
+    # Get labels in the correct format until plot_matrix is fixed
+    labels = list(atlas_labels.name.values)
+    plotting.plot_matrix(connectivity_matrix,
+                         tri=tri,
+                         labels=labels,
+                         colorbar=True,
+                         vmin=vmin,
+                         vmax=vmax,
+                         reorder=reorder,
+                         axes=ax)
+
+
+def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
+    nrows = len(networks_labels) // 2
+    fig, axes = plt.subplots(nrows=nrows, ncols=nrows, figsize=(20, 20))
+    for i, network in enumerate(networks_labels.name):
+        ax = axes[i // nrows, i % nrows]
+        network_means, groups = {}, subjects_df[group_by].unique()
+        for group in groups:
+            networks_connmatrix = subjects_df[subjects_df[group_by] == group][attribute].to_list()
+            network_means[group] = [subj_connmatrix[i, i] for subj_connmatrix in networks_connmatrix]
+        df = pd.DataFrame.from_dict(data=network_means, orient='index').transpose()
+        sns.boxplot(data=df, order=sorted(groups), ax=ax)
+        ax.set_title(network)
+        ax.set_ylabel('Mean correlation coefficient')
+    fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
+    fig.savefig(output / f'networks_mean_corrcoef.png')
+    plt.show()
+
+
 def global_measures(subjects_df, output, global_measures, results_file, atlas):
     atlas_basename = atlas.name if not is_network(atlas.name) else atlas.name.split('_')[0]
     atlas_networks_dirs = [dir_ for dir_ in output.parent.iterdir() if dir_.is_dir() and atlas_basename in dir_.name]
@@ -89,32 +121,34 @@ def plot_measure(atlas_basename, networks_dirs, networks_names, measure_label, m
         ax = axes[i // 2, i % 2] if nrows > 1 else axes[i % 2]
         groups = sorted(measures_values['group'].unique())
         for color_index, group in enumerate(groups):
-            group_values = measures_values[measures_values['group'] == group]
-            densities = group_values['threshold'].values
-            if measure_label not in group_values.columns:
-                continue
-            measure_values = group_values[measure_label].values
-            lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
-                                       group_values[measure_label] + group_values[f'{measure_label}_ste']
-            sorted_densities = np.argsort(densities)
-            if len(densities) > 1:
-                aucs[network.name][group] = auc(densities[sorted_densities], measure_values[sorted_densities])
-            add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
+            aucs[network.name][group] = add_group_to_plot(measures_values, group, color_index, measure_label, ax)
         if f'{measure_label}_p' in measures_values.columns:
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
                 'threshold')
             add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
         network_basename = get_network_name(atlas_basename, network.name)
         ax.set_title(f'{networks_names[network_basename]}')
-        ax.set_xlabel('Graph density')
-        ax.set_ylabel(measure_desc)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Graph density'), ax.set_ylabel(measure_desc)
+        ax.spines['top'].set_visible(False), ax.spines['right'].set_visible(False)
     fig.suptitle(measure_desc)
     fig.savefig(output / f'{measure_label}.png')
     plt.show()
 
     return aucs
+
+
+def add_group_to_plot(measures_values, group, color_index, measure_label, ax):
+    group_values = measures_values[measures_values['group'] == group]
+    densities, auc_value = group_values['threshold'].values, 0.0
+    if measure_label in group_values.columns:
+        measure_values = group_values[measure_label].values
+        lower_error, upper_error = group_values[measure_label] - group_values[f'{measure_label}_ste'], \
+                                   group_values[measure_label] + group_values[f'{measure_label}_ste']
+        sorted_densities = np.argsort(densities)
+        add_curve(densities, measure_values, lower_error, upper_error, group, color_index, ax)
+        if len(densities) > 1:
+            auc_value = auc(densities[sorted_densities], measure_values[sorted_densities])
+    return auc_value
 
 
 def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1e-4):
@@ -128,7 +162,7 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     if len(pvalues) > 1:
         spacing = pvalues.index[1] - pvalues.index[0] + eps
 
-    significance_bar(ax, categorized_pvalues, labels, spacing)
+    add_significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def plot_nce_to_measure(atlas_basename, networks_dirs, networks_names, subjects_df, measure_label, measure_desc,
@@ -194,41 +228,9 @@ def fit_and_plot_svm(df, group_mapping, ax):
     nces_accuracy = clf_nces.score(nces, categories)
     measures_accuracy = clf.score(features, categories)
     xx, yy = meshgrid(features[:, 0], features[:, 1])
-    add_svm_contours(ax, clf, xx, yy, cmap='coolwarm', alpha=0.1)
+    add_decision_boundaries(ax, clf, xx, yy, cmap='coolwarm', alpha=0.1)
 
     return measures_accuracy - nces_accuracy
-
-
-def networks_corrcoef_boxplot(subjects_df, attribute, networks_labels, group_by, output):
-    nrows = len(networks_labels) // 2
-    fig, axes = plt.subplots(nrows=nrows, ncols=nrows, figsize=(20, 20))
-    for i, network in enumerate(networks_labels.name):
-        ax = axes[i // nrows, i % nrows]
-        network_means, groups = {}, subjects_df[group_by].unique()
-        for group in groups:
-            networks_connmatrix = subjects_df[subjects_df[group_by] == group][attribute].to_list()
-            network_means[group] = [subj_connmatrix[i, i] for subj_connmatrix in networks_connmatrix]
-        df = pd.DataFrame.from_dict(data=network_means, orient='index').transpose()
-        sns.boxplot(data=df, order=sorted(groups), ax=ax)
-        ax.set_title(network)
-        ax.set_ylabel('Mean correlation coefficient')
-    fig.suptitle(f'Mean correlation coefficients by network and group', fontsize=20)
-    fig.savefig(output / f'networks_mean_corrcoef.png')
-    plt.show()
-
-
-def matrix_on_axis(connectivity_matrix, atlas_labels, ax,
-                   tri='lower', vmin=-0.8, vmax=0.8, reorder=False):
-    # Get labels in the correct format until plot_matrix is fixed
-    labels = list(atlas_labels.name.values)
-    plotting.plot_matrix(connectivity_matrix,
-                         tri=tri,
-                         labels=labels,
-                         colorbar=True,
-                         vmin=vmin,
-                         vmax=vmax,
-                         reorder=reorder,
-                         axes=ax)
 
 
 def add_curve(graph_densities, measure, lower_error, upper_error, group, color_index, ax):
@@ -239,7 +241,7 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, color_i
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
 
-def significance_bar(ax, categorized_pvalues, labels, spacing):
+def add_significance_bar(ax, categorized_pvalues, labels, spacing):
     for label in labels:
         significant_values = categorized_pvalues[categorized_pvalues == label]
         # Build a list of tuples with the start and end of each significant region
@@ -263,7 +265,7 @@ def meshgrid(x, y, h=.02, offset=0.07):
     return xx, yy
 
 
-def add_svm_contours(ax, clf, xx, yy, **params):
+def add_decision_boundaries(ax, clf, xx, yy, **params):
     Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
     return ax.contourf(xx, yy, Z, **params)
