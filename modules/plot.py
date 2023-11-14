@@ -143,9 +143,10 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
             continue
         network_nce = networks_nce[network_basename]
         groups = sorted(subjects_df['group'].unique())
-        graph_density, nces, values, categories = 0.0, [], [], []
+        graph_density, nces, values, categories, group_mapping = 0.0, [], [], [], {}
         for j, group in enumerate(groups):
             group_df = subjects_df[subjects_df['group'] == group]
+            group_mapping[group] = j
             group_network_measures = pd.read_pickle(network / f'{filename.stem}_{group}.pkl')
             measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
             if measure_label not in measures_at_threshold.index:
@@ -153,9 +154,13 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
             graph_density = measures_at_threshold['threshold']
             nces.extend(group_df[network_nce].values)
             values.extend(measures_at_threshold[measure_label])
-            categories.extend([j] * len(group_df))
-            ax.scatter(group_df[network_nce].values, measures_at_threshold[measure_label], label=group)
-        gains[network.name] = fit_and_plot_svm(ax, nces, values, categories)
+            categories.extend([group] * len(group_df))
+        df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
+        df[['nce', 'measure']] = df[['nce', 'measure']].astype(float)
+        df[['nce', 'measure']] = (df[['nce', 'measure']] - df[['nce', 'measure']].mean(axis=0)) / df[
+            ['nce', 'measure']].std(axis=0)
+        sns.scatterplot(data=df, x='nce', y='measure', hue='group', ax=ax)
+        gains[network.name] = fit_and_plot_svm(df, group_mapping, ax)
         ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
         ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
@@ -169,12 +174,12 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
     return gains
 
 
-def fit_and_plot_svm(ax, nces, values, categories):
-    df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
+def fit_and_plot_svm(df, group_mapping, ax):
+    df = df.replace({'group': group_mapping})
     clf_nces, clf = SVC(), SVC()
-    features = df[['nce', 'measure']].values.astype(float)
-    categories = df['group'].values.astype(int)
+    features = df[['nce', 'measure']].values
     nces = features[:, 0].reshape(-1, 1)
+    categories = df['group'].values
     clf_nces.fit(nces, categories)
     clf.fit(features, categories)
     nces_accuracy = clf_nces.score(nces, categories)
