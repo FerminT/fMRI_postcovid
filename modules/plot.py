@@ -76,7 +76,7 @@ def global_measures(subjects_df, output, global_measures, results_file, atlas):
     for measure in global_measures:
         plot_measure(atlas_basename, atlas_networks_dirs, atlas.networks_names, measure, global_measures[measure],
                      output, results_file)
-        plot_measure_to_nce(atlas_basename, atlas_networks_dirs, atlas.networks_names, subjects_df, measure,
+        plot_nce_to_measure(atlas_basename, atlas_networks_dirs, atlas.networks_names, subjects_df, measure,
                             global_measures[measure], atlas.networks_nce, output, results_file)
 
 
@@ -131,7 +131,7 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
-def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_df, measure_label, measure_desc,
+def plot_nce_to_measure(atlas_basename, networks_dirs, networks_names, subjects_df, measure_label, measure_desc,
                         networks_nce, output, filename):
     ncols, nrows = 2, -(-len(networks_dirs) // 2)
     fig, axes = plt.subplots(figsize=(15, 5 * nrows), nrows=nrows, ncols=ncols)
@@ -143,35 +143,44 @@ def plot_measure_to_nce(atlas_basename, networks_dirs, networks_names, subjects_
             continue
         network_nce = networks_nce[network_basename]
         groups = sorted(subjects_df['group'].unique())
-        graph_density, nces, values, categories, group_mapping = 0.0, [], [], [], {}
-        for j, group in enumerate(groups):
-            group_df = subjects_df[subjects_df['group'] == group]
-            group_mapping[group] = j
-            group_network_measures = pd.read_pickle(network / f'{filename.stem}_{group}.pkl')
-            measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
-            if measure_label not in measures_at_threshold.index:
-                continue
-            graph_density = measures_at_threshold['threshold']
-            nces.extend(group_df[network_nce].values)
-            values.extend(measures_at_threshold[measure_label])
-            categories.extend([group] * len(group_df))
-        df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
-        df[['nce', 'measure']] = df[['nce', 'measure']].astype(float)
-        df[['nce', 'measure']] = (df[['nce', 'measure']] - df[['nce', 'measure']].mean(axis=0)) / df[
-            ['nce', 'measure']].std(axis=0)
-        sns.scatterplot(data=df, x='nce', y='measure', hue='group', ax=ax)
-        gains[network.name] = fit_and_plot_svm(df, group_mapping, ax)
+        graph_density, measure_df, group_mapping = get_measure_at_threshold(subjects_df, groups, measure_label, network,
+                                                                            network_nce, filename)
+        sns.scatterplot(data=measure_df, x='nce', y='measure', hue='group', ax=ax)
+        gains[network.name] = fit_and_plot_svm(measure_df, group_mapping, ax)
         ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
-        ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
-        ax.set_xlabel(f'{network_nce} score')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        ax.set_xlabel(f'{network_nce} score'), ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
+        ax.spines['top'].set_visible(False), ax.spines['right'].set_visible(False)
     fig.suptitle(measure_desc)
-    fig.savefig(output / f'{measure_label}_to_NCE.png')
+    fig.savefig(output / f'NCE_to_{measure_label}.png')
     plt.show()
 
     return gains
+
+
+def get_measure_at_threshold(subjects_df, groups, measure_label, network, network_nce, filename):
+    graph_density, nces, values, categories, group_mapping = 0.0, [], [], [], {}
+    for j, group in enumerate(groups):
+        group_df = subjects_df[subjects_df['group'] == group]
+        group_mapping[group] = j
+        group_network_measures = pd.read_pickle(network / f'{filename.stem}_{group}.pkl')
+        measures_at_threshold = group_network_measures.sort_values(by='threshold').iloc[-1]
+        if measure_label not in measures_at_threshold.index:
+            continue
+        graph_density = measures_at_threshold['threshold']
+        nces.extend(group_df[network_nce].values)
+        values.extend(measures_at_threshold[measure_label])
+        categories.extend([group] * len(group_df))
+    df = pd.DataFrame({'nce': nces, 'measure': values, 'group': categories}).dropna()
+    df = normalize_values(df, ['nce', 'measure'])
+    return graph_density, df, group_mapping
+
+
+def normalize_values(df, columns):
+    df[columns] = df[columns].astype(float)
+    for column in columns:
+        df[column] = (df[column] - df[column].mean()) / df[column].std()
+    return df
 
 
 def fit_and_plot_svm(df, group_mapping, ax):
