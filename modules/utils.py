@@ -169,10 +169,11 @@ def rank_sum(groups, global_measures, results_file):
             print(f'No group measurements found for density {density}')
             continue
         for measure in measures:
-            x, y = fst_group[measure].tolist()[0], snd_group[measure].tolist()[0]
-            if len(x) > 0 and len(y) > 0:
-                _, pvalue = mannwhitneyu(x, y)
-                mean_measurements.loc[mean_measurements['threshold'] == density, f'{measure}_p'] = pvalue
+            if measure in fst_group.columns and measure in snd_group.columns:
+                x, y = fst_group[measure].tolist()[0], snd_group[measure].tolist()[0]
+                if x is not None and y is not None and len(x) > 0 and len(y) > 0:
+                    _, pvalue = mannwhitneyu(x, y)
+                    mean_measurements.loc[mean_measurements['threshold'] == density, f'{measure}_p'] = pvalue
 
     mean_measurements.to_csv(results_file)
 
