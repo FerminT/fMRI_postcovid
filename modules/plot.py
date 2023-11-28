@@ -243,6 +243,7 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, color_i
 
 
 def add_significance_bar(ax, categorized_pvalues, labels, spacing):
+    line_y = ax.get_ylim()[1]
     for label in labels:
         significant_values = categorized_pvalues[categorized_pvalues == label]
         # Build a list of tuples with the start and end of each significant region
@@ -255,8 +256,9 @@ def add_significance_bar(ax, categorized_pvalues, labels, spacing):
                     else:
                         significant_regions[-1] = (significant_regions[-1][0], threshold)
             for region in significant_regions:
-                ax.plot(region, [ax.get_ylim()[1] * 0.98, ax.get_ylim()[1] * 0.98], marker=f'{label}', linewidth=1,
-                        color='k', alpha=0.8)
+                ax.text(np.mean(region), line_y * 0.975, label, ha='center', va='bottom', color='k',
+                        fontweight='bold', alpha=0.9)
+                ax.plot(region, [line_y * 0.98, line_y * 0.98], linewidth=0.8, color='k', alpha=0.7, marker='.', ms=3)
 
 
 def meshgrid(x, y, h=.02, offset=0.07):
