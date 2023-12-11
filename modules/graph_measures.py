@@ -66,6 +66,12 @@ def largest_connected_component(connectome):
     return len(largest_cc) / len(connectome.nodes)
 
 
+def fragmentation(connectome):
+    connected_components = nx.connected_components(connectome)
+    cc_pairs = [len(cc) * (len(cc) - 1) for cc in connected_components]
+    return 1 - (sum(cc_pairs) / (len(connectome.nodes) * (len(connectome.nodes) - 1)))
+
+
 def mean_participation_coefficient(connectome, module_partition, modules_pc):
     for module in module_partition:
         module_subgraph = set(module_partition[module]['nodes'])
