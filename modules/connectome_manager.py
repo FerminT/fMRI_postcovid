@@ -34,7 +34,7 @@ def build_timeseries(subjects_df, conf_strategy, atlas, low_pass, high_pass, smo
 def groups_analysis(subjects_df, atlas, thresholds, force, no_plot, output):
     global_measures = {'avg_clustering': 'Mean Clustering Coefficient', 'global_efficiency': 'Global Efficiency',
                        'avg_local_efficiency': 'Mean Local Efficiency', 'modularity': 'Modularity',
-                       'fragmentation': 'Fragmentation', 'avg_pc': 'Mean Participation Coefficient'}
+                       'largest_cc': 'Largest Connected Component', 'avg_pc': 'Mean Participation Coefficient'}
     if atlas_manager.is_network(atlas.name):
         global_measures.pop('modularity')
     results_file = output / 'global_measures.csv'
