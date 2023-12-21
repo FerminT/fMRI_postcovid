@@ -224,14 +224,19 @@ def fit_and_plot_svm(df, group_mapping, ax):
     features = df[['nce', 'measure']].values
     nces = features[:, 0].reshape(-1, 1)
     categories = df['group'].values
-    clf_nces.fit(nces, categories)
+    accuracies_nce, accuracies_topology = [], []
+    for i in range(len(features)):
+        clf_nces.fit(np.delete(nces, i, axis=0), np.delete(categories, i))
+        accuracies_nce.append(clf_nces.score(nces[i].reshape(1, -1), categories[i].reshape(1, -1)))
+        clf.fit(np.delete(features, i, axis=0), np.delete(categories, i))
+        accuracies_topology.append(clf.score(features[i].reshape(1, -1), categories[i].reshape(1, -1)))
+    nce_mean, nce_std = np.mean(accuracies_nce), np.std(accuracies_nce)
+    topology_mean, topology_std = np.mean(accuracies_topology), np.std(accuracies_topology)
     clf.fit(features, categories)
-    nces_accuracy = clf_nces.score(nces, categories)
-    measures_accuracy = clf.score(features, categories)
     xx, yy = meshgrid(features[:, 0], features[:, 1])
     add_decision_boundaries(ax, clf, xx, yy, cmap='coolwarm', alpha=0.1)
 
-    return measures_accuracy - nces_accuracy
+    return topology_mean - nce_mean, np.sqrt(nce_std ** 2 + topology_std ** 2)
 
 
 def add_curve(graph_densities, measure, lower_error, upper_error, group, color_index, ax):
