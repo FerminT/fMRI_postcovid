@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import colormaps
 from nilearn import plotting
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE, Isomap
@@ -125,11 +126,16 @@ def plot_measure(atlas_basename, networks_dirs, networks_names, measure_label, m
         if f'{measure_label}_p' in measures_values.columns:
             p_at_thresholds = measures_values[['threshold', f'{measure_label}_p']].drop_duplicates().set_index(
                 'threshold')
-            add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.01])
+            add_statistical_significance(p_at_thresholds, ax, significance_levels=[0.001, 0.005, 0.01])
         network_basename = get_network_name(atlas_basename, network.name)
         ax.set_title(f'{networks_names[network_basename]}')
-        ax.set_xlabel('Graph density'), ax.set_ylabel(measure_desc)
+        ax.set_xlabel('Connection density (%)', fontsize=12)
+        ax.set_ylabel(measure_desc, fontsize=12)
         ax.spines['top'].set_visible(False), ax.spines['right'].set_visible(False)
+        ax.set_xticks(ax.get_xticks()[1:-1])
+        ax.set_yticks(ax.get_yticks()[1:-1])
+        ax.set_yticklabels([f'{tick:.2f}' for tick in ax.get_yticks()])
+        ax.set_xticklabels([f'{tick * 100:.0f}' for tick in ax.get_xticks()])
     fig.suptitle(measure_desc)
     fig.savefig(output / f'{measure_label}.png')
     plt.show()
@@ -162,7 +168,7 @@ def add_statistical_significance(p_at_thresholds, ax, significance_levels, eps=1
     if len(pvalues) > 1:
         spacing = pvalues.index[1] - pvalues.index[0] + eps
 
-    add_significance_bar(ax, categorized_pvalues, labels, spacing)
+    significance_bar(ax, categorized_pvalues, labels, spacing)
 
 
 def plot_nce_to_measure(atlas_basename, networks_dirs, networks_names, subjects_df, measure_label, measure_desc,
@@ -177,14 +183,15 @@ def plot_nce_to_measure(atlas_basename, networks_dirs, networks_names, subjects_
             continue
         network_nce = networks_nce[network_basename]
         groups = sorted(subjects_df['group'].unique())
-        graph_density, measure_df, group_mapping = get_measure_at_threshold(subjects_df, groups, measure_label, network,
-                                                                            network_nce, filename)
+        connection_density, measure_df, group_mapping = get_measure_at_threshold(subjects_df, groups, measure_label,
+                                                                                 network, network_nce, filename)
         sns.scatterplot(data=measure_df, x='nce', y='measure', hue='group', ax=ax)
         if not measure_df.empty:
             gains[network.name] = fit_and_plot_svm(measure_df, group_mapping, ax)
         ax.legend()
         ax.set_title(f'{networks_names[network_basename]}')
-        ax.set_xlabel(f'{network_nce} score'), ax.set_ylabel(f'{measure_desc} at t={graph_density:.2f}')
+        ax.set_xlabel(f'{network_nce} score')
+        ax.set_ylabel(f'{measure_desc} at t={connection_density * 100:.0f}%')
         ax.spines['top'].set_visible(False), ax.spines['right'].set_visible(False)
     fig.suptitle(measure_desc)
     fig.savefig(output / f'NCE_to_{measure_label}.png')
@@ -247,8 +254,11 @@ def add_curve(graph_densities, measure, lower_error, upper_error, group, color_i
     ax.fill_between(graph_densities, lower_error, upper_error, alpha=0.2)
 
 
-def add_significance_bar(ax, categorized_pvalues, labels, spacing):
+def significance_bar(ax, categorized_pvalues, labels, spacing):
     line_y = ax.get_ylim()[1]
+    max_threshold, min_threshold = categorized_pvalues.index[-1], categorized_pvalues.index[0]
+    # Use light grey for *, dark grey for **, and black for ***
+    colors = {label: col for label, col in zip(labels, colormaps.get_cmap('Greys')(np.linspace(0.8, 0.2, len(labels))))}
     for label in labels:
         significant_values = categorized_pvalues[categorized_pvalues == label]
         # Build a list of tuples with the start and end of each significant region
@@ -260,10 +270,14 @@ def add_significance_bar(ax, categorized_pvalues, labels, spacing):
                         significant_regions.append((threshold, threshold))
                     else:
                         significant_regions[-1] = (significant_regions[-1][0], threshold)
-            for region in significant_regions:
-                ax.text(np.mean(region), line_y * 0.975, label, ha='center', va='bottom', color='k',
-                        fontweight='bold', alpha=0.9)
-                ax.plot(region, [line_y * 0.98, line_y * 0.98], linewidth=0.8, color='k', alpha=0.7, marker='.', ms=3)
+
+            significant_regions = [(start - spacing, end + spacing) for start, end in significant_regions]
+            for start, end in significant_regions:
+                if end > max_threshold:
+                    end = max_threshold
+                if start < min_threshold:
+                    start = min_threshold
+                ax.plot((start, end), [line_y * 0.98, line_y * 0.98], linewidth=2, color=colors[label])
 
 
 def meshgrid(x, y, h=.02, offset=0.07):
