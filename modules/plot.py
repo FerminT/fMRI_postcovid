@@ -271,10 +271,8 @@ def significance_bar(ax, categorized_pvalues, labels, spacing):
                     else:
                         significant_regions[-1] = (significant_regions[-1][0], threshold)
 
-            significant_regions = [(start - spacing, end + spacing) for start, end in significant_regions]
+            significant_regions = [(start - spacing, end) for start, end in significant_regions]
             for start, end in significant_regions:
-                if end > max_threshold:
-                    end = max_threshold
                 if start < min_threshold:
                     start = min_threshold
                 ax.plot((start, end), [line_y * 0.98, line_y * 0.98], linewidth=2, color=colors[label])
