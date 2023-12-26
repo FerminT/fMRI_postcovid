@@ -2,7 +2,7 @@
   "schaefer400": {
     "networks_nce": {
       "SalVentAttnLH": "language", "SalVentAttn": "executive", "DorsAttn": "attention", "SomMot": "executive",
-      "Cont": "visuoespatial", "Default": "memory", "Vis": "visuoespatial", "Limbic": "memory", "Global": "attention"
+      "Cont": "visuospatial", "Default": "memory", "Vis": "visuospatial", "Limbic": "memory", "Global": "attention"
     },
     "networks_names": {
       "SalVentAttnLH": "Salience/Ventral Attention (Left Hemisphere)", "SalVentAttn": "Salience/Ventral Attention",

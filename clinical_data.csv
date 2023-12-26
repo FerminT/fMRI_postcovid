@@ -1,4 +1,4 @@
-id,edad,sexo,nivel_educativo,group,fecha_enc,fecha_rmn,protocolo,tesla,coil,memory,language,attention,executive,visuoespatial,global
+id,edad,sexo,nivel_educativo,group,fecha_enc,fecha_rmn,protocolo,tesla,coil,memory,language,attention,executive,visuospatial,global
 1,47,femenino,14,covid,17/03/2022,3/04/2022,Covid,3,32-channel head,-1.82,-0.605,-1.36,-3.125,-0.55,-2.66333333333333
 3,80,femenino,12,covid,17/2/2022,31/03/2022,Covid,3,32-channel head,-0.72,-1.12,-0.63,-0.14,0.53,-0.34
 4,75,femenino,15,covid,17/03/2022,12/05/2022,Covid,3,32-channel head,-0.675,0.93,0.045,0.105,0.43,0.0733333333333333
