@@ -9,18 +9,18 @@ from modules.rsa import rsa
 
 def main(subjects, conf_strategy, atlas_name, network_name, hemisphere, n_components, n_rois,
          threshold, low_pass, high_pass, smoothing_fwhm, t_r, rdm_decomposition, rdm_similarity,
-         data_path, clinical_file, clinical_score, group_analysis, force, no_plot, output):
+         data_path, clinical_file, clinical_score, individual_analysis, force, no_plot, output):
     subjects_df = utils.load_subjects(subjects, data_path, clinical_file)
     atlas = build_atlas(atlas_name, network_name, hemisphere, subjects_df, n_components, n_rois, low_pass, high_pass,
                         smoothing_fwhm, t_r, conf_strategy)
 
     do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, rdm_similarity, clinical_score, force, no_plot, output, group_analysis)
+                rdm_decomposition, rdm_similarity, clinical_score, force, no_plot, output, individual_analysis)
 
 
 def do_analysis(subjects_df, conf_strategy, atlas, n_components, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
-                rdm_decomposition, rdm_similarity, clinical_score, force, no_plot, output, group_analysis):
-    if group_analysis:
+                rdm_decomposition, rdm_similarity, clinical_score, force, no_plot, output, individual_analysis):
+    if not individual_analysis:
         build_connectome(subjects_df, conf_strategy, atlas, threshold, low_pass, high_pass, smoothing_fwhm, t_r,
                          force, no_plot, output / atlas.name)
         if n_components:
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('-nc', '--n_components', type=int, default=0,
                             help='Number of components to use for dictionary learning. \
                             If specified, the atlas is ignored')
-    arg_parser.add_argument('-nr', '--n_rois', type=int, default=100,
+    arg_parser.add_argument('-nr', '--n_rois', type=int, default=400,
                             help='Number of ROIs for Schaefer atlas. Otherwise ignored.')
     arg_parser.add_argument('-t', '--threshold', type=float, nargs='+', default=[0.1],
                             help='Connection density for connectome construction. If a list is provided, \
@@ -67,8 +67,8 @@ if __name__ == '__main__':
                             help='Path to BIDS derivatives folder')
     arg_parser.add_argument('-clinical', '--clinical_file', type=str, default='clinical_data.csv',
                             help='Path to file with subjects clinical data')
-    arg_parser.add_argument('-g', '--group_analysis', action='store_true',
-                            help='Whether to perform group-based analysis')
+    arg_parser.add_argument('-rsa', '--rsa', action='store_true',
+                            help='Whether to perform individual based analysis')
     arg_parser.add_argument('-dc', '--decomposition', type=str, default='TSNE',
                             help='Decomposition to use for plotting relational distance matrix. \
                             Options are TSNE, MDS, ISOMAP, PCA')
@@ -94,5 +94,5 @@ if __name__ == '__main__':
     high_pass = args.high_pass if 'high_pass' not in args.confounds_strategy else None
     main(args.subjects, args.confounds_strategy, args.atlas, args.network, args.hemisphere, args.n_components,
          args.n_rois, args.threshold, args.low_pass, high_pass, args.smoothing_fwhm, args.repetition_time,
-         args.decomposition, args.similarity, data_path, args.clinical_file, args.clinical_score, args.group_analysis,
+         args.decomposition, args.similarity, data_path, args.clinical_file, args.clinical_score, args.rsa,
          args.force, args.no_plot, output)
